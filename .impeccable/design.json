@@ -1,0 +1,566 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-12T16:48:26+00:00",
+  "title": "Design System: openitch",
+  "extensions": {
+    "colorMeta": {
+      "ultra": {
+        "role": "primary",
+        "displayName": "Programme Ultramarine",
+        "canonical": "oklch(45.8% 0.257 269)",
+        "tonalRamp": [
+          "#030033",
+          "#0f0d6f",
+          "#202ba5",
+          "#3449de",
+          "#5272fe",
+          "#819ffe",
+          "#b4c7ff",
+          "#e8eefe"
+        ],
+        "track": "Experimental",
+        "onField": "paper"
+      },
+      "ultra-deep": {
+        "role": "primary",
+        "displayName": "Night Ultramarine",
+        "canonical": "oklch(35.6% 0.202 269)",
+        "tonalRamp": [
+          "#030132",
+          "#10195f",
+          "#243690",
+          "#3b54c4",
+          "#5474f8",
+          "#819fff",
+          "#b4c8ff",
+          "#e8eeff"
+        ]
+      },
+      "lime": {
+        "role": "secondary",
+        "displayName": "Acid Lime",
+        "canonical": "oklch(89.6% 0.199 122)",
+        "tonalRamp": [
+          "#090d00",
+          "#202901",
+          "#3a4900",
+          "#576b04",
+          "#748f00",
+          "#94b413",
+          "#bad866",
+          "#e1fba1"
+        ],
+        "track": "Navegador",
+        "onField": "ink"
+      },
+      "magenta": {
+        "role": "tertiary",
+        "displayName": "Hot Magenta",
+        "canonical": "oklch(68.8% 0.220 1)",
+        "tonalRamp": [
+          "#1d000a",
+          "#490122",
+          "#7c003e",
+          "#af0f5c",
+          "#e12e7c",
+          "#ff699f",
+          "#ffafc6",
+          "#ffe8ed"
+        ],
+        "track": "Narrativo",
+        "onField": "ink"
+      },
+      "tangerine": {
+        "role": "tertiary",
+        "displayName": "Signal Tangerine",
+        "canonical": "oklch(74.8% 0.175 55)",
+        "tonalRamp": [
+          "#170600",
+          "#3c1b01",
+          "#673201",
+          "#944b03",
+          "#c46505",
+          "#eb883c",
+          "#ffb787",
+          "#ffeadc"
+        ],
+        "track": "Ação",
+        "onField": "ink"
+      },
+      "teal": {
+        "role": "tertiary",
+        "displayName": "Programme Teal",
+        "canonical": "oklch(64.8% 0.121 176)",
+        "tonalRamp": [
+          "#000f0b",
+          "#002d24",
+          "#024e41",
+          "#01725f",
+          "#099880",
+          "#51baa3",
+          "#88dcc7",
+          "#bbffed"
+        ],
+        "track": "Quebra-cabeça",
+        "onField": "ink"
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Cool Newsprint",
+        "canonical": "oklch(94.2% 0.005 248)",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#242526",
+          "#404244",
+          "#5f6164",
+          "#808385",
+          "#a3a5a8",
+          "#c7c9cb",
+          "#edeff0"
+        ]
+      },
+      "paper-deep": {
+        "role": "neutral",
+        "displayName": "Second Sheet",
+        "canonical": "oklch(90.8% 0.008 254)",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#232527",
+          "#404245",
+          "#5e6165",
+          "#7f8387",
+          "#a2a5a9",
+          "#c6c9cd",
+          "#eceff2"
+        ]
+      },
+      "paper-edge": {
+        "role": "neutral",
+        "displayName": "Paper Edge",
+        "canonical": "oklch(85.2% 0.012 252)",
+        "tonalRamp": [
+          "#090b0d",
+          "#232528",
+          "#3f4247",
+          "#5d6267",
+          "#7d8389",
+          "#a1a6ab",
+          "#c5cacf",
+          "#ebeff3"
+        ]
+      },
+      "paper-bright": {
+        "role": "neutral",
+        "displayName": "Bright Stock",
+        "canonical": "oklch(97.5% 0.003 248)",
+        "tonalRamp": [
+          "#0b0b0c",
+          "#242526",
+          "#414243",
+          "#606163",
+          "#818284",
+          "#a4a5a7",
+          "#c8c9cb",
+          "#edeef0"
+        ],
+        "note": "Literal #f5f7f9 in globals.css (pitch-proof, buy-card, input focus); not yet a custom property."
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Blue-Black Ink",
+        "canonical": "oklch(19.0% 0.016 279)",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#24252a",
+          "#404149",
+          "#5f6169",
+          "#80828c",
+          "#a3a4ae",
+          "#c7c8d1",
+          "#edeef5"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "oklch(36.5% 0.023 272)",
+        "tonalRamp": [
+          "#090b10",
+          "#22252c",
+          "#3f424b",
+          "#5d616d",
+          "#7d8291",
+          "#a0a5b2",
+          "#c5c9d4",
+          "#ebeef8"
+        ]
+      },
+      "ink-mute": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "oklch(47.2% 0.023 270)",
+        "tonalRamp": [
+          "#090b10",
+          "#22252c",
+          "#3e424c",
+          "#5c616d",
+          "#7d8291",
+          "#a0a5b2",
+          "#c5c9d5",
+          "#ebeef8"
+        ]
+      },
+      "alert": {
+        "role": "error",
+        "displayName": "Alert Red",
+        "canonical": "oklch(48.2% 0.192 15)",
+        "tonalRamp": [
+          "#1f0004",
+          "#4c0014",
+          "#7c0b29",
+          "#ab2642",
+          "#dc415d",
+          "#fa7384",
+          "#ffb1b6",
+          "#fee8e9"
+        ],
+        "note": "Literal #b0003a in globals.css, used once (.publish-error)."
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Cover wordmark only; colophon repeats it at clamp(4rem, 10vw, 9rem)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles: catalogue, game, jams, publish."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "Home section heads; track band names run at width 50%."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Entry titles; lead/wide entries step up, row entries step down."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Times, entry numbers, prices, counts, steps, scores. Always tabular."
+      },
+      "code": {
+        "displayName": "Legend code",
+        "purpose": "Platform legend letters (N W M L A) and thumb-index tab names."
+      },
+      "body-lead": {
+        "displayName": "Body lead",
+        "purpose": "Section intros, band blurbs, long-form game description (1.65 line height in prose)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default reading text and taglines."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Buttons and primary navigation."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field labels, fieldset legends, card state lines, colophon headings. Sentence case."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift",
+        "value": "0 10px 24px -12px color-mix(in oklab, var(--ink) 55%, transparent)",
+        "purpose": "Hover only: buttons (with a 1px rise) and entry art (3px rise, -0.4deg tilt); also under the floating game-overlay message."
+      },
+      {
+        "name": "input-halo",
+        "value": "0 0 0 4px color-mix(in oklab, var(--ultra) 35%, transparent)",
+        "purpose": "Focused text inputs and textareas, with background shifting to #f5f7f9."
+      },
+      {
+        "name": "tab-pull-rail",
+        "value": "inset -5px 0 0 var(--ink)",
+        "purpose": "Active thumb-index tab on the desktop rail."
+      },
+      {
+        "name": "tab-pull-strip",
+        "value": "inset 0 -4px 0 var(--ink)",
+        "purpose": "Active thumb-index tab on the mobile strip."
+      },
+      {
+        "name": "live-glow",
+        "value": "0 0 10px 2px color-mix(in oklab, var(--lime) 65%, transparent)",
+        "purpose": "The jam schedule's 'agora' line. Live state only."
+      },
+      {
+        "name": "live-pulse",
+        "value": "@keyframes live { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--lime) 60%, transparent) } 70%, 100% { box-shadow: 0 0 0 10px transparent } } /* 2.4s infinite */",
+        "purpose": "The 9px lime live dot. Live state only."
+      }
+    ],
+    "strokes": [
+      {
+        "name": "rule",
+        "value": "2px solid var(--ink)",
+        "purpose": "Programme rule: masthead, page heads, bands, results bar, step and list openers; also every control and container border."
+      },
+      {
+        "name": "double-rule",
+        "value": "6px double var(--ink)",
+        "purpose": "Under every section head and list title."
+      },
+      {
+        "name": "hair",
+        "value": "1px solid color-mix(in oklab, var(--ink) 28%, transparent)",
+        "purpose": "Between rows in ruled lists, fieldsets and pitch rows."
+      },
+      {
+        "name": "foot-rule",
+        "value": "1.5px solid currentColor",
+        "purpose": "Separates the foot of an entry or jam card; also tags, codes, swatches."
+      },
+      {
+        "name": "slot-dash",
+        "value": "2px dashed (ink or currentColor)",
+        "purpose": "Empty/insert states: drop zone, open slot, empty results. Turns solid on hover."
+      },
+      {
+        "name": "focus",
+        "value": "3px solid var(--ultra), offset 2px (lime on dark fields)",
+        "purpose": "Global :focus-visible outline."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The only easing curve."
+      },
+      {
+        "name": "control",
+        "value": "160-180ms",
+        "purpose": "Buttons, toggles, segmented options, input focus."
+      },
+      {
+        "name": "tab",
+        "value": "220-260ms",
+        "purpose": "Thumb-index slide/widen, nav underline wipe."
+      },
+      {
+        "name": "lift",
+        "value": "320ms",
+        "purpose": "Entry art lift and tilt."
+      },
+      {
+        "name": "recolour",
+        "value": "420ms",
+        "purpose": "Page head or preview sheet changing track field."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: durations to 0.01ms, smooth scroll off",
+        "purpose": "Required."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "960px"
+      },
+      {
+        "name": "rail",
+        "value": "1100px"
+      },
+      {
+        "name": "component-level",
+        "value": "480px, 560px, 720px, 760px, 800px, 860px, 900px, 1180px"
+      }
+    ],
+    "layout": {
+      "maxWidth": "1480px",
+      "gutter": "clamp(16px, 3vw, 40px)",
+      "tabRail": "44px at >=1100px",
+      "stickyMasthead": "64px",
+      "stickyColumnTop": "88px",
+      "splits": [
+        "7:5",
+        "5:7",
+        "4:8 / 8:4 alternating bands",
+        "3:2 band entries"
+      ]
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink pill; the default action on paper (Publicar, Começar a publicar).",
+      "html": "<button class=\"ds-btn-primary\">Começar a publicar <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 24px;border:2px solid var(--ink, #12131b);border-radius:999px;font-family:var(--text, 'Schibsted Grotesk Variable', 'Helvetica Neue', Arial, sans-serif);font-weight:700;font-size:0.9375rem;line-height:1;cursor:pointer;text-decoration:none;transition:background-color 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),color 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),transform 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),box-shadow 220ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));background:var(--ink, #12131b);color:var(--paper, #e9ecef)} .ds-btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 24px -12px color-mix(in oklab, #12131b 55%, transparent)} .ds-btn-primary:active{transform:none;box-shadow:none} .ds-btn-primary:focus-visible{outline:3px solid var(--ultra, #2b2fe3);outline-offset:2px}"
+    },
+    {
+      "name": "Lime Button on Field",
+      "kind": "button",
+      "refersTo": "button-lime",
+      "description": "Lime pill; the action on a coloured field, shown here on the ultramarine cover.",
+      "html": "<div class=\"ds-field-ultra\"><button class=\"ds-btn-lime\">Buscar</button></div>",
+      "css": ".ds-field-ultra{background:var(--ultra, #2b2fe3);padding:24px;display:inline-block} .ds-btn-lime{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 24px;border:2px solid var(--ink, #12131b);border-radius:999px;font-family:var(--text, 'Schibsted Grotesk Variable', 'Helvetica Neue', Arial, sans-serif);font-weight:700;font-size:0.9375rem;line-height:1;cursor:pointer;text-decoration:none;transition:background-color 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),color 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),transform 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),box-shadow 220ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));background:var(--lime, #c8f03c);border-color:var(--lime, #c8f03c);color:var(--ink, #12131b)} .ds-btn-lime:hover{transform:translateY(-1px);box-shadow:0 10px 24px -12px color-mix(in oklab, #12131b 55%, transparent)} .ds-btn-lime:focus-visible{outline:3px solid var(--lime, #c8f03c);outline-offset:2px}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Outline pill in the current text colour; fills with ink on hover.",
+      "html": "<button class=\"ds-btn-ghost\">Catálogo completo</button>",
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 24px;border:2px solid var(--ink, #12131b);border-radius:999px;font-family:var(--text, 'Schibsted Grotesk Variable', 'Helvetica Neue', Arial, sans-serif);font-weight:700;font-size:0.9375rem;line-height:1;cursor:pointer;text-decoration:none;transition:background-color 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),color 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),transform 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),box-shadow 220ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));background:transparent;color:var(--ink, #12131b);border-color:currentColor} .ds-btn-ghost:hover{background:var(--ink, #12131b);color:var(--paper, #e9ecef);border-color:var(--ink, #12131b);transform:translateY(-1px);box-shadow:0 10px 24px -12px color-mix(in oklab, #12131b 55%, transparent)} .ds-btn-ghost:focus-visible{outline:3px solid var(--ultra, #2b2fe3);outline-offset:2px}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Paper field with a 2px ink border; focus is an ultramarine halo on bright stock.",
+      "html": "<label class=\"ds-label\" for=\"ds-q\">Buscar</label><input id=\"ds-q\" class=\"ds-input\" placeholder=\"Jogo, criador ou tag\">",
+      "css": ".ds-label{display:block;font-family:var(--text, 'Schibsted Grotesk Variable', 'Helvetica Neue', Arial, sans-serif);font-size:0.8125rem;font-weight:700;margin-bottom:8px;color:var(--ink, #12131b)} .ds-input{width:100%;max-width:320px;min-height:48px;padding:12px 16px;border:2px solid var(--ink, #12131b);border-radius:10px;background:var(--paper, #e9ecef);color:var(--ink, #12131b);font-family:var(--text, 'Schibsted Grotesk Variable', 'Helvetica Neue', Arial, sans-serif);font-size:1rem;transition:box-shadow 160ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),background-color 160ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1))} .ds-input::placeholder{color:var(--ink-mute, #565b69)} .ds-input:focus{outline:none;box-shadow:0 0 0 4px color-mix(in oklab, #2b2fe3 35%, transparent);background:#f5f7f9}"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "chip",
+      "refersTo": "segmented",
+      "description": "Ink-bordered pill of options; the selected option is solid ink.",
+      "html": "<div class=\"ds-seg\" role=\"group\"><button aria-pressed=\"true\">Grátis</button><button aria-pressed=\"false\">Valor fixo</button><button aria-pressed=\"false\">Pague o que quiser</button></div>",
+      "css": ".ds-seg{display:inline-flex;gap:2px;padding:3px;border:2px solid var(--ink, #12131b);border-radius:999px;background:var(--paper, #e9ecef)} .ds-seg button{border:0;background:transparent;border-radius:999px;padding:8px 16px;min-height:36px;font-family:var(--text, 'Schibsted Grotesk Variable', 'Helvetica Neue', Arial, sans-serif);font-weight:650;font-size:0.875rem;color:var(--ink, #12131b);cursor:pointer;transition:background-color 160ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),color 160ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1))} .ds-seg button:hover{background:var(--paper-deep, #dde1e6)} .ds-seg button[aria-pressed=\"true\"]{background:var(--ink, #12131b);color:var(--paper, #e9ecef)} .ds-seg button:focus-visible{outline:3px solid var(--ultra, #2b2fe3);outline-offset:2px}"
+    },
+    {
+      "name": "Platform Legend Codes",
+      "kind": "custom",
+      "refersTo": "legend-code",
+      "description": "All five platform letters always print; absent platforms fade to 22%.",
+      "html": "<span class=\"ds-codes\"><span class=\"ds-code\">N</span><span class=\"ds-code\">W</span><span class=\"ds-code ds-off\">M</span><span class=\"ds-code ds-off\">L</span><span class=\"ds-code\">A</span></span>",
+      "css": ".ds-codes{display:inline-flex;gap:3px;color:var(--ink, #12131b)} .ds-code{display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid currentColor;border-radius:5px;font-family:var(--display, 'Anybody Variable', 'Arial Narrow', sans-serif);font-stretch:75%;font-weight:800;font-size:0.75rem;line-height:1} .ds-off{opacity:0.22}"
+    },
+    {
+      "name": "Track Toggle",
+      "kind": "chip",
+      "refersTo": "track-toggle",
+      "description": "Filter row per track: legend swatch, name, tabular count; pressed, it fills with its track field.",
+      "html": "<div class=\"ds-tt-wrap\"><button class=\"ds-tt\" style=\"--c:#ff4d94\" aria-pressed=\"true\"><span><i></i>Narrativo</span><small>4</small></button><button class=\"ds-tt\" style=\"--c:#00a68c\" aria-pressed=\"false\"><span><i></i>Quebra-cabeça</span><small>3</small></button></div>",
+      "css": ".ds-tt-wrap{display:flex;flex-direction:column;gap:6px;max-width:300px} .ds-tt{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:42px;padding:0 12px;border:2px solid var(--ink, #12131b);border-radius:10px;background:var(--paper, #e9ecef);color:var(--ink, #12131b);font-family:var(--text, 'Schibsted Grotesk Variable', 'Helvetica Neue', Arial, sans-serif);font-weight:650;font-size:0.9375rem;cursor:pointer;transition:background-color 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1))} .ds-tt span{display:inline-flex;align-items:center;gap:12px} .ds-tt i{width:14px;height:14px;border-radius:4px;background:var(--c);border:1.5px solid var(--ink, #12131b)} .ds-tt small{font-family:var(--display, 'Anybody Variable', 'Arial Narrow', sans-serif);font-stretch:75%;font-weight:700;font-size:0.875rem;font-variant-numeric:tabular-nums} .ds-tt:hover{background:var(--paper-deep, #dde1e6)} .ds-tt[aria-pressed=\"true\"]{background:var(--c)} .ds-tt:focus-visible{outline:3px solid var(--ultra, #2b2fe3);outline-offset:2px}"
+    },
+    {
+      "name": "Thumb Index",
+      "kind": "nav",
+      "refersTo": "thumb-tab",
+      "description": "Signature: one coloured tab per track on the page edge; the current track's tab is pulled out with an ink bar.",
+      "html": "<nav class=\"ds-thumb\" aria-label=\"Trilhas\"><a href=\"#\" style=\"--c:#c8f03c;--on:#12131b\">Navegador</a><a href=\"#\" style=\"--c:#ff8a24;--on:#12131b\">Ação</a><a href=\"#\" aria-current=\"true\" style=\"--c:#ff4d94;--on:#12131b\">Narrativo</a><a href=\"#\" style=\"--c:#00a68c;--on:#12131b\">Quebra-cabeça</a><a href=\"#\" style=\"--c:#2b2fe3;--on:#e9ecef\">Experimental</a></nav>",
+      "css": ".ds-thumb{display:flex;flex-direction:column;align-items:flex-end;gap:3px} .ds-thumb a{display:flex;align-items:center;justify-content:center;width:40px;height:112px;background:var(--c);color:var(--on);border:2px solid var(--ink, #12131b);border-right:0;border-radius:10px 0 0 10px;writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--display, 'Anybody Variable', 'Arial Narrow', sans-serif);font-stretch:70%;font-weight:800;font-size:0.8125rem;text-decoration:none;transition:width 240ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1))} .ds-thumb a:hover{width:48px} .ds-thumb a[aria-current=\"true\"]{width:56px;box-shadow:inset -5px 0 0 var(--ink, #12131b)} .ds-thumb a:focus-visible{outline:3px solid var(--ultra, #2b2fe3);outline-offset:2px}"
+    },
+    {
+      "name": "Programme Entry",
+      "kind": "card",
+      "refersTo": "entry-art",
+      "description": "Entry card: framed art, Nº number and codes, condensed title, ruled foot with creator and price; lifts and tilts on hover.",
+      "html": "<a class=\"ds-entry\" href=\"#\"><div class=\"ds-entry-art\"><span class=\"ds-flag\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M6 3l14 9-14 9V3z\"/></svg> Joga aqui</span></div><div class=\"ds-entry-line\"><span class=\"ds-num\">Nº 0002</span><span class=\"ds-codes\"><span class=\"ds-code\">N</span><span class=\"ds-code\">W</span></span></div><h3>Faroleiro</h3><p class=\"ds-tagline\">Três invernos cuidando de uma luz que ninguém mais usa.</p><div class=\"ds-foot\"><span>Ana Torquato</span><span class=\"ds-price\">R$ 5+</span></div></a>",
+      "css": ".ds-entry{display:flex;flex-direction:column;gap:8px;max-width:280px;color:var(--ink, #12131b);text-decoration:none;font-family:var(--text, 'Schibsted Grotesk Variable', 'Helvetica Neue', Arial, sans-serif)} .ds-entry-art{position:relative;aspect-ratio:4/3;border:2px solid var(--ink, #12131b);border-radius:12px;background:var(--paper-deep, #dde1e6);transition:transform 320ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),box-shadow 320ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1))} .ds-entry:hover .ds-entry-art{transform:translateY(-3px) rotate(-0.4deg);box-shadow:0 10px 24px -12px color-mix(in oklab, #12131b 55%, transparent)} .ds-flag{position:absolute;right:12px;top:12px;display:inline-flex;align-items:center;gap:6px;padding:5px 12px 5px 8px;border-radius:999px;background:var(--lime, #c8f03c);color:var(--ink, #12131b);border:1.5px solid var(--ink, #12131b);font-size:0.75rem;font-weight:750} .ds-entry-line{display:flex;justify-content:space-between;align-items:baseline;font-size:0.8125rem;font-weight:650} .ds-num{font-family:var(--display, 'Anybody Variable', 'Arial Narrow', sans-serif);font-stretch:80%;font-weight:600;font-variant-numeric:tabular-nums} .ds-codes{display:inline-flex;gap:3px} .ds-code{display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid currentColor;border-radius:5px;font-family:var(--display, 'Anybody Variable', 'Arial Narrow', sans-serif);font-stretch:75%;font-weight:800;font-size:0.75rem;line-height:1} .ds-entry h3{margin:0;font-family:var(--display, 'Anybody Variable', 'Arial Narrow', sans-serif);font-stretch:66%;font-weight:800;font-size:1.625rem;line-height:0.95} .ds-tagline{margin:0;font-size:0.9375rem;line-height:1.4} .ds-foot{display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1.5px solid currentColor;font-size:0.875rem;font-weight:650} .ds-price{font-family:var(--display, 'Anybody Variable', 'Arial Narrow', sans-serif);font-stretch:75%;font-weight:750;font-size:1rem} .ds-entry:focus-visible{outline:3px solid var(--ultra, #2b2fe3);outline-offset:2px}"
+    },
+    {
+      "name": "Section Head",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Condensed section title over a 6px double ink rule, intro in soft ink.",
+      "html": "<div class=\"ds-shead\"><h2>Hoje no programa</h2><p>Tudo que entrou no programa, na ordem em que chegou.</p></div>",
+      "css": ".ds-shead{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px 48px;align-items:end;padding-bottom:24px;border-bottom:6px double var(--ink, #12131b);color:var(--ink, #12131b)} .ds-shead h2{margin:0;font-family:var(--display, 'Anybody Variable', 'Arial Narrow', sans-serif);font-stretch:55%;font-weight:900;font-size:clamp(3rem,7vw,6rem);line-height:0.95;letter-spacing:-0.02em} .ds-shead p{margin:0;max-width:52ch;font-family:var(--text, 'Schibsted Grotesk Variable', 'Helvetica Neue', Arial, sans-serif);font-size:1.0625rem;color:var(--ink-soft, #3a3e4b)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Permanent Programme",
+    "overview": "openitch is printed, not rendered. Every page is a spread from a festival programme book: cool grey newsprint, blue-black ink, and spot colours laid down as solid fields. A track does not wear its colour as a badge; it owns a whole band of the page, a page head, a game stage, a card. Ink draws the structure with 2px programme rules and a 6px double rule that opens each section. Everything else sits flat on the paper.\n\nThe voice is condensed and loud at the top and plain and readable below. Anybody, pulled narrow, carries the wordmark, section titles, entry titles and every number the programme prints: entry numbers (Nº 0142), times, prices, counts, scores. Schibsted Grotesk carries reading text and every control. Density is a printed schedule's: ruled rows, tabular figures, legend codes for platforms (N W M L A), and entries billed at different sizes rather than repeated as equal tiles.\n\nThe page has one wayfinding device of its own, the thumb index: coloured tabs on the page edge, one per track, like the cut tabs of a printed guide. Motion is small and physical (a tab slides out, a card lifts a few pixels, a field recolours). Light is kept for one meaning only: something is live right now.",
+    "keyCharacteristics": [
+      "Cool newsprint paper (never warm cream) with blue-black ink; the page is flat.",
+      "Five spot colours, one per track, used as full fields with ink on top (paper on ultramarine only).",
+      "Anybody at condensed widths for display and numerals; Schibsted Grotesk for text and UI.",
+      "2px ink programme rules for structure, 1px faint hairlines between rows, 6px double rules under section heads.",
+      "Pill controls and pill-ended bars with 2px ink borders; cards and sheets with 12–16px corners and 2px ink borders.",
+      "Thumb-index tabs, entry numbers and platform legend codes as the recurring programme furniture.",
+      "Glow appears only on live state."
+    ],
+    "rules": [
+      {
+        "name": "The Full Field Rule",
+        "body": "A track colour is laid down as a field: a band, a page head, a game stage, a jam card, a preview sheet, the hover fill of a schedule row. The only small use is the 12–14px ink-bordered swatch that keys a track name in a legend or chip.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink On Spot Rule",
+        "body": "Text on lime, tangerine, magenta and teal is ink; text on ultramarine and on ink is paper. No other text colour sits on a spot field.",
+        "section": "colors"
+      },
+      {
+        "name": "The Lime Means Go Rule",
+        "body": "Off its own track, lime marks the action on a field, a confirmation or selection, or something live. It is never decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Narrow Voice Rule",
+        "body": "Anybody is always condensed: 50–58% for display and page heads, 60–70% for titles and times, 70–80% for codes, prices and entry numbers. It never runs at its default width.",
+        "section": "typography"
+      },
+      {
+        "name": "The Printed Numbers Rule",
+        "body": "Every number the programme prints (entry number, time, price, count, step, score) is set in Anybody with tabular figures. Schibsted Grotesk never carries a headline number.",
+        "section": "typography"
+      },
+      {
+        "name": "The Sentence Case Rule",
+        "body": "Labels, legends and buttons are sentence case Schibsted Grotesk. Nothing in the system is set in uppercase or letter-spaced caps.",
+        "section": "typography"
+      },
+      {
+        "name": "The Billing Rule",
+        "body": "Entries vary in scale by billing (lead, wide, card, row). Never fill a surface with a row of equal cards.",
+        "section": "layout"
+      },
+      {
+        "name": "The Ruled List Rule",
+        "body": "A list of entries or events is a ruled programme list with a numeral column, not a stack of boxes.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Paper Rule",
+        "body": "Surfaces are flat at rest. A shadow is a response to hover, never a resting state.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Glow Means Live Rule",
+        "body": "Glow and pulse belong only to something happening now: the schedule's \"agora\" line, a live dot. Nothing else glows.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do lay a track's colour down as a whole field (band, page head, stage, card, sheet) and pass it to components as `--c` and `--on`.",
+      "Do set ink on lime, tangerine, magenta and teal, and paper on ultramarine and ink.",
+      "Do draw structure with ink: 2px solid rules for edges, a 6px double rule under section heads, 1px hairlines at 28% ink between rows.",
+      "Do give controls and containers a 2px ink border; use full pills (999px) for buttons, toggles, tags and bars, and 10–16px corners for fields, cards and sheets.",
+      "Do set every printed number (Nº entry number, time, price, count, step) in condensed Anybody with tabular figures.",
+      "Do show all five platform legend codes (N W M L A) and fade the absent ones to 22%.",
+      "Do bill entries at different sizes (lead, wide, card, row) and print lists as ruled rows with a numeral column.",
+      "Do keep motion short and physical on the shared ease-out curve (cubic-bezier(0.16, 1, 0.3, 1)): 160–180ms for controls, 220–260ms for tabs and underlines, 320ms for entry lift, 420ms for a field recolour; honour reduced motion."
+    ],
+    "donts": [
+      "Don't use a track colour as a small sticker, badge or text accent on paper; the only small form is the ink-bordered legend swatch.",
+      "Don't set Anybody at its default width or use it for reading text or controls.",
+      "Don't glow, pulse or neon-light anything that is not live right now.",
+      "Don't give surfaces a resting shadow; lift only on hover.",
+      "Don't warm the paper toward cream or darken the page into a gamer-store black; the page is cool newsprint and ink.",
+      "Don't set labels or buttons in uppercase or letter-spaced caps.",
+      "Don't use lime off its own track for anything except an action on a field, a confirmation or selection, or live state."
+    ]
+  }
+}

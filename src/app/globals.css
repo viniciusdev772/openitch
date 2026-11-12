@@ -18,6 +18,9 @@
   --magenta: #ff4d94;
   --tangerine: #ff8a24;
   --teal: #00a68c;
+  --teal-ink: #007a67;
+  --paper-bright: #f5f7f9;
+  --alert: #b0003a;
 
   --field: var(--ultra);
   --on-field: var(--paper);
@@ -408,7 +411,7 @@ p {
 .textarea:focus {
   outline: none;
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--ultra) 35%, transparent);
-  background: #f5f7f9;
+  background: var(--paper-bright);
 }
 .textarea {
   min-height: 140px;
@@ -481,7 +484,7 @@ p {
 .chip-track i {
   width: 12px;
   height: 12px;
-  border-radius: 3px;
+  border-radius: 4px;
   background: var(--c);
   border: 1.5px solid var(--ink);
 }
@@ -599,20 +602,6 @@ p {
   padding-bottom: var(--s-7);
   align-items: stretch;
 }
-.cover-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-2) var(--s-5);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: color-mix(in oklab, var(--paper) 82%, var(--ultra));
-}
-.cover-meta .live-dot {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-2);
-  color: var(--lime);
-}
 .live-dot::before {
   content: "";
   width: 9px;
@@ -684,7 +673,7 @@ p {
   display: flex;
   flex-direction: column;
   border: 2px solid var(--paper);
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
   background: var(--ultra-deep);
   align-self: center;
@@ -1133,7 +1122,7 @@ p {
 .pitch-proof {
   border: 2px solid var(--ink);
   border-radius: 16px;
-  background: #f5f7f9;
+  background: var(--paper-bright);
   padding: var(--s-5);
 }
 @media (max-width: 860px) {
@@ -1328,40 +1317,6 @@ p {
   color: var(--ink-mute);
   border-color: var(--paper-edge);
 }
-.schedule-now {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 0;
-  border-left: 2px solid var(--ink);
-  pointer-events: none;
-  z-index: 2;
-}
-.schedule-now span {
-  position: absolute;
-  top: -2px;
-  left: -1px;
-  transform: translateX(-50%);
-  background: var(--lime);
-  color: var(--ink);
-  border: 2px solid var(--ink);
-  border-radius: 999px;
-  padding: 2px var(--s-2);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  white-space: nowrap;
-}
-.schedule-now::after {
-  content: "";
-  position: absolute;
-  top: 24px;
-  bottom: 0;
-  left: -2px;
-  width: 2px;
-  background: var(--lime);
-  box-shadow: 0 0 10px 2px color-mix(in oklab, var(--lime) 65%, transparent);
-  opacity: 0.85;
-}
 @media (max-width: 760px) {
   .schedule-axis,
   .schedule-row {
@@ -1372,9 +1327,6 @@ p {
   }
   .schedule-row {
     padding-top: var(--s-3);
-  }
-  .schedule-overlay {
-    left: 0 !important;
   }
 }
 
@@ -1839,7 +1791,7 @@ p {
   border: 2px solid var(--ink);
   border-radius: 16px;
   padding: var(--s-5);
-  background: #f5f7f9;
+  background: var(--paper-bright);
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
@@ -1982,7 +1934,7 @@ p {
   transition: color 240ms var(--ease-out);
 }
 .step[data-done="true"] .step-num {
-  color: var(--teal);
+  color: var(--teal-ink);
 }
 .step h2 {
   font-stretch: 65%;
@@ -2119,7 +2071,7 @@ p {
   font-weight: 600;
 }
 .publish-error {
-  color: #b0003a;
+  color: var(--alert);
   font-size: 0.875rem;
   font-weight: 650;
   margin-top: var(--s-2);
@@ -2325,7 +2277,7 @@ p {
 }
 .index-list .thumb {
   border: 2px solid var(--ink);
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
 }
 .index-list h3 {
