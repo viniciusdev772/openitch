@@ -21,8 +21,21 @@ export function BuyCard({ price, title, downloads, playable }: { price: Price; t
 
   const headline = price.kind === "free" ? "Grátis" : price.kind === "fixed" ? `R$ ${price.amount.toFixed(2).replace(".", ",")}` : "Você decide";
 
+  const browserOnly = playable && downloads.length === 0;
   const act = () => {
     if (below) return;
+    if (browserOnly && (price.kind === "free" || n === 0)) {
+      const stage = document.getElementById("palco");
+      stage?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const target = stage?.querySelector<HTMLElement>("canvas, [aria-disabled]");
+      target?.focus({ preventScroll: true });
+      setDone(
+        stage?.querySelector("canvas")
+          ? null
+          : `A build de navegador de ${title} não acompanha esta demonstração. Na versão real, ela abriria no palco acima.`,
+      );
+      return;
+    }
     setDone(
       price.kind === "free" || (price.kind === "pwyw" && n === 0)
         ? `Nesta demonstração os arquivos de ${title} não estão disponíveis. Na versão real, o download começaria agora.`
@@ -64,7 +77,9 @@ export function BuyCard({ price, title, downloads, playable }: { price: Price; t
         </div>
       )}
       <button type="button" className="btn" onClick={act} disabled={below}>
-        {price.kind === "free"
+        {browserOnly && (price.kind === "free" || n === 0)
+          ? "Jogar agora"
+          : price.kind === "free"
           ? "Baixar grátis"
           : price.kind === "fixed"
             ? "Comprar"

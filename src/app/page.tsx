@@ -16,27 +16,19 @@ import { OrbitaGame } from "@/components/OrbitaGame";
 import { PriceDemo } from "@/components/PriceDemo";
 import { JamSchedule } from "@/components/JamSchedule";
 import { EditDemo } from "@/components/EditDemo";
-import { ThumbIndex } from "@/components/ThumbIndex";
 import { Entry, PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 
 export default function Home() {
   const orbita = gameBySlug("orbita")!;
   const lineup = gamesByNewest().slice(0, 7);
-  const today = lineup.filter((g) => g.published.startsWith("2026-11-12")).length;
 
   return (
     <>
-      <ThumbIndex mode="home" />
 
       {/* Programme cover */}
       <section className="cover on-field" aria-labelledby="capa-titulo">
         <div className="wrap">
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div className="cover-meta">
-              <span className="live-dot">{today} entradas novas hoje</span>
-              <span>Edição permanente</span>
-              <span>Grátis para publicar</span>
-            </div>
             <h1 id="capa-titulo" className="cover-title">
               open<em>itch</em>
             </h1>
@@ -51,7 +43,7 @@ export default function Home() {
                 id="busca-capa"
                 name="q"
                 className="input"
-                placeholder="Busque por jogo, criador ou tag"
+                placeholder="Jogo, criador ou tag"
                 autoComplete="off"
               />
               <button className="btn btn--lime" type="submit">
@@ -80,7 +72,8 @@ export default function Home() {
               <div>
                 <h2>{orbita.title}</h2>
                 <p>
-                  {creatorBySlug(orbita.creator)?.name} · roda aqui, sem instalar
+                  {creatorBySlug(orbita.creator)?.name} · roda aqui, sem instalar ·{" "}
+                  <strong style={{ color: "var(--lime)" }}>{shortPrice(orbita.price)}</strong>
                 </p>
               </div>
               <Link href={`/jogo/${orbita.slug}`} className="btn btn--lime btn--sm">

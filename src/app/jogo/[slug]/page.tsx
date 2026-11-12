@@ -40,7 +40,7 @@ export default async function GamePage({ params }: Props) {
 
   return (
     <>
-      <section className={`game-stage${track.on === "--paper" ? " on-field" : ""}`} style={trackStyle(game.track)}>
+      <section id="palco" className={`game-stage${track.on === "--paper" ? " on-field" : ""}`} style={trackStyle(game.track)}>
         <div className="wrap">
           <nav className="crumbs" aria-label="Trilha de navegação">
             <Link href="/jogos">Catálogo</Link>
@@ -75,7 +75,7 @@ export default async function GamePage({ params }: Props) {
         </div>
       </section>
 
-      <div className="wrap game-body">
+      <div className="wrap game-body" id="palco-info">
         <article>
           <header className="game-title">
             <div className="meta">
@@ -138,9 +138,6 @@ export default async function GamePage({ params }: Props) {
             playable={playable}
           />
           <div className="creator-card">
-            <span className="field-label" style={{ marginBottom: 0 }}>
-              Quem fez
-            </span>
             <Link className="name" href={`/criador/${creator.slug}`}>
               {creator.name}
             </Link>

@@ -359,7 +359,7 @@ function Art({ game }: { game: Game }) {
           {[40, 90, 150, 210, 300, 350].map((x, i) => (
             <path key={x} d={`M${x} ${110 - (i % 2) * 20} v -16 M${x - 8} ${102 - (i % 2) * 20} h16`} stroke={f} strokeWidth={3} opacity={0.5} />
           ))}
-          <Title text={game.title} x={24} y={302} fill={f} size={40} max={20} />
+          <Title text={game.title} x={24} y={300} fill={f} size={36} max={24} />
         </>
       );
     case "bus":

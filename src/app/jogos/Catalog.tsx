@@ -10,8 +10,11 @@ import {
   TRACKS,
   type Platform,
   type TrackId,
+  shortPrice,
 } from "@/data/catalog";
-import { Entry, trackStyle } from "@/components/bits";
+import Link from "next/link";
+import { Entry, TrackChip, trackStyle } from "@/components/bits";
+import { Cover } from "@/components/Cover";
 
 type PriceFilter = "all" | "free" | "paid" | "pwyw";
 type Sort = "new" | "az" | "price";
@@ -67,6 +70,9 @@ export function Catalog() {
     });
     return list;
   }, [q, track, platforms, price, sort]);
+
+  const featured = results.length > 9 ? results.slice(0, 8) : results;
+  const index = results.length > 9 ? results.slice(8) : [];
 
   const active = track ? TRACKS.find((t) => t.id === track)! : null;
   const filtersOn = !!(q || track || platforms.length || price !== "all");
@@ -197,11 +203,36 @@ export function Catalog() {
           </div>
 
           {results.length ? (
-            <div className="results">
-              {results.map((g, i) => (
-                <Entry key={g.slug} game={g} variant={i === 0 && sort === "new" ? "lead" : "card"} showTrack={!track} />
-              ))}
-            </div>
+            <>
+              <div className="results">
+                {featured.map((g, i) => (
+                  <Entry key={g.slug} game={g} variant={i === 0 ? "lead" : i === 5 ? "wide" : "card"} showTrack={!track} />
+                ))}
+              </div>
+              {index.length > 0 && (
+                <section className="index-list" aria-labelledby="indice">
+                  <h2 id="indice">Índice do programa</h2>
+                  <ol>
+                    {index.map((g) => (
+                      <li key={g.slug}>
+                        <Link href={`/jogo/${g.slug}`} style={trackStyle(g.track)}>
+                          <span className="no">{String(g.number).padStart(4, "0")}</span>
+                          <span className="thumb">
+                            <Cover game={g} label="" />
+                          </span>
+                          <span>
+                            <h3>{g.title}</h3>
+                            <p>{g.tagline}</p>
+                          </span>
+                          <TrackChip id={g.track} />
+                          <span className="price-tag">{shortPrice(g.price)}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
+            </>
           ) : (
             <div className="empty">
               <h2>Nada nesta combinação</h2>

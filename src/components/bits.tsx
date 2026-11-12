@@ -49,13 +49,13 @@ export function Entry({
   link = true,
 }: {
   game: Game;
-  variant?: "card" | "lead" | "row";
+  variant?: "card" | "lead" | "row" | "wide";
   showTrack?: boolean;
   link?: boolean;
 }) {
   const creator = creatorBySlug(game.creator) ?? { name: game.creator };
   const playsHere = game.platforms.includes("web");
-  const cls = variant === "lead" ? "entry entry--lead" : variant === "row" ? "entry entry--row" : "entry";
+  const cls = variant === "lead" ? "entry entry--lead" : variant === "row" ? "entry entry--row" : variant === "wide" ? "entry entry--wide" : "entry";
   const Tag = (link ? Link : "div") as React.ElementType;
   return (
     <Tag {...(link ? { href: `/jogo/${game.slug}` } : {})} className={cls}>

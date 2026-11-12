@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Masthead } from "@/components/Masthead";
 import { Colophon } from "@/components/Colophon";
+import { ThumbIndex } from "@/components/ThumbIndex";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: { default: "openitch · programa permanente de jogos independentes", template: "%s · openitch" },
@@ -21,6 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Pular para o conteúdo
         </a>
         <Masthead />
+        <Suspense>
+          <ThumbIndex />
+        </Suspense>
         <main id="conteudo">{children}</main>
         <Colophon />
       </body>

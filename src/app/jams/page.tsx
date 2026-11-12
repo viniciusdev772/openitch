@@ -20,7 +20,9 @@ export default function JamsPage() {
       <section className="wrap" style={{ paddingTop: 48, paddingBottom: 128 }}>
         <JamSchedule />
         <div className="jam-list">
-          {JAMS.map((j) => {
+          {JAMS.filter((j) => SAMPLE_NOW <= new Date(j.end).getTime())
+            .sort((a, b) => +new Date(a.start) - +new Date(b.start))
+            .map((j) => {
             const s = new Date(j.start).getTime();
             const e = new Date(j.end).getTime();
             const state = SAMPLE_NOW > e ? "past" : SAMPLE_NOW >= s ? "live" : "next";
@@ -61,6 +63,28 @@ export default function JamsPage() {
             );
           })}
         </div>
+        <section className="jam-past" aria-labelledby="encerradas">
+          <h2 id="encerradas">Encerradas</h2>
+          <ol>
+            {JAMS.filter((j) => SAMPLE_NOW > new Date(j.end).getTime()).map((j) => (
+              <li key={j.slug} id={j.slug}>
+                <strong>{j.title}</strong>
+                <span>Tema: {j.theme}</span>
+                <span>
+                  {GAMES.filter((g) => g.jam === j.slug).map((g) => (
+                    <Link key={g.slug} href={`/jogo/${g.slug}`}>
+                      {g.title}
+                    </Link>
+                  ))}{" "}
+                  e mais {j.entries - GAMES.filter((g) => g.jam === j.slug).length} entradas
+                </span>
+                <span>
+                  {formatDay(j.start)} → {formatDay(j.end)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
       </section>
     </>
   );
