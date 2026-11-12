@@ -78,6 +78,7 @@ export function JamSchedule() {
               <span
                 className="schedule-bar"
                 data-state={state}
+                data-narrow={narrow}
                 title={label}
                 style={
                   {
@@ -96,7 +97,7 @@ export function JamSchedule() {
                   style={
                     outsideLeft
                       ? { right: `${100 - pct(s)}%`, paddingRight: 8, paddingLeft: 0 }
-                      : { left: `${pct(e)}%` }
+                      : { left: `calc(${pct(s)}% + max(${w}%, 14px))` }
                   }
                 >
                   {label}

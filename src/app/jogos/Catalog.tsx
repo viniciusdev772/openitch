@@ -178,7 +178,7 @@ export function Catalog() {
                 [
                   ["new", "Mais novos"],
                   ["az", "A–Z"],
-                  ["price", "Menor preço"],
+                  ["price", "Preço"],
                 ] as const
               ).map(([k, l]) => (
                 <button key={k} type="button" aria-pressed={sort === k} onClick={() => setSort(k)}>
