@@ -99,20 +99,35 @@ export function Catalog() {
       setQ(filters.q);
     }
   }, [filters.q]);
+  // The other filters as last asked for: the address, or a toggle whose push has not landed yet.
+  // The pending search write reads them here when it fires, never from the render it was set in.
+  const latest = useRef(filters);
+  useEffect(() => {
+    latest.current = filters;
+  }, [filters]);
+  const typing = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
     if (q.trim() === written.current.trim()) return;
     const id = setTimeout(() => {
+      typing.current = undefined;
+      // A toggle may have written this text already (it carries the box's text along).
+      if (q.trim() === written.current.trim()) return;
       written.current = q;
-      router.replace(hrefFor({ ...filters, q }), { scroll: false });
+      router.replace(hrefFor({ ...latest.current, q }), { scroll: false });
     }, 300);
+    typing.current = id;
     return () => clearTimeout(id);
-  }, [q, filters, router]);
+  }, [q, router]);
 
   const live: Filters = { ...filters, q };
   /** Toggles and choices add a history step, so the back button undoes them one by one. */
   const go = (next: Partial<Filters>) => {
     const f = { ...live, ...next };
+    // The text goes along with this step: a search write still waiting would only repeat it, with stale filters.
+    clearTimeout(typing.current);
+    typing.current = undefined;
     written.current = f.q;
+    latest.current = f;
     if (next.q !== undefined) setQ(next.q);
     router.push(hrefFor(f), { scroll: false });
   };
