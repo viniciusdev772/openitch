@@ -3,11 +3,13 @@
  * para o MinIO com URLs pré-assinadas, em partes paralelas, retomável.
  *
  * Como fica rápido e robusto (fontes no relatório da frente "upload"):
- * - Partes de 16 MiB (Blob.slice: nada de carregar o arquivo na memória; o
- *   navegador lê do disco enquanto envia).
+ * - Partes de 5 MiB (Blob.slice: nada de carregar o arquivo na memória; o
+ *   navegador lê do disco enquanto envia). Pequenas de propósito: o proxy do
+ *   MinIO corta requisições com mais de 60 s (ver UPLOAD_PART_SIZE).
  * - Várias partes ao mesmo tempo ("escalar conexões na horizontal", guia de
- *   desempenho do S3). Começa em PART_CONCURRENCY e ajusta pela vazão medida:
- *   sobe enquanto a vazão melhora, cai pela metade quando a rede dá erro.
+ *   desempenho do S3). Começa com 2 e ajusta pela vazão medida: sobe enquanto
+ *   a vazão melhora, cai pela metade quando a rede dá erro, e nunca passa do
+ *   número que deixa cada parte terminar em ~20 s na velocidade medida.
  * - Repetição com espera exponencial e variação aleatória em erro de rede,
  *   5xx, 408 e 429; parte travada sem progresso é abortada e repetida.
  * - URLs assinadas em lote (12 por pedido), renovadas antes de vencer.
@@ -21,8 +23,7 @@
  *   servidor lista as partes que o MinIO já tem.
  */
 
-import { PART_CONCURRENCY } from "@/lib/storage/limits";
-import { fingerprint, partCountFor, partSizeFor, SIGN_BATCH, type DownloadPlatform } from "./rules";
+import { fingerprint, partCountFor, partSizeFor, REQUEST_BUDGET_S, SIGN_BATCH, type DownloadPlatform } from "./rules";
 
 export type UploadPhase =
   | "preparando"
@@ -110,7 +111,9 @@ class PartError extends Error {
   }
 }
 
-const MIN_CONCURRENCY = 2;
+const MIN_CONCURRENCY = 1;
+/** Começa devagar: a velocidade real ainda não é conhecida. */
+const START_CONCURRENCY = 2;
 const MAX_CONCURRENCY_H1 = 6;
 const MAX_CONCURRENCY_H2 = 10;
 const MAX_ATTEMPTS = 10;
@@ -269,7 +272,7 @@ export class Uploader {
   private phase: UploadPhase = "preparando";
   private error: string | null = null;
   private errorCode: string | null = null;
-  private target = PART_CONCURRENCY;
+  private target = START_CONCURRENCY;
   private maxConcurrency = MAX_CONCURRENCY_H1;
   private inflight = new Map<number, XMLHttpRequest>();
   private signing: Promise<void> | null = null;
@@ -361,6 +364,13 @@ export class Uploader {
       if (this.target < this.maxConcurrency) this.target++;
     } else if (rate < prev * 0.8 && this.target > MIN_CONCURRENCY) {
       this.target--;
+    }
+    // Teto pela velocidade: com N partes dividindo a banda, cada uma leva
+    // N × tamanho / velocidade. Isso tem de caber em REQUEST_BUDGET_S, senão o
+    // proxy corta a requisição aos 60 s e a parte recomeça do zero.
+    if (rate > 0 && this.remote) {
+      const cap = Math.max(MIN_CONCURRENCY, Math.floor((rate * REQUEST_BUDGET_S) / this.remote.partSize));
+      if (this.target > cap) this.target = cap;
     }
     this.tuning = { t: now, sent: this.sentTotal, rate };
     this.pump();

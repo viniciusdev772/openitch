@@ -6,14 +6,25 @@
 
 const MiB = 1024 * 1024;
 
+/*
+ * Requisições pequenas de propósito: o proxy na frente do MinIO (Traefik do
+ * Easypanel) corta qualquer requisição com mais de 60 s. Numa conexão lenta,
+ * um PUT grande nunca terminava e o envio voltava a zero. Com 5 MiB, cada
+ * requisição cabe em 60 s até ~0,7 Mbit/s, e o teto de bytes em trânsito
+ * acompanha a velocidade medida (REQUEST_BUDGET_S).
+ */
+
 /** Arquivos do build até este tamanho vão num único PUT pré-assinado. */
-export const BUILD_SINGLE_MAX = 32 * MiB;
+export const BUILD_SINGLE_MAX = 5 * MiB;
 
 /**
  * Parte do multipart para arquivos grandes do build (ex.: um .data de 1 GB).
- * 16 MiB: 3 GiB = 192 partes; cada parte fica na memória só enquanto sobe.
+ * 5 MiB (o mínimo do S3): 3 GiB = 615 partes; cada parte fica na memória só enquanto sobe.
  */
-export const BUILD_PART_SIZE = 16 * MiB;
+export const BUILD_PART_SIZE = 5 * MiB;
+
+/** Tempo-alvo de cada requisição de envio (s), bem abaixo do corte de 60 s do proxy. */
+export const REQUEST_BUDGET_S = 20;
 
 /** Arquivos pequenos enviados ao mesmo tempo. */
 export const FILE_CONCURRENCY = 8;

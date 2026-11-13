@@ -19,9 +19,6 @@ export const MAX_WEB_BUILD_BYTES = 3 * GiB;
 /** Máximo de arquivos dentro de um build de navegador. */
 export const MAX_WEB_BUILD_FILES = 20_000;
 
-/** Partes enviadas em paralelo pelo navegador (ajustável conforme a rede). */
-export const PART_CONCURRENCY = 6;
-
 /** Validade das URLs pré-assinadas de envio (s). */
 export const UPLOAD_URL_TTL = 60 * 60;
 
