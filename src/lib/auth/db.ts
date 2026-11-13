@@ -153,6 +153,24 @@ export interface UploadDoc {
   createdAt: Date;
   updatedAt: Date;
   completedAt: Date | null;
+  /** Data de modificação do arquivo no computador (ms), para reconhecer o mesmo arquivo ao retomar. */
+  lastModified?: number;
+  /** Partes enviadas com SHA-256 conferido pelo MinIO (x-amz-checksum-sha256). */
+  checksum?: boolean;
+  /** Número de partes esperado (multipart) ou 1 (PUT único). */
+  partCount?: number;
+  /** "single": um PUT pré-assinado; "multipart": partes em paralelo. */
+  mode?: "single" | "multipart";
+  /** ETag final do objeto (para conferência). */
+  etag?: string | null;
+  /** Trava curta enquanto o servidor conclui o multipart. */
+  completing?: Date | null;
+}
+
+/** Documento genérico da coleção "meta" (estado interno, sem dados de usuário). */
+export interface MetaDoc {
+  _id: string;
+  [field: string]: unknown;
 }
 
 export type WebEngine = "unity" | "godot" | "unreal-html5" | "construct" | "gamemaker" | "defold" | "pico8" | "html5";
@@ -278,5 +296,7 @@ export async function db() {
     projects: database.collection<ProjectDoc>("projects"),
     uploads: database.collection<UploadDoc>("uploads"),
     builds: database.collection<BuildDoc>("builds"),
+    /** Estado interno do sistema (ex.: configuração do armazenamento já aplicada). */
+    meta: database.collection<MetaDoc>("meta"),
   };
 }
