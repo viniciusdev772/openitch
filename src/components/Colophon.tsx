@@ -54,7 +54,7 @@ export function Colophon() {
           </ul>
         </div>
         <div className="fine">
-          <span>Contas já são reais. Pagamentos e envio de arquivos ainda não estão conectados.</span>
+          <span>Contas, rascunhos e envio de arquivos já funcionam. Publicar no programa e pagamentos ainda não estão ligados.</span>
         </div>
       </div>
     </footer>

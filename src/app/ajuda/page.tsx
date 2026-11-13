@@ -80,8 +80,8 @@ const CHAPTERS: Chapter[] = [
         q: "Posso baixar os jogos?",
         a: (
           <p>
-            A página de cada jogo vai listar os arquivos por plataforma, com nome e tamanho. Os downloads ainda não estão
-            ligados: o envio de arquivos também não.
+            A página de cada jogo vai listar os arquivos por plataforma, com nome e tamanho, e o download sai direto do
+            armazenamento. Como nenhum jogo foi publicado ainda, por enquanto só quem enviou baixa os próprios arquivos.
           </p>
         ),
       },
@@ -113,9 +113,9 @@ const CHAPTERS: Chapter[] = [
         a: (
           <p>
             Com a conta aberta, o texto, a trilha, a capa, as plataformas, o preço e a jam ficam guardados como rascunho,
-            só para você, em <Link href="/conta/projetos">Seus rascunhos</Link>. Dá para reabrir e continuar depois. A
-            publicação no programa ainda não existe: nenhum rascunho vira página pública, e nenhum arquivo sai do seu
-            computador.
+            só para você, em <Link href="/conta/projetos">Seus rascunhos</Link>, junto com os arquivos que você enviou. Dá
+            para reabrir e continuar depois. A publicação no programa ainda não existe: nenhum rascunho vira página
+            pública.
           </p>
         ),
       },
@@ -124,8 +124,11 @@ const CHAPTERS: Chapter[] = [
         q: "Que arquivos vou poder enviar?",
         a: (
           <p>
-            Um arquivo por plataforma: um zip HTML5 para rodar no navegador, ou builds para Windows, macOS, Linux e Android.
-            O envio de arquivos ainda não existe.
+            Builds de até 3 GB para Windows, macOS, Linux e Android, em qualquer formato (zip, 7z, exe, dmg, AppImage, apk e
+            outros), e uma versão para navegador (zip ou pasta) de Unity, Godot, Unreal 4 HTML5, Construct, GameMaker,
+            Defold, PICO-8 ou HTML5. O envio vai direto do seu navegador para o armazenamento, em partes, e continua de
+            onde parou se a conexão cair. Jogos feitos no Unreal 5 entram como download: a engine não exporta para
+            navegador.
           </p>
         ),
       },

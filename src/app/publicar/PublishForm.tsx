@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { PLATFORMS, TRACKS, formatDay, type Game, type Platform, type TrackId } from "@/data/base";
 import { Entry, trackStyle } from "@/components/bits-base";
 import DownloadFiles from "@/components/uploads/DownloadFiles";
+import { WebBuild } from "@/components/builds/WebBuild";
 import { DraftBar, type SaveStatus } from "@/components/projetos/DraftBar";
 import { saveDraft } from "@/lib/projects/actions";
 import {
@@ -588,6 +589,13 @@ function PublishForm({
                   </div>
                 </fieldset>
                 {/* Os arquivos vão do navegador direto para o armazenamento; a página só assina. */}
+                {f.platforms.includes("web") ? (
+                  account === "dentro" && draftId ? (
+                    <WebBuild projectId={draftId} />
+                  ) : (
+                    <p className="field-hint">Salve o rascunho para enviar a versão de navegador (zip ou pasta do build).</p>
+                  )
+                ) : null}
                 <DownloadFiles projectId={account === "dentro" ? draftId : null} platforms={f.platforms} />
               </div>
             </div>
@@ -675,8 +683,10 @@ function PublishForm({
                   <strong>
                     {open === 0 ? "Os cinco passos estão completos." : `${open} ${open === 1 ? "passo ainda em aberto" : "passos ainda em aberto"}.`}
                   </strong>{" "}
-                  Publicar no programa ainda não está disponível, porque o envio de arquivos não existe.{" "}
-                  {account === "dentro" ? "Até lá, o jogo fica como rascunho na sua conta." : "Até lá, quem tem conta guarda o jogo como rascunho."}
+                  Publicar no programa ainda não está disponível.{" "}
+                  {account === "dentro"
+                    ? "Até lá, o jogo e os arquivos ficam como rascunho na sua conta, e você testa a versão de navegador."
+                    : "Até lá, quem tem conta guarda o jogo e os arquivos como rascunho."}
                 </p>
               </div>
             </div>

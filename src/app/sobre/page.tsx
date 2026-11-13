@@ -85,13 +85,13 @@ const STATUS: { part: string; state: State; note: React.ReactNode }[] = [
   },
   {
     part: "Jogar no navegador",
-    state: "nao",
-    note: "Depende do envio de arquivos, que ainda não existe.",
+    state: "parte",
+    note: "A versão de navegador sobe e roda numa prévia só para quem enviou. Fica pública quando a publicação existir.",
   },
   {
     part: "Envio de arquivos",
-    state: "nao",
-    note: "O formulário de publicação monta a prévia da entrada, mas não envia arquivo nenhum.",
+    state: "sim",
+    note: "Builds de até 3 GB por arquivo, direto do navegador para o armazenamento, em partes e com retomada.",
   },
   {
     part: "Pagamentos",
@@ -166,8 +166,7 @@ export default function SobrePage() {
                 mínimo que quem fez escolheu. O preço aparece sempre do mesmo jeito, antes de qualquer clique.
               </p>
               <p>
-                Por enquanto não há download nem cobrança: o envio de arquivos e os pagamentos ainda não estão
-                ligados.
+                Por enquanto não há cobrança: os pagamentos ainda não estão ligados.
               </p>
             </div>
           </GuideSection>

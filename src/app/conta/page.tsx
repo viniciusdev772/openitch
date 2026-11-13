@@ -211,7 +211,7 @@ export default async function ContaPage({ searchParams }: { searchParams: Promis
               <h2 id="excluir">Excluir conta</h2>
             </div>
             <p className="acc-intro">
-              Apaga sua conta, sessões, registro de segurança, sua estante (jogos guardados e criadores seguidos) e seus rascunhos de jogos. Não dá para desfazer.
+              Apaga sua conta, sessões, registro de segurança, sua estante (jogos guardados e criadores seguidos), seus rascunhos de jogos e todos os arquivos enviados. Não dá para desfazer.
             </p>
             <DeleteAccountForm needsCode={user.totp.enabled} />
           </section>

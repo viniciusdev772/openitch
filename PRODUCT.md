@@ -34,7 +34,7 @@ Open by default *(inherited from the project's first name, "openitch")*: creator
 
 ## Capabilities and Constraints
 
-- Real today: accounts (own auth on MongoDB, with two-step verification and recovery codes), the shelf (save games, follow creators) and project drafts. Not yet: publishing a draft to the public programme, file storage, payments. Forms must not pretend to complete a payment, upload or publication.
+- Real today: accounts (own auth on MongoDB, with two-step verification and recovery codes), the shelf (save games, follow creators), project drafts, and file storage on MinIO (S3): builds up to 3 GB per file sent straight from the browser in parallel parts, and browser builds (Unity, Godot, Unreal 4 HTML5, Construct, GameMaker, Defold, PICO-8, HTML5) extracted in the browser and served straight from MinIO in an isolated iframe, so Vercel never carries game bytes. Not yet: publishing a draft to the public programme (files and the playable are an owner-only preview), payments. Unreal 5 has no browser export; its builds are downloads. Forms must not pretend to complete a payment or publication.
 - Platform categories: Web (HTML5), Windows, macOS, Linux, Android.
 - Pricing models: free, paid with a fixed price, pay-what-you-want with an optional minimum.
 - Undecided: platform fee or revenue split, payment provider, moderation policy.
