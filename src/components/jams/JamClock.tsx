@@ -118,7 +118,7 @@ function emptyCopy(
 ): { title: string; text: string } {
   const sent = submitted > 0 ? `${submitted} ${submitted === 1 ? "jogo enviado" : "jogos enviados"} até agora` : "";
   if (state === "past") {
-    return { title: "Nenhuma entrada nesta amostra", text: "Os jogos desta jam não fazem parte desta edição de demonstração." };
+    return { title: "Nenhuma entrada no programa", text: "Nenhum jogo desta jam está publicado no programa." };
   }
   if (release === "on-submit") {
     if (state === "next") {
@@ -126,8 +126,8 @@ function emptyCopy(
     }
     return sent
       ? {
-          title: "Nenhuma entrada nesta amostra",
-          text: `${sent}; nenhum faz parte desta edição de demonstração. Cada jogo entra aqui assim que é enviado.`,
+          title: "Nenhuma entrada publicada ainda",
+          text: `${sent}; nenhum está publicado no programa ainda. Cada jogo entra aqui assim que é publicado.`,
         }
       : { title: "Nenhuma entrada ainda", text: "Cada jogo entra aqui assim que é enviado." };
   }

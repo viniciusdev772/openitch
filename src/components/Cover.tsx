@@ -1,9 +1,9 @@
 import type { Game } from "@/data/catalog";
 
 /**
- * Authored key art for each sample entry. Every cover is a small poster
- * drawn in the programme's spot inks, with the title set in the display face.
- * Sample artwork: replace with real uploaded covers once storage exists.
+ * Authored cover styles: small posters drawn in the programme's spot inks,
+ * with the title set in the display face. Drafts pick one until real cover
+ * uploads exist.
  */
 
 const W = 400;

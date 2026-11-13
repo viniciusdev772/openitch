@@ -45,13 +45,13 @@ export function BuyCard({
       setDone(
         stage?.querySelector("canvas")
           ? null
-          : `A build de navegador de ${title} não acompanha esta demonstração. Na versão real, ela abriria no palco acima.`,
+          : `A build de navegador de ${title} ainda não foi enviada: o envio de arquivos ainda não está ligado.`,
       );
       return;
     }
     setDone(
       price.kind === "free" || (price.kind === "pwyw" && n === 0)
-        ? `Nesta demonstração os arquivos de ${title} não estão disponíveis. Na versão real, o download começaria agora.`
+        ? `Os arquivos de ${title} ainda não estão disponíveis: o envio de arquivos ainda não está ligado.`
         : `Nenhuma cobrança foi feita: pagamentos ainda não estão conectados. Valor escolhido: R$ ${n.toFixed(2).replace(".", ",")}.`,
     );
   };
@@ -122,7 +122,7 @@ export function BuyCard({
       {playable && downloads.length === 0 && <p className="note">Roda no navegador. Não há arquivos para baixar.</p>}
       <p className="note">
         <Download aria-hidden size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 6 }} />
-        Demonstração: nada é cobrado e nenhum arquivo é transferido.
+        Pagamentos e downloads ainda não estão ligados: nada é cobrado e nenhum arquivo é transferido.
       </p>
     </div>
   );

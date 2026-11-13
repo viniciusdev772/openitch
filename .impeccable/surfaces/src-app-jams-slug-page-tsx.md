@@ -10,7 +10,7 @@ related_targets: []
 ## Scope and mode
 - Route `/jams/[slug]`, one page per jam; extends the storefront's `/jams` (see the src-app-page-tsx brief). Mode: Operate, with Experience touches in the page head (the jam's track field, the theme set large, the clock).
 - Visitor success: in seconds knows whether the jam is over, live or upcoming and how long remains; reads the rules and criteria; sees the entries; a creator reaches "Enviar um jogo" (to `/publicar?jam=<slug>`) while the jam is open or upcoming.
-- Content: theme, host (linked to the creator page when the host is a creator), date window, rules and criteria (optional `rules`/`criteria` on Jam, otherwise derived on the page from theme, summary and window), entries = games with `game.jam === slug`. All sample data.
+- Content: theme, host (linked to the creator page when the host is a creator), date window, rules and criteria (optional `rules`/`criteria` on Jam, otherwise derived on the page from theme, summary and window), entries = games with `game.jam === slug`. The agenda starts empty.
 - Constraints: owner absent; decisions taken unattended. No platform fee, prize or voting policy may be invented.
 
 ## Direction contract

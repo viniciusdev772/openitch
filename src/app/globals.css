@@ -203,26 +203,8 @@ p {
 }
 
 /* ------------------------------------------------------------------ */
-/* Sample strip + masthead                                             */
+/* Masthead                                                            */
 /* ------------------------------------------------------------------ */
-.sample-strip {
-  background: var(--ink);
-  color: var(--paper);
-  font-size: 0.8125rem;
-  line-height: 1.3;
-}
-.sample-strip .wrap {
-  display: flex;
-  gap: var(--s-3);
-  align-items: center;
-  padding-top: 7px;
-  padding-bottom: 7px;
-}
-.sample-strip strong {
-  color: var(--lime);
-  font-weight: 700;
-}
-
 .masthead {
   position: sticky;
   top: 0;
@@ -802,54 +784,25 @@ p {
   }
 }
 
-/* game canvas */
-.orbita {
+/* empty screening slot: dashed means "empty, put something here" */
+.screening-wait {
   position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.orbita-hud {
-  position: absolute;
-  inset: auto var(--s-4) var(--s-4) var(--s-4);
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  pointer-events: none;
-  font-family: var(--display);
-  font-stretch: 70%;
-  font-weight: 800;
-  color: var(--paper);
-}
-.orbita-hud .score {
-  font-size: 2.5rem;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-.orbita-hud .best {
-  font-size: 0.875rem;
-  opacity: 0.8;
-}
-.orbita-overlay {
-  position: absolute;
-  inset: 0;
+  inset: var(--s-4);
   display: grid;
   place-items: center;
-  text-align: center;
-  pointer-events: none;
   padding: var(--s-5);
+  border: 2px dashed color-mix(in oklab, var(--paper) 70%, transparent);
+  border-radius: 12px;
+  text-align: center;
 }
-.orbita-overlay p {
-  background: var(--paper);
-  color: var(--ink);
-  padding: var(--s-3) var(--s-4);
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 0.9375rem;
-  box-shadow: var(--shadow-lift);
+.screening-wait p {
+  max-width: 28ch;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--paper);
+}
+.band-entries[data-empty] {
+  grid-template-columns: 1fr;
 }
 
 /* ------------------------------------------------------------------ */
@@ -1687,6 +1640,22 @@ p {
   color: var(--ink-soft);
   max-width: 44ch;
 }
+.empty h3 {
+  font-family: var(--display);
+  font-stretch: 60%;
+  font-weight: 850;
+  font-size: 2rem;
+  line-height: 0.95;
+}
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-3);
+}
+.empty-programme {
+  margin-block: var(--s-7);
+}
 @media (max-width: 900px) {
   .catalog {
     grid-template-columns: 1fr;
@@ -1737,9 +1706,6 @@ p {
   aspect-ratio: 16 / 9;
   max-height: 72vh;
   width: 100%;
-}
-.stage-frame--game {
-  background: var(--ultra-deep);
 }
 .stage-frame > svg {
   width: 100% !important;

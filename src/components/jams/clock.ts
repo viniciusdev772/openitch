@@ -1,7 +1,7 @@
 import { dayKey, type Jam } from "@/data/base";
 
 /**
- * The programme clock (pickNow, jamState and the sample window) lives in
+ * The programme clock (pickNow and jamState) lives in
  * @/data/base; it is re-exported here so jam components keep one import.
  */
 export { pickNow, jamState, type JamState } from "@/data/base";

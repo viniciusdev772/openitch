@@ -10,14 +10,14 @@ related_targets: ["src/app/jogos/page.tsx","src/app/jogo/[slug]/page.tsx","src/a
 ## Scope and mode
 - Home `/`: Persuade. Visitor success: understands this is an open home for indie games within seconds, then plays, searches, or starts publishing.
 - Catalog `/jogos`, Publish `/publicar`, Jams `/jams`: Operate. Game page `/jogo/[slug]`: Experience (the game leads).
-- Audience, job, constraints: see PRODUCT.md. All catalog content is synthetic sample data, labelled in the UI.
+- Audience, job, constraints: see PRODUCT.md. The owner ordered all demonstration content removed: the catalogue starts empty and every section shows an honest empty state.
 - Assumptions: the owner asked for no questions; direction proceeded unattended on the assigned roll.
 
 ## Direction contract
 THESIS: openitch is a festival that never closes, and every page is its printed programme. It refuses the category default of a dark gamer store with a uniform thumbnail grid and neon accent.
 OWN-WORLD: a festival programme book. Cool newsprint paper and blue-black ink; each section (track) owns a saturated spot colour as a full field, never a sticker: ultramarine cover, acid lime, hot magenta, tangerine, teal. Anybody (variable width) for headlines, entry numbers and times; Schibsted Grotesk for body and controls. Thumb-index tabs on the page edge, entry numbers (Nº 0142), legend codes for platforms (N W M L A), programme rules between entries. Live state only glows when something is actually live.
 STORY: the visitor sees a game playing on the cover, scans today's lineup like a screening schedule, learns anyone can publish at their own price, and either plays, searches, or opens Publicar.
-FIRST VIEWPORT: the programme cover drenched in ultramarine fills the width. Left two-thirds: the wordmark set huge in condensed Anybody, one-line hook, a working search field and a Publicar action. Right third: the featured entry "Órbita" actually playable in a canvas framed as a screening slot, with its entry number and price. Thumb-index tabs run down the right edge. The start of "Hoje no programa" (a timed list of new entries) shows under the fold line.
+FIRST VIEWPORT: the programme cover drenched in ultramarine fills the width. Left two-thirds: the wordmark set huge in condensed Anybody, one-line hook, a working search field and a Publicar action. Right third: the screening slot for the featured browser game; while the programme is empty it stays an open, dashed slot that says the room is ready and leads to Publicar (no invented game). Thumb-index tabs run down the right edge. The start of "Hoje no programa" (a timed list of new entries) shows under the fold line.
 FORM: festival programme catalog, position 6 of 7 on the ordered list; seed:c55c6c9fe02b9dac.
 Raised by declined challengers:
 - Raise (drum machine step row): a single running "agora" line marks now on the jam schedule; glow is reserved for live state only.

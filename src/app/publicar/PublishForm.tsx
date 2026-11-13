@@ -460,6 +460,7 @@ function PublishForm({
                 <div>
                   <label className="field-label" htmlFor={`${id}-j`}>Jam (opcional)</label>
                   <select
+                    disabled={jams.length === 0 && !f.jam}
                     id={`${id}-j`}
                     className="input pj-select"
                     value={f.jam}
@@ -483,7 +484,9 @@ function PublishForm({
                       ? jamInfo.state === "past"
                         ? "Essa jam já fechou. O rascunho guarda a escolha, mas ela não recebe mais jogos."
                         : "Um rascunho não conta como envio: a jam só recebe jogos publicados, e a publicação ainda não existe."
-                      : "Se o jogo é para uma jam, escolha aqui. Dá para mudar depois."}
+                      : jams.length === 0
+                        ? "Nenhuma jam está marcada agora. Quando houver uma, ela aparece aqui."
+                        : "Se o jogo é para uma jam, escolha aqui. Dá para mudar depois."}
                   </p>
                 </div>
               </div>

@@ -2,7 +2,7 @@
 
 Programa permanente de jogos independentes: um lugar aberto para publicar jogos, definir o preço (ou nenhum) e deixar as pessoas jogarem direto no navegador.
 
-> Protótipo. Todo o catálogo (jogos, criadores, jams, números) é material de amostra. Pagamentos, contas e envio de arquivos ainda não estão conectados.
+> Em construção. Contas, estante e rascunhos já funcionam (MongoDB). O catálogo começa vazio: publicar no programa, envio de arquivos e pagamentos ainda não estão ligados.
 
 ## Rodar
 
@@ -18,18 +18,18 @@ npm run build && npm start
 
 | Rota | O que é |
 |---|---|
-| `/` | Capa do programa: jogo jogável em cartaz, "Hoje no programa", trilhas, área para criadores e agenda de jams |
+| `/` | Capa do programa: sala de exibição, "Hoje no programa", trilhas, área para criadores e agenda de jams |
 | `/jogos` | Catálogo com filtros à vista (trilha, plataforma, preço, ordem) e busca (`?q=`, `?trilha=`) |
 | `/jogo/[slug]` | Página do jogo: palco, preço/pague-o-que-quiser, downloads, detalhes |
-| `/publicar` | Publicação em cinco passos com prévia ao vivo da entrada |
+| `/publicar` | Página do jogo em cinco passos com prévia ao vivo; salva como rascunho em `/conta/projetos` |
 | `/jams` | Agenda de jams com a linha "agora" |
 | `/criador/[slug]` | Página de quem fez |
 
 ## Estrutura
 
-- `src/data/catalog.ts`: dados de amostra tipados (substituir por backend)
-- `src/components/Cover.tsx`: capas autorais em SVG para os jogos de amostra
-- `src/components/OrbitaGame.tsx`: Órbita, o jogo de navegador de demonstração (canvas)
+- `src/data/`: catálogo, jams, diário e coleções (vazios até haver jogos publicados); `base.ts` tem tipos, trilhas, plataformas e formatação
+- `src/components/Cover.tsx`: estilos de capa em SVG usados pelos rascunhos
+- `src/lib/auth`, `src/lib/library`, `src/lib/projects`: contas, estante e rascunhos sobre o MongoDB
 - `src/app/globals.css`: tokens e estilos (Anybody + Schibsted Grotesk, auto-hospedadas via `@fontsource`)
 
 ## Design

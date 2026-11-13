@@ -48,12 +48,6 @@ export function Masthead() {
 
   return (
     <>
-      <div className="sample-strip">
-        <div className="wrap">
-          <strong>Edição de demonstração</strong>
-          <span>Jogos, criadores e números deste programa são fictícios.</span>
-        </div>
-      </div>
       <header className="masthead" data-open={open || undefined}>
         <div className="wrap">
           <Link href="/" className="wordmark" aria-label="openitch, página inicial">

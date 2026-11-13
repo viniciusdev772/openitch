@@ -5,6 +5,7 @@ import "@/styles/etiquetas.css";
 import { GAMES } from "@/data/catalog";
 import { trackStyle } from "@/components/bits";
 import { ALPHABET, billing, tagIndex, tagsByLetter } from "@/components/etiquetas/tags";
+import { EmptyProgramme } from "@/components/EmptyProgramme";
 
 export const metadata: Metadata = {
   title: "Etiquetas",
@@ -12,6 +13,24 @@ export const metadata: Metadata = {
 };
 
 export default function TagIndexPage() {
+  if (tagIndex().length === 0) {
+    return (
+      <>
+        <header className="page-head">
+          <div className="wrap">
+            <h1>Etiquetas</h1>
+            <p>As palavras que quem publica dá aos próprios jogos, em ordem alfabética, como o índice no fim do programa.</p>
+          </div>
+        </header>
+        <section className="wrap">
+          <EmptyProgramme title="Nenhuma etiqueta ainda" action={{ href: "/publicar", label: "Começar um rascunho" }}>
+            Cada jogo publicado traz as próprias etiquetas, como “um botão” ou “cartas”. O índice se monta sozinho a
+            partir delas, com quantos jogos levam cada uma.
+          </EmptyProgramme>
+        </section>
+      </>
+    );
+  }
   const groups = tagsByLetter();
   const present = new Set(groups.map((g) => g.letter));
   const total = tagIndex().length;

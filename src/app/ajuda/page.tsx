@@ -80,8 +80,8 @@ const CHAPTERS: Chapter[] = [
         q: "Posso baixar os jogos?",
         a: (
           <p>
-            A página de cada jogo lista os arquivos por plataforma, com nome e tamanho. Nesta edição de demonstração os
-            downloads não estão ligados: nenhum arquivo é transferido.
+            A página de cada jogo vai listar os arquivos por plataforma, com nome e tamanho. Os downloads ainda não estão
+            ligados: o envio de arquivos também não.
           </p>
         ),
       },
@@ -267,7 +267,7 @@ const CHAPTERS: Chapter[] = [
       {
         id: "plataformas-celular",
         q: "Jogos de navegador funcionam no celular?",
-        a: <p>Depende de como cada jogo foi feito. Órbita, por exemplo, aceita toque. A página do jogo diz o que ele pede.</p>,
+        a: <p>Depende de como cada jogo foi feito. A página do jogo diz o que ele pede: teclado, mouse ou toque.</p>,
       },
     ],
   },
@@ -300,7 +300,7 @@ const CHAPTERS: Chapter[] = [
       {
         id: "jams-participar",
         q: "Como participo de uma jam?",
-        a: <p>Nesta edição, as jams são de amostra e a inscrição não está ligada.</p>,
+        a: <p>Ainda não dá: a inscrição em jams não está ligada, e nenhuma jam está marcada.</p>,
       },
       {
         id: "jams-organizar",

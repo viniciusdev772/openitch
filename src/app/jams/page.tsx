@@ -3,6 +3,7 @@ import Link from "next/link";
 import { GAMES, JAMS, formatDay, jamState, pickNow, trackById } from "@/data/catalog";
 import { JamSchedule } from "@/components/JamSchedule";
 import { Joined, trackStyle } from "@/components/bits";
+import { EmptyProgramme } from "@/components/EmptyProgramme";
 import "@/styles/jams-criadores.css";
 
 export const metadata: Metadata = { title: "Jams" };
@@ -20,6 +21,18 @@ export default function JamsPage() {
           <p>Maratonas com tema e relógio. Na maioria, as entradas entram no programa juntas quando o prazo zera; algumas publicam cada jogo assim que ele chega.</p>
         </div>
       </header>
+      {JAMS.length === 0 ? (
+        <section className="wrap" style={{ paddingBottom: 96 }}>
+          <EmptyProgramme
+            title="Nenhuma jam na agenda"
+            action={null}
+            secondary={{ href: "/ajuda#jams", label: "Como funcionam as jams" }}
+          >
+            Quando uma jam for marcada, ela aparece aqui com tema, prazo e uma linha do tempo com a marca de agora.
+            Criar uma jam pelo site ainda não é possível.
+          </EmptyProgramme>
+        </section>
+      ) : (
       <section className="wrap" style={{ paddingTop: 48, paddingBottom: 128 }}>
         <JamSchedule serverNow={NOW} />
         <div className="jam-list">
@@ -68,6 +81,7 @@ export default function JamsPage() {
             );
           })}
         </div>
+        {JAMS.some((j) => jamState(j, NOW) === "past") ? (
         <section className="jam-past" aria-labelledby="encerradas">
           <h2 id="encerradas">Encerradas</h2>
           <ol>
@@ -94,7 +108,9 @@ export default function JamsPage() {
             ))}
           </ol>
         </section>
+        ) : null}
       </section>
+      )}
     </>
   );
 }

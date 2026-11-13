@@ -277,7 +277,7 @@ A printed two-ink system (paper and blue-black) carrying five saturated spot col
 
 ### Primary
 - **Programme Ultramarine** (ultra): the cover. Fills the home first viewport, the Experimental track field, the default jams page head, the focus ring, the caret and the active-page underline in the masthead. Paper text sits on it.
-- **Night Ultramarine** (ultra-deep): the darkened slot inside an ultramarine field, used behind the playable screening canvas and game stages so the canvas reads as a lit screen within the cover.
+- **Night Ultramarine** (ultra-deep): the darkened slot inside an ultramarine field, used behind the screening slot and game stages so the stage reads as a lit screen within the cover.
 
 ### Secondary
 - **Acid Lime** (lime): the signal ink. It is the Navegador track field, and outside that track it marks only three things: the action on a coloured field (the search button, "Página do jogo"), confirmation and selection (text selection, the selected platform code, the publish confirmation, the drop zone on hover), and live state (the cover's pulsing dot, the "agora" line and pill on the jam schedule). It is also the highlighted half of the wordmark on the cover and in the colophon.
@@ -293,7 +293,7 @@ A printed two-ink system (paper and blue-black) carrying five saturated spot col
 - **Second Sheet** (paper-deep): recessed paper. Hover on quiet controls, the background behind entry art, past jam bars and past jam cards, the scrollbar track.
 - **Paper Edge** (paper-edge): the border of a past (spent) schedule bar; the faintest structural grey.
 - **Bright Stock** (paper-bright): a slightly whiter sheet laid on the page for proof panels, the buy card and a focused input. Currently written as a literal in the stylesheet, not a custom property.
-- **Blue-Black Ink** (ink): all text, every rule and border, primary buttons, the sample-data strip and the colophon field. Hairlines are this ink at 28% opacity (`color-mix(in oklab, ink 28%, transparent)`).
+- **Blue-Black Ink** (ink): all text, every rule and border, primary buttons and the colophon field. Hairlines are this ink at 28% opacity (`color-mix(in oklab, ink 28%, transparent)`).
 - **Soft Ink** (ink-soft): secondary reading text, section intros, taglines in lists.
 - **Muted Ink** (ink-mute): metadata, hints, placeholders, file sizes, axis labels.
 - **Alert Red** (alert): inline form errors only.
@@ -407,11 +407,11 @@ Single letters N W M L A in 22px squares (5px corners, 1.5px current-colour bord
 - **Entry:** art in a 2px ink frame with 12px corners (8px for row entries) on paper-deep; under it an entry line (Nº number left, codes or track chip right), title, tagline, and a foot ruled 1.5px with creator left and price right. Hover lifts the art 3px with a -0.4deg tilt and the lift shadow over 320ms.
 - **Sheet (proof panel, buy card):** bright stock, 2px ink border, 16px corners, 24px padding.
 - **Jam card / preview sheet:** the track field itself as the background, 2px ink border, 16px corners, 24px padding; a past jam card goes to paper-deep.
-- **Screening slot:** the cover's playable frame, 2px paper border, 14px corners, night ultramarine inside, with a head (live dot plus entry number) and a foot (title, creator, price, lime button) ruled 2px in paper.
+- **Screening slot:** the cover's frame for the featured browser game, 2px paper border, 14px corners, night ultramarine inside, with a head (entry number; a live dot only when something is actually live) and a foot (title, creator, price, lime button) ruled 2px in paper. While the programme has no game it stays as an open slot: a dashed paper frame inside the stage saying the room is ready, and a lime "Começar um rascunho" action.
 
 ### Navigation
 - **Masthead:** sticky paper bar, 64px, closed by a 2px ink rule. Wordmark in Anybody 900 at 58% width, 1.875rem, with a small ink-mute descriptor (hidden under 720px). Nav links at 0.9375rem/600 with a 3px underline that wipes in from the left on hover (260ms); the current page's underline is ultramarine. "Publicar" is a small primary button.
-- **Sample strip:** a thin ink bar above the masthead, 0.8125rem, with a lime bold lead, stating that the content is demonstration data.
+- **Empty programme:** a dashed 16px-corner frame ("empty, put something here") with a heading, one line saying what will appear and the next concrete step as a button. Used wherever the catalogue, jams, diary, tags, collections or creators have nothing yet.
 - **Colophon:** an ink field closing every page, with the wordmark at display scale and three columns of links under label-style headings.
 
 ### Thumb index (signature)

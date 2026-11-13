@@ -58,7 +58,7 @@ export function PriceDemo() {
         <span className="btn" style={{ alignSelf: "flex-start" }} aria-hidden>
           {button}
         </span>
-        <span className="field-hint">Nenhuma cobrança acontece nesta demonstração.</span>
+        <span className="field-hint">É só o controle de preço: nenhuma cobrança acontece aqui.</span>
       </div>
     </div>
   );

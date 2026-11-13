@@ -17,7 +17,6 @@ import {
   trackById,
 } from "@/data/catalog";
 import { Cover } from "@/components/Cover";
-import { OrbitaGame } from "@/components/OrbitaGame";
 import { Entry, PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 import { LibraryButton } from "@/components/library/LibraryButton";
 import { LibraryState } from "@/components/library/LibraryState";
@@ -68,11 +67,6 @@ export default async function GamePage({ params }: Props) {
             <span aria-hidden>/</span>
             <span aria-current="page">{game.title}</span>
           </nav>
-          {game.playable === "orbita" ? (
-            <div className="stage-frame stage-frame--game">
-              <OrbitaGame label={`${game.title}, jogo de navegador`} />
-            </div>
-          ) : (
             <div className="stage-frame stage-frame--art">
               <div className="stage-art" style={{ "--g": `var(${game.palette[0]})` } as React.CSSProperties}>
                 <Cover game={game} fit="meet" />
@@ -80,7 +74,7 @@ export default async function GamePage({ params }: Props) {
               <div className="stage-launch">
                 <p>
                   {playable
-                    ? "Este jogo roda no navegador. A build de amostra não acompanha esta demonstração."
+                    ? "Este jogo roda no navegador. A build ainda não foi enviada: o envio de arquivos ainda não está ligado."
                     : `Disponível para ${game.platforms.map((p) => PLATFORMS[p].name).join(", ")}. Baixe ao lado.`}
                 </p>
                 {playable && (
@@ -90,7 +84,6 @@ export default async function GamePage({ params }: Props) {
                 )}
               </div>
             </div>
-          )}
           {notes.length > 0 && (
             <aside className="stage-notes" id="avisos" aria-labelledby="avisos-titulo">
               <TriangleAlert aria-hidden />

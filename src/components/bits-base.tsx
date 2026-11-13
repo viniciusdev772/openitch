@@ -1,4 +1,4 @@
-// Programme furniture that needs no sample data: platform codes, track chips,
+// Programme furniture that needs no catalogue data: platform codes, track chips,
 // the entry card. Client components import from here so the catalogue
 // (GAMES, CREATORS) stays out of their bundle; "./bits" adds the creator
 // lookup on top for pages that already have the catalogue.

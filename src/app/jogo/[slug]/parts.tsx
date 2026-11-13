@@ -4,7 +4,7 @@ import { DEVLOGS } from "@/data/devlogs";
 
 /*
  * Peças impressas da página do jogo (e reaproveitadas na do criador). Tudo
- * aqui roda no servidor e só lê o catálogo de amostra.
+ * aqui roda no servidor e só lê o catálogo.
  */
 
 export interface LogNote {

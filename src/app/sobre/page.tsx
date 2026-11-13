@@ -55,14 +55,38 @@ const STATUS: { part: string; state: State; note: React.ReactNode }[] = [
     ),
   },
   {
+    part: "Estante",
+    state: "sim",
+    note: (
+      <>
+        Guardar jogos e seguir criadores, em <Link href="/estante">Sua estante</Link>. Só você vê.
+      </>
+    ),
+  },
+  {
+    part: "Rascunhos de jogos",
+    state: "sim",
+    note: (
+      <>
+        A página do jogo fica salva como rascunho na sua conta, em{" "}
+        <Link href="/conta/projetos">Seus rascunhos</Link>.
+      </>
+    ),
+  },
+  {
     part: "Catálogo, trilhas e filtros",
     state: "parte",
-    note: "A navegação funciona. Os jogos, criadores e números são de amostra.",
+    note: "A navegação, a busca e os filtros estão prontos. O catálogo ainda está vazio: nenhum jogo foi publicado.",
+  },
+  {
+    part: "Publicar no programa",
+    state: "nao",
+    note: "Um rascunho ainda não vira página pública.",
   },
   {
     part: "Jogar no navegador",
-    state: "parte",
-    note: "Nesta edição, só Órbita roda de verdade na página.",
+    state: "nao",
+    note: "Depende do envio de arquivos, que ainda não existe.",
   },
   {
     part: "Envio de arquivos",
@@ -124,8 +148,8 @@ export default function SobrePage() {
                 numeradas, as trilhas têm cor própria e as jams aparecem numa agenda, com hora para começar e acabar.
               </p>
               <p>
-                Esta é uma edição de demonstração. Os jogos, criadores, jams e números que você vê aqui foram inventados
-                para mostrar como o programa funciona. O sistema de contas é real.
+                O programa está começando: as contas, a estante e os rascunhos já funcionam, e o catálogo ainda está
+                vazio. Os primeiros jogos entram quando a publicação for ligada.
               </p>
             </div>
           </GuideSection>
@@ -142,8 +166,8 @@ export default function SobrePage() {
                 mínimo que quem fez escolheu. O preço aparece sempre do mesmo jeito, antes de qualquer clique.
               </p>
               <p>
-                Nesta edição, só Órbita roda de verdade na página. Os outros jogos mostram a capa, a descrição e os
-                arquivos que teriam, mas não há download nem cobrança.
+                Por enquanto não há download nem cobrança: o envio de arquivos e os pagamentos ainda não estão
+                ligados.
               </p>
             </div>
           </GuideSection>
@@ -178,7 +202,7 @@ export default function SobrePage() {
                 de onde veio.
               </p>
               <p>
-                Ainda não dá para criar uma jam pelo site, nem inscrever um jogo. As jams da agenda são de amostra.
+                Ainda não dá para criar uma jam pelo site, nem inscrever um jogo, e nenhuma jam está marcada.
               </p>
             </div>
           </GuideSection>

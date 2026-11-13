@@ -1,4 +1,4 @@
-// The tag index, built from the sample catalogue. Tags are grouped by slug, so
+// The tag index, built from the catalogue. Tags are grouped by slug, so
 // spellings that differ only in case, accents or punctuation ("Física",
 // "física"; "pixel art", "pixel-art") are one entry, shown with the spelling
 // most games use. Games are joined by that same slug, so the count, the tag

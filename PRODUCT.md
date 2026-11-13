@@ -34,10 +34,10 @@ Open by default *(inferred from the name "openitch")*: creators set price and re
 
 ## Capabilities and Constraints
 
-- The first build is a front-end with seed data: no real auth, payments, or file storage yet. Forms must look and behave real but must not pretend to complete a payment or upload.
+- Real today: accounts (own auth on MongoDB, with two-step verification and recovery codes), the shelf (save games, follow creators) and project drafts. Not yet: publishing a draft to the public programme, file storage, payments. Forms must not pretend to complete a payment, upload or publication.
 - Platform categories: Web (HTML5), Windows, macOS, Linux, Android.
 - Pricing models: free, paid with a fixed price, pay-what-you-want with an optional minimum.
-- Undecided: platform fee or revenue split, payment provider, moderation policy, account system.
+- Undecided: platform fee or revenue split, payment provider, moderation policy.
 
 ## Brand Commitments
 
@@ -46,7 +46,7 @@ Open by default *(inferred from the name "openitch")*: creators set price and re
 
 ## Evidence on Hand
 
-None. There are no real games, creators, users, statistics, testimonials, or press. All catalog content in the first build is synthetic demonstration material, authored at full fidelity and labelled as sample data in the UI. Never present user counts, revenue, or download numbers as real.
+None. There are no published games, creators, statistics, testimonials, or press yet. The owner ordered all demonstration content removed: the catalogue, jams, diary and collections start empty, and every surface shows an honest empty state that points to the next step. Never invent games, people, counts, revenue, or download numbers to fill a surface.
 
 ## Product Principles
 
