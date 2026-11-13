@@ -1,25 +1,13 @@
-import { SAMPLE_NOW as SAMPLE_ISO, type Jam } from "@/data/catalog";
+import { dayKey, type Jam } from "@/data/catalog";
 
 /**
- * The demo programme runs on a sample clock. The sample week is fixed so the
- * pages stay meaningful outside it; inside the sample window the real clock wins,
- * the same rule the jam schedule uses.
+ * The programme clock (pickNow, jamState and the sample window) lives in
+ * @/data/catalog; it is re-exported here so jam components keep one import.
  */
-export const SAMPLE_NOW = new Date(SAMPLE_ISO).getTime();
-const WINDOW_START = new Date("2026-11-01T00:00:00-03:00").getTime();
-const WINDOW_END = new Date("2026-12-07T00:00:00-03:00").getTime();
+export { pickNow, jamState, type JamState } from "@/data/catalog";
 
-export function pickNow(real = Date.now()) {
-  return real > WINDOW_START && real < WINDOW_END ? real : SAMPLE_NOW;
-}
-
-export type JamState = "past" | "live" | "next";
-
-export function jamState(jam: Pick<Jam, "start" | "end">, now: number): JamState {
-  const s = new Date(jam.start).getTime();
-  const e = new Date(jam.end).getTime();
-  return now > e ? "past" : now >= s ? "live" : "next";
-}
+const HOUR = 3600000;
+const DAY = 24 * HOUR;
 
 export function splitDuration(ms: number) {
   const total = Math.max(0, Math.floor(ms / 1000));
@@ -29,4 +17,23 @@ export function splitDuration(ms: number) {
     m: Math.floor((total % 3600) / 60),
     s: total % 60,
   };
+}
+
+/**
+ * How long a jam runs, as printed on its sheet: the calendar days its window
+ * touches in Brasília time (13/11 18:00 → 16/11 23:59 is four days), or hours
+ * when the window is shorter than a day. An end at exactly midnight does not
+ * count the day it opens.
+ */
+export function jamLength(jam: Pick<Jam, "start" | "end">): string {
+  const s = +new Date(jam.start);
+  const e = +new Date(jam.end);
+  if (e - s < DAY) {
+    const h = Math.max(1, Math.round((e - s) / HOUR));
+    return `${h} ${h === 1 ? "hora" : "horas"}`;
+  }
+  const first = Date.parse(`${dayKey(s)}T00:00:00Z`);
+  const last = Date.parse(`${dayKey(e - 1)}T00:00:00Z`);
+  const days = Math.round((last - first) / DAY) + 1;
+  return `${days} dias`;
 }

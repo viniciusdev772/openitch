@@ -2,14 +2,15 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import {
   GAMES,
-  SAMPLE_NOW,
   TRACKS,
   creatorBySlug,
+  dayKey,
   entryNumber,
   formatDay,
   formatTime,
   gameBySlug,
   gamesByNewest,
+  pickNow,
   shortPrice,
 } from "@/data/catalog";
 import { Cover } from "@/components/Cover";
@@ -22,6 +23,9 @@ import { Entry, PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 export default function Home() {
   const orbita = gameBySlug("orbita")!;
   const lineup = gamesByNewest().slice(0, 7);
+  // Same clock as the jams: the real date inside the sample window, the sample date outside it.
+  const now = pickNow();
+  const today = dayKey(now);
 
   return (
     <>
@@ -101,7 +105,7 @@ export default function Home() {
           </div>
           <ol className="lineup">
             {lineup.map((g) => {
-              const isToday = g.published.startsWith(SAMPLE_NOW.slice(0, 10));
+              const isToday = dayKey(g.published) === today;
               return (
                 <li key={g.slug}>
                   <Link href={`/jogo/${g.slug}`} style={trackStyle(g.track)}>
@@ -252,12 +256,13 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <JamSchedule />
+          <JamSchedule serverNow={now} />
         </div>
       </section>
     </>
   );
 }
 
-export const dynamic = "force-static";
+// "Hoje" and the jam schedule follow pickNow(): rebuild every 5 minutes.
+export const revalidate = 300;
 

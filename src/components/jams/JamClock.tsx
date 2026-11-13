@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { formatDay, formatTime } from "@/data/catalog";
-import { SAMPLE_NOW, jamState, splitDuration } from "./clock";
+import { jamState, splitDuration, type JamState } from "./clock";
 import { useJamNow } from "./useJamNow";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -18,12 +18,25 @@ function spoken(d: number, h: number, m: number) {
 }
 
 /**
- * State line, countdown and send action for one jam. The count only runs in the
- * browser; the server prints the fixed date instead. Only the live state glows.
+ * State line, countdown and send action for one jam. `serverNow` is the
+ * pickNow() the page rendered with, so the server HTML (and the first client
+ * render) agrees with the rest of the page; the browser then takes over with
+ * its own clock. The count only runs in the browser; the server prints the
+ * fixed date instead. Only the live state glows.
  */
-export function JamClock({ slug, start, end }: { slug: string; start: string; end: string }) {
+export function JamClock({
+  slug,
+  start,
+  end,
+  serverNow,
+}: {
+  slug: string;
+  start: string;
+  end: string;
+  serverNow: number;
+}) {
   const { now, reduced } = useJamNow();
-  const state = jamState({ start, end }, now ?? SAMPLE_NOW);
+  const state = jamState({ start, end }, now ?? serverNow);
   const target = state === "next" ? start : state === "live" ? end : null;
 
   let count: React.ReactNode = null;
@@ -96,32 +109,64 @@ export function JamClock({ slug, start, end }: { slug: string; start: string; en
   );
 }
 
-/** Empty entries state; its copy follows the same client clock as the status sheet. */
+function emptyCopy(
+  state: JamState,
+  release: "at-close" | "on-submit",
+  submitted: number,
+  start: string,
+  end: string,
+): { title: string; text: string } {
+  const sent = submitted > 0 ? `${submitted} ${submitted === 1 ? "jogo enviado" : "jogos enviados"} até agora` : "";
+  if (state === "past") {
+    return { title: "Nenhuma entrada nesta amostra", text: "Os jogos desta jam não fazem parte desta edição de demonstração." };
+  }
+  if (release === "on-submit") {
+    if (state === "next") {
+      return { title: "A jam ainda não abriu", text: `Abre em ${when(start)}. Cada jogo entra aqui assim que for enviado.` };
+    }
+    return sent
+      ? {
+          title: "Nenhuma entrada nesta amostra",
+          text: `${sent}; nenhum faz parte desta edição de demonstração. Cada jogo entra aqui assim que é enviado.`,
+        }
+      : { title: "Nenhuma entrada ainda", text: "Cada jogo entra aqui assim que é enviado." };
+  }
+  if (state === "next") {
+    return {
+      title: "A jam ainda não abriu",
+      text: `Abre em ${when(start)}. Quando o prazo zerar, os jogos enviados entram aqui todos de uma vez.`,
+    };
+  }
+  return {
+    title: "As entradas chegam no prazo",
+    text: sent
+      ? `${sent}. Eles entram no programa juntos quando o prazo zerar, em ${when(end)}.`
+      : `Os jogos enviados entram no programa juntos quando o prazo zerar, em ${when(end)}.`,
+  };
+}
+
+/**
+ * Empty entries state; its copy follows the same clock as the status sheet,
+ * starting from the page's `serverNow` so the server HTML is coherent.
+ */
 export function JamEntriesEmpty({
   slug,
   start,
   end,
   submitted,
   release = "at-close",
+  serverNow,
 }: {
   slug: string;
   start: string;
   end: string;
   submitted: number;
   release?: "at-close" | "on-submit";
+  serverNow: number;
 }) {
   const { now } = useJamNow();
-  const state = jamState({ start, end }, now ?? SAMPLE_NOW);
-  const title =
-    state === "next" ? "A jam ainda não abriu" : state === "live" ? "As entradas chegam no prazo" : "Nenhuma entrada nesta amostra";
-  const text =
-    state === "next"
-      ? release === "on-submit"
-        ? `Abre em ${when(start)}. Cada jogo entra aqui assim que for enviado.`
-        : `Abre em ${when(start)}. Quando o prazo zerar, os jogos enviados entram aqui todos de uma vez.`
-      : state === "live"
-        ? `${submitted > 0 ? `${submitted} ${submitted === 1 ? "jogo enviado" : "jogos enviados"} até agora. ` : ""}${release === "on-submit" ? "Cada jogo entra no programa assim que é enviado." : `Eles entram no programa juntos quando o prazo zerar, em ${when(end)}.`}`
-        : "Os jogos desta jam não fazem parte desta edição de demonstração.";
+  const state = jamState({ start, end }, now ?? serverNow);
+  const { title, text } = emptyCopy(state, release, submitted, start, end);
   return (
     <div className="empty jam-empty">
       <h3>{title}</h3>
