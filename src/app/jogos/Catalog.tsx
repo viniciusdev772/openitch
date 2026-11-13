@@ -1,87 +1,179 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { X } from "lucide-react";
-import {
-  CREATORS,
-  GAMES,
-  PLATFORMS,
-  TRACKS,
-  type Platform,
-  type TrackId,
-  shortPrice,
-} from "@/data/catalog";
 import Link from "next/link";
+import { ArrowRight, X } from "lucide-react";
+import { GAMES, PLATFORMS, TRACKS, type Game, type Platform, type TrackId, shortPrice } from "@/data/catalog";
 import { Entry, TrackChip, trackStyle } from "@/components/bits";
 import { Cover } from "@/components/Cover";
+import { tagBySlug, tagIndex, type TagInfo } from "@/components/etiquetas/tags";
+import { haystack, nearTags, priceValue, terms } from "./search";
 
-type PriceFilter = "all" | "free" | "paid" | "pwyw";
-type Sort = "new" | "az" | "price";
+type PriceFilter = "all" | "gratis" | "pago" | "livre";
+type Sort = "recentes" | "az" | "preco";
 
-const norm = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+const PRICES: [PriceFilter, string][] = [
+  ["all", "Todos"],
+  ["gratis", "Grátis"],
+  ["pago", "Pago"],
+  ["livre", "Pague o que quiser"],
+];
+const SORTS: [Sort, string][] = [
+  ["recentes", "Mais recentes"],
+  ["az", "A–Z"],
+  ["preco", "Preço"],
+];
+const PLATFORM_IDS = Object.keys(PLATFORMS) as Platform[];
+const TOP_TAGS = 8;
+const MAX_Q = 80;
+
+/** Everything the catalogue shows, read from the address. Unknown values are dropped. */
+type Filters = {
+  q: string;
+  track: TrackId | null;
+  platforms: Platform[];
+  price: PriceFilter;
+  sort: Sort;
+  tag: TagInfo | null;
+};
+
+function readFilters(sp: URLSearchParams): Filters {
+  const t = sp.get("trilha");
+  const p = sp.get("preco");
+  const o = sp.get("ordem");
+  const tag = sp.get("etiqueta");
+  return {
+    q: (sp.get("q") ?? "").slice(0, MAX_Q),
+    track: TRACKS.some((x) => x.id === t) ? (t as TrackId) : null,
+    platforms: PLATFORM_IDS.filter((id) => (sp.get("plataforma") ?? "").split(",").includes(id)),
+    price: PRICES.some(([k]) => k === p && k !== "all") ? (p as PriceFilter) : "all",
+    sort: SORTS.some(([k]) => k === o) ? (o as Sort) : "recentes",
+    tag: tag ? (tagBySlug(tag) ?? null) : null,
+  };
+}
+
+/** The address for a set of filters, defaults left out, always in the same order. */
+function hrefFor(f: Filters): string {
+  const sp = new URLSearchParams();
+  const q = f.q.trim();
+  if (q) sp.set("q", q);
+  if (f.tag) sp.set("etiqueta", f.tag.slug);
+  if (f.track) sp.set("trilha", f.track);
+  if (f.platforms.length) sp.set("plataforma", f.platforms.join(","));
+  if (f.price !== "all") sp.set("preco", f.price);
+  if (f.sort !== "recentes") sp.set("ordem", f.sort);
+  const s = sp.toString();
+  return `/jogos${s ? `?${s}` : ""}`;
+}
+
+function matches(g: Game, f: Filters, qTerms: string[], ignore: { q?: boolean; rest?: boolean } = {}) {
+  if (!ignore.rest) {
+    if (f.track && g.track !== f.track) return false;
+    if (f.platforms.length && !f.platforms.some((p) => g.platforms.includes(p))) return false;
+    if (f.price === "gratis" && g.price.kind !== "free") return false;
+    if (f.price === "pago" && g.price.kind !== "fixed") return false;
+    if (f.price === "livre" && g.price.kind !== "pwyw") return false;
+    if (f.tag && !f.tag.games.some((x) => x.slug === g.slug)) return false;
+  }
+  if (!ignore.q && qTerms.length) {
+    const hay = haystack(g);
+    if (!qTerms.every((t) => hay.includes(t))) return false;
+  }
+  return true;
+}
 
 export function Catalog() {
   const params = useSearchParams();
   const router = useRouter();
-  const [q, setQ] = useState(params.get("q") ?? "");
-  const [track, setTrack] = useState<TrackId | null>((params.get("trilha") as TrackId) || null);
-  const [platforms, setPlatforms] = useState<Platform[]>([]);
-  const [price, setPrice] = useState<PriceFilter>("all");
-  const [sort, setSort] = useState<Sort>("new");
+  const filters = useMemo(() => readFilters(new URLSearchParams(params.toString())), [params]);
 
-  // Keep tabs and links in sync when the URL changes from outside (thumb index).
+  // The search box types ahead of the address; the address follows after a pause.
+  const [q, setQ] = useState(filters.q);
+  const written = useRef(filters.q);
   useEffect(() => {
-    setTrack((params.get("trilha") as TrackId) || null);
-    const pq = params.get("q");
-    if (pq !== null) setQ(pq);
-  }, [params]);
+    // The address changed from outside (back button, a link, "Limpar"): follow it.
+    // Compared trimmed: the address drops the trailing space of a word still being typed.
+    if (filters.q.trim() !== written.current.trim()) {
+      written.current = filters.q;
+      setQ(filters.q);
+    }
+  }, [filters.q]);
+  // The other filters as last asked for: the address, or a toggle whose push has not landed yet.
+  // The pending search write reads them here when it fires, never from the render it was set in.
+  const latest = useRef(filters);
+  useEffect(() => {
+    latest.current = filters;
+  }, [filters]);
+  const typing = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => {
+    if (q.trim() === written.current.trim()) return;
+    const id = setTimeout(() => {
+      typing.current = undefined;
+      // A toggle may have written this text already (it carries the box's text along).
+      if (q.trim() === written.current.trim()) return;
+      written.current = q;
+      router.replace(hrefFor({ ...latest.current, q }), { scroll: false });
+    }, 300);
+    typing.current = id;
+    return () => clearTimeout(id);
+  }, [q, router]);
 
-  const setTrackAndUrl = (t: TrackId | null) => {
-    setTrack(t);
-    const sp = new URLSearchParams(params.toString());
-    if (t) sp.set("trilha", t);
-    else sp.delete("trilha");
-    router.replace(`/jogos${sp.size ? `?${sp}` : ""}`, { scroll: false });
+  const live: Filters = { ...filters, q };
+  /** Toggles and choices add a history step, so the back button undoes them one by one. */
+  const go = (next: Partial<Filters>) => {
+    const f = { ...live, ...next };
+    // The text goes along with this step: a search write still waiting would only repeat it, with stale filters.
+    clearTimeout(typing.current);
+    typing.current = undefined;
+    written.current = f.q;
+    latest.current = f;
+    if (next.q !== undefined) setQ(next.q);
+    router.push(hrefFor(f), { scroll: false });
   };
 
+  const qTerms = useMemo(() => terms(q), [q]);
+
   const results = useMemo(() => {
-    const nq = norm(q.trim());
-    let list = GAMES.filter((g) => {
-      if (track && g.track !== track) return false;
-      if (platforms.length && !platforms.some((p) => g.platforms.includes(p))) return false;
-      if (price === "free" && g.price.kind !== "free") return false;
-      if (price === "paid" && g.price.kind !== "fixed") return false;
-      if (price === "pwyw" && g.price.kind !== "pwyw") return false;
-      if (nq) {
-        const creator = CREATORS.find((c) => c.slug === g.creator)?.name ?? "";
-        const hay = norm([g.title, g.tagline, creator, ...g.tags].join(" "));
-        if (!hay.includes(nq)) return false;
-      }
-      return true;
-    });
-    list = [...list].sort((a, b) => {
-      if (sort === "az") return a.title.localeCompare(b.title, "pt-BR");
-      if (sort === "price") {
-        const v = (g: (typeof GAMES)[number]) => (g.price.kind === "fixed" ? g.price.amount : g.price.kind === "pwyw" ? g.price.minimum : 0);
-        return v(a) - v(b);
+    const list = GAMES.filter((g) => matches(g, filters, qTerms));
+    return list.sort((a, b) => {
+      if (filters.sort === "az") return a.title.localeCompare(b.title, "pt-BR");
+      if (filters.sort === "preco") {
+        const d = priceValue(a) - priceValue(b);
+        if (d) return d;
       }
       return +new Date(b.published) - +new Date(a.published);
     });
-    return list;
-  }, [q, track, platforms, price, sort]);
+  }, [filters, qTerms]);
 
   const featured = results.length > 9 ? results.slice(0, 8) : results;
   const index = results.length > 9 ? results.slice(8) : [];
 
-  const active = track ? TRACKS.find((t) => t.id === track)! : null;
-  const filtersOn = !!(q || track || platforms.length || price !== "all");
-  const clear = () => {
-    setQ("");
-    setPlatforms([]);
-    setPrice("all");
-    setTrackAndUrl(null);
-  };
+  const active = filters.track ? TRACKS.find((t) => t.id === filters.track)! : null;
+  const narrowed = !!(filters.track || filters.platforms.length || filters.price !== "all" || filters.tag);
+  const filtersOn = !!(q.trim() || narrowed);
+  const clear = () => go({ q: "", track: null, platforms: [], price: "all", tag: null });
+
+  // Tags offered as filter toggles: the most used, plus the active one if it is not among them.
+  const topTags = useMemo(() => {
+    const top = [...tagIndex()].sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "pt-BR")).slice(0, TOP_TAGS);
+    return filters.tag && !top.some((t) => t.slug === filters.tag!.slug) ? [filters.tag, ...top] : top;
+  }, [filters.tag]);
+
+  // Empty state helpers: what the search finds without the other filters, and tags near the words typed.
+  const withoutFilters = useMemo(
+    () => (qTerms.length && narrowed ? GAMES.filter((g) => matches(g, filters, qTerms, { rest: true })).length : 0),
+    [filters, qTerms, narrowed],
+  );
+  const near = useMemo(() => (results.length ? [] : nearTags(qTerms, filters.track)), [results.length, qTerms, filters.track]);
+
+  const summary = (
+    <>
+      <span className="num">{results.length}</span> {results.length === 1 ? "entrada" : "entradas"}
+      {filters.tag && <> com a etiqueta “{filters.tag.tag}”</>}
+      {q.trim() && <> para “{q.trim()}”</>}
+    </>
+  );
 
   return (
     <>
@@ -103,9 +195,14 @@ export function Catalog() {
               className="input"
               type="search"
               value={q}
+              maxLength={MAX_Q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Jogo, criador ou tag"
+              placeholder="Jogo, criador, cidade ou etiqueta"
+              aria-describedby="q-hint"
             />
+            <p id="q-hint" className="field-hint">
+              Acentos e maiúsculas não contam.
+            </p>
           </div>
 
           <fieldset>
@@ -116,9 +213,9 @@ export function Catalog() {
                   key={t.id}
                   type="button"
                   className="track-toggle"
-                  aria-pressed={track === t.id}
+                  aria-pressed={filters.track === t.id}
                   style={trackStyle(t.id)}
-                  onClick={() => setTrackAndUrl(track === t.id ? null : t.id)}
+                  onClick={() => go({ track: filters.track === t.id ? null : t.id })}
                 >
                   <span>
                     <i aria-hidden />
@@ -131,17 +228,34 @@ export function Catalog() {
           </fieldset>
 
           <fieldset>
+            <legend>Etiqueta</legend>
+            <div className="tag-toggles">
+              {topTags.map((t) => {
+                const on = filters.tag?.slug === t.slug;
+                return (
+                  <button key={t.slug} type="button" aria-pressed={on} onClick={() => go({ tag: on ? null : t })}>
+                    {t.tag} <span className="num">{t.count}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <Link className="tag-all" href="/etiquetas">
+              Todas as {tagIndex().length} etiquetas <ArrowRight aria-hidden />
+            </Link>
+          </fieldset>
+
+          <fieldset>
             <legend>Plataforma</legend>
             <div className="platform-toggles">
-              {(Object.keys(PLATFORMS) as Platform[]).map((p) => {
-                const on = platforms.includes(p);
+              {PLATFORM_IDS.map((p) => {
+                const on = filters.platforms.includes(p);
                 return (
                   <button
                     key={p}
                     type="button"
                     className="platform-toggle"
                     aria-pressed={on}
-                    onClick={() => setPlatforms((cur) => (on ? cur.filter((x) => x !== p) : [...cur, p]))}
+                    onClick={() => go({ platforms: on ? filters.platforms.filter((x) => x !== p) : [...filters.platforms, p] })}
                   >
                     <span className="code" aria-hidden>
                       {PLATFORMS[p].code}
@@ -156,15 +270,8 @@ export function Catalog() {
           <fieldset>
             <legend>Preço</legend>
             <div className="seg">
-              {(
-                [
-                  ["all", "Todos"],
-                  ["free", "Grátis"],
-                  ["paid", "Fixo"],
-                  ["pwyw", "Você decide"],
-                ] as const
-              ).map(([k, l]) => (
-                <button key={k} type="button" aria-pressed={price === k} onClick={() => setPrice(k)}>
+              {PRICES.map(([k, l]) => (
+                <button key={k} type="button" aria-pressed={filters.price === k} onClick={() => go({ price: k })}>
                   {l}
                 </button>
               ))}
@@ -174,14 +281,8 @@ export function Catalog() {
           <fieldset style={{ borderBottom: 0 }}>
             <legend>Ordem</legend>
             <div className="seg">
-              {(
-                [
-                  ["new", "Mais novos"],
-                  ["az", "A–Z"],
-                  ["price", "Preço"],
-                ] as const
-              ).map(([k, l]) => (
-                <button key={k} type="button" aria-pressed={sort === k} onClick={() => setSort(k)}>
+              {SORTS.map(([k, l]) => (
+                <button key={k} type="button" aria-pressed={filters.sort === k} onClick={() => go({ sort: k })}>
                   {l}
                 </button>
               ))}
@@ -191,9 +292,8 @@ export function Catalog() {
 
         <section aria-label="Resultados">
           <div className="results-bar">
-            <p aria-live="polite">
-              <span className="num">{results.length}</span> {results.length === 1 ? "entrada" : "entradas"}
-              {q && <> para “{q}”</>}
+            <p aria-live="polite" aria-atomic="true">
+              {summary}
             </p>
             {filtersOn && (
               <button type="button" className="btn btn--ghost btn--sm" onClick={clear}>
@@ -206,7 +306,13 @@ export function Catalog() {
             <>
               <div className="results">
                 {featured.map((g, i) => (
-                  <Entry key={g.slug} game={g} variant={i === 0 ? "lead" : i === 5 ? "wide" : "card"} showTrack={!track} />
+                  <Entry
+                    key={g.slug}
+                    game={g}
+                    variant={i === 0 ? "lead" : i === 5 ? "wide" : "card"}
+                    showTrack={!filters.track}
+                    showTags
+                  />
                 ))}
               </div>
               {index.length > 0 && (
@@ -234,13 +340,44 @@ export function Catalog() {
               )}
             </>
           ) : (
-            <div className="empty">
+            <div className="empty catalog-empty">
               <h2>Nada nesta combinação</h2>
-              <p>Nenhuma entrada atende a todos os filtros. Tire um deles ou busque por outra palavra.</p>
-              <button type="button" className="btn" onClick={clear}>
-                Limpar filtros
-              </button>
+              <p>
+                {q.trim() && !narrowed
+                  ? `Nenhum título, criador, cidade ou etiqueta tem “${q.trim()}”. Confira a grafia ou tente uma palavra mais curta.`
+                  : "Nenhuma entrada atende a todos os filtros ao mesmo tempo. Tire um deles ou busque por outra palavra."}
+              </p>
+              <div className="catalog-empty-actions">
+                {withoutFilters > 0 && (
+                  <button type="button" className="btn" onClick={() => go({ track: null, platforms: [], price: "all", tag: null })}>
+                    Ver {withoutFilters} {withoutFilters === 1 ? "entrada" : "entradas"} com “{q.trim()}” sem os outros filtros
+                  </button>
+                )}
+                <button type="button" className={withoutFilters > 0 ? "btn btn--ghost" : "btn"} onClick={clear}>
+                  Limpar filtros
+                </button>
+              </div>
+              {near.length > 0 && (
+                <div className="catalog-near">
+                  <h3>{qTerms.length ? "Etiquetas parecidas com a busca" : "Etiquetas por perto"}</h3>
+                  <ul className="tags">
+                    {near.map((t) => (
+                      <li key={t.slug}>
+                        <Link href={`/etiqueta/${t.slug}`}>
+                          {t.tag} <span className="num">{t.count}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
+          )}
+          {filters.tag && results.length > 0 && (
+            <p className="catalog-tag-note">
+              Etiqueta “{filters.tag.tag}”: <Link href={`/etiqueta/${filters.tag.slug}`}>ver a página da etiqueta</Link>, com as
+              trilhas e as etiquetas que aparecem junto.
+            </p>
           )}
         </section>
       </div>

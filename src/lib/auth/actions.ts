@@ -611,10 +611,13 @@ async function deleteAccountInner(_prev: FormState, form: FormData): Promise<For
         return { fields: { codigo: "Código incorreto ou já usado." } };
       }
     }
-    const { users, sessions, mfa, events } = await db();
+    const { users, sessions, mfa, events, saves, follows, projects } = await db();
     await sessions.deleteMany({ userId: user._id });
     await mfa.deleteMany({ userId: user._id });
     await events.deleteMany({ userId: user._id });
+    await saves.deleteMany({ userId: user._id });
+    await follows.deleteMany({ userId: user._id });
+    await projects.deleteMany({ userId: user._id });
     await users.deleteOne({ _id: user._id });
     await destroyCurrentSession();
     done = true;

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { FilePen, LibraryBig, LogOut, ShieldCheck } from "lucide-react";
 import { BoxHead } from "@/components/auth/BoxOffice";
 import { db, type SecurityEventType } from "@/lib/auth/db";
 import { getSession, sessionIsIdle } from "@/lib/auth/session";
@@ -211,7 +211,7 @@ export default async function ContaPage({ searchParams }: { searchParams: Promis
               <h2 id="excluir">Excluir conta</h2>
             </div>
             <p className="acc-intro">
-              Apaga sua conta, sessões e registro de segurança. Não dá para desfazer.
+              Apaga sua conta, sessões, registro de segurança, sua estante (jogos guardados e criadores seguidos) e seus rascunhos de jogos. Não dá para desfazer.
             </p>
             <DeleteAccountForm needsCode={user.totp.enabled} />
           </section>
@@ -240,6 +240,14 @@ export default async function ContaPage({ searchParams }: { searchParams: Promis
                 Ligar duas etapas
               </Link>
             ) : null}
+            <Link href="/estante" className="btn btn--ghost">
+              <LibraryBig aria-hidden />
+              Abrir sua estante
+            </Link>
+            <Link href="/conta/projetos" className="btn btn--ghost">
+              <FilePen aria-hidden />
+              Seus rascunhos
+            </Link>
             <form action={signOut}>
               <button type="submit" className="btn btn--ghost acc-out">
                 <LogOut aria-hidden />

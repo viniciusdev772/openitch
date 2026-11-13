@@ -1,0 +1,641 @@
+/* ------------------------------------------------------------------ */
+/* Projetos: rascunhos salvos em /publicar e a lista /conta/projetos   */
+/* Reaproveita .btn, .input, .seg, .steps, .preview-*, .acc-*, .bo-*   */
+/* ------------------------------------------------------------------ */
+
+/* Publicar ------------------------------------------------------------ */
+.publish-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  min-width: 0;
+}
+.pj-note {
+  align-self: start;
+  max-width: 60ch;
+}
+
+/* Aviso a quem não entrou: régua de tinta, sem caixa colorida. */
+.pj-gate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-5);
+  padding: var(--s-4) var(--s-5);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper-bright);
+}
+.pj-gate p {
+  flex: 1 1 32ch;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+.pj-gate strong {
+  color: var(--ink);
+}
+/* Na tela larga, a linha do rascunho ao lado já diz isso. */
+@media (min-width: 961px) {
+  .pj-gate {
+    display: none;
+  }
+}
+
+.pj-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.pj-tracks {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.pj-tracks .track-toggle {
+  width: auto;
+}
+.pj-slug {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.pj-select {
+  appearance: none;
+  padding-right: 44px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink) 50%),
+    linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+  background-position:
+    calc(100% - 22px) 50%,
+    calc(100% - 16px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* O passo de arquivos diz, sem rodeio, que o envio não existe. */
+.pj-nofiles {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: start;
+  padding: var(--s-4) var(--s-5);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper-deep);
+}
+.pj-nofiles svg {
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+}
+.pj-nofiles strong {
+  display: block;
+  font-size: 1.0625rem;
+  margin-bottom: var(--s-1);
+}
+.pj-nofiles p {
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+  max-width: 56ch;
+}
+
+.pj-end {
+  margin-top: var(--s-6);
+  padding-top: var(--s-4);
+  border-top: 1.5px solid var(--ink);
+}
+.pj-end p {
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+.pj-end strong {
+  color: var(--ink);
+}
+
+/* Linha do rascunho (topo da coluna da prévia) ------------------------ */
+.publish .preview-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.pj-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  background: var(--paper-bright);
+}
+.pj-bar-text {
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+.pj-bar-text strong {
+  color: var(--ink);
+}
+.pj-state {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 28px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.pj-state .num {
+  font-stretch: 70%;
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+.pj-state svg.bo-spin {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.pj-bar[data-dirty] .pj-state strong {
+  color: var(--ink);
+}
+/* Salvo: a marca lime é a confirmação. */
+.pj-tick {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  background: var(--lime);
+}
+.pj-tick svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 3;
+}
+.pj-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 2px solid var(--alert);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--alert);
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+.pj-error .btn {
+  color: var(--ink);
+}
+.pj-error-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pj-error-fields .bo-link {
+  padding: 0;
+}
+.pj-bar-act {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3) var(--s-5);
+}
+.pj-hint {
+  font-size: 0.8125rem;
+  color: var(--ink-mute);
+}
+.pj-hint kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 1px 6px;
+  border: 1.5px solid var(--ink-mute);
+  border-radius: 5px;
+  font-family: var(--text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 960px) {
+  /* A prévia sobe; a linha do rascunho desce para o fim e fica presa ao pé da tela. */
+  .publish .preview-col {
+    display: contents;
+  }
+  .pj-preview {
+    order: -1;
+  }
+  .pj-bar {
+    order: 1;
+  }
+  .pj-bar:not(.pj-bar--guest) {
+    position: sticky;
+    bottom: var(--s-3);
+    z-index: 5;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--s-3) var(--s-4);
+  }
+  .pj-bar:not(.pj-bar--guest) .pj-error {
+    flex-basis: 100%;
+    order: 2;
+  }
+  .pj-bar:not(.pj-bar--guest) .pj-hint {
+    display: none;
+  }
+}
+@media (max-width: 480px) {
+  .pj-bar:not(.pj-bar--guest) .pj-bar-act .bo-link {
+    display: none;
+  }
+}
+
+/* /conta/projetos ----------------------------------------------------- */
+.pj-page {
+  padding-top: var(--s-5);
+  padding-bottom: var(--s-9);
+}
+.pj-page .bo-back {
+  margin-bottom: var(--s-6);
+}
+.pj-list-section .acc-head h2:focus,
+.pj-start h2:focus {
+  outline: none;
+}
+.pj-list-section .acc-count small {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink-mute);
+}
+.pj-notice {
+  align-self: start;
+}
+.pj-after {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--s-2);
+}
+
+.pj-list,
+.pj-jams {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pj-list li,
+.pj-cols {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 150px minmax(0, 200px) 200px;
+  gap: var(--s-4);
+  align-items: center;
+}
+.pj-list li {
+  position: relative;
+  padding: var(--s-3);
+  margin: 0 calc(var(--s-3) * -1);
+  border-bottom: var(--hair);
+  border-radius: 10px;
+  transition:
+    background-color 200ms var(--ease-out),
+    color 200ms var(--ease-out);
+}
+.pj-cols {
+  padding: 0 0 var(--s-2);
+  border-bottom: var(--rule);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ink-mute);
+}
+
+.pj-when {
+  display: flex;
+  flex-direction: column;
+}
+.pj-when b {
+  font-family: var(--display);
+  font-stretch: 60%;
+  font-weight: 900;
+  font-size: 2rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.pj-when small {
+  font-size: 0.8125rem;
+  color: var(--ink-mute);
+  white-space: nowrap;
+}
+.pj-when .num {
+  font-stretch: 75%;
+  font-weight: 700;
+}
+
+.pj-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pj-title h3 {
+  font-stretch: 66%;
+  font-weight: 800;
+  font-size: 1.375rem;
+  line-height: 0.95;
+  overflow-wrap: anywhere;
+}
+.pj-title small {
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A linha inteira abre o rascunho; os botões ficam por cima. */
+.pj-title a {
+  color: inherit;
+  text-decoration: none;
+}
+.pj-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+}
+.pj-title a:focus-visible {
+  outline: none;
+}
+.pj-list li:has(.pj-title a:focus-visible),
+.pj-jams li:has(.pj-title a:focus-visible) {
+  outline: 3px solid var(--ultra);
+  outline-offset: 2px;
+}
+.pj-meta {
+  display: contents;
+}
+.pj-jam {
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pj-none {
+  font-weight: 400;
+  color: var(--ink-mute);
+}
+.pj-act,
+.pj-confirm {
+  position: relative;
+  z-index: 1;
+}
+.pj-act {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-2);
+}
+
+/* Passar por cima pinta a linha com o campo da trilha, como no programa. */
+.pj-list li:not([data-confirm]):hover,
+.pj-jams li:hover {
+  background: var(--c);
+  color: var(--on);
+}
+.pj-list li:not([data-confirm]):hover small,
+.pj-list li:not([data-confirm]):hover .pj-none,
+.pj-jams li:hover small {
+  color: inherit;
+}
+.pj-list li:not([data-confirm]):hover .btn--ghost {
+  border-color: currentColor;
+}
+.pj-list li:not([data-confirm]):hover .btn:not(.btn--ghost) {
+  background: var(--on);
+  border-color: var(--on);
+  color: var(--c);
+}
+.pj-list li:not([data-confirm]):hover .chip-track i {
+  border-color: currentColor;
+}
+
+/* Confirmação dentro da própria linha. */
+.pj-list li[data-confirm] {
+  background: var(--paper-bright);
+  outline: 2px solid var(--alert);
+  outline-offset: -2px;
+}
+.pj-confirm {
+  grid-column: 3 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-2) var(--s-4);
+}
+.pj-confirm p {
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+.pj-confirm strong {
+  color: var(--alert);
+}
+.pj-confirm-act {
+  display: flex;
+  gap: var(--s-2);
+}
+.pj-danger.btn {
+  background: var(--alert);
+  border-color: var(--alert);
+  color: var(--paper);
+}
+.pj-ask.btn--ghost:hover {
+  background: var(--alert);
+  border-color: var(--alert);
+  color: var(--paper);
+}
+.pj-list li:not([data-confirm]):hover .pj-ask.btn--ghost:hover {
+  background: var(--alert);
+  border-color: var(--alert);
+  color: var(--paper);
+}
+
+/* Estado vazio: ensina o primeiro passo mostrando a sequência real. */
+.pj-first {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+}
+.pj-start {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--s-6) var(--s-8);
+  padding: var(--s-7) var(--s-6);
+  border: 2px dashed var(--ink);
+  border-radius: 16px;
+}
+.pj-start-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.pj-start h2 {
+  font-stretch: 58%;
+  font-weight: 900;
+  font-size: 2.5rem;
+  line-height: 0.95;
+  padding-bottom: var(--s-3);
+  border-bottom: 6px double var(--ink);
+}
+.pj-start-lead {
+  font-size: 1.0625rem;
+  color: var(--ink-soft);
+  max-width: 44ch;
+}
+.pj-start-go {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3) var(--s-5);
+  margin-top: var(--s-2);
+}
+.pj-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: var(--rule);
+}
+.pj-steps li {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: baseline;
+  padding: var(--s-3) 0;
+  border-bottom: var(--hair);
+}
+.pj-step-num {
+  font-family: var(--display);
+  font-stretch: 55%;
+  font-weight: 900;
+  font-size: 2.5rem;
+  line-height: 0.8;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-mute);
+}
+.pj-steps li[data-first] .pj-step-num {
+  color: var(--ink);
+}
+.pj-steps strong {
+  display: block;
+  font-family: var(--display);
+  font-stretch: 65%;
+  font-weight: 850;
+  font-size: 1.375rem;
+  line-height: 1;
+}
+.pj-steps small {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.pj-jams {
+  border-top: var(--rule);
+}
+.pj-jams li {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-4);
+  align-items: center;
+  padding: var(--s-3);
+  margin: 0 calc(var(--s-3) * -1);
+  border-bottom: var(--hair);
+  border-radius: 10px;
+  transition:
+    background-color 200ms var(--ease-out),
+    color 200ms var(--ease-out);
+}
+.pj-jams small {
+  font-size: 0.875rem;
+  color: var(--ink-mute);
+}
+.pj-jams .num {
+  font-stretch: 75%;
+  font-weight: 700;
+}
+.pj-go {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 960px) {
+  .pj-list li {
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "when title title"
+      "when meta act";
+    row-gap: var(--s-2);
+  }
+  .pj-cols {
+    display: none;
+  }
+  .pj-list {
+    border-top: var(--rule);
+  }
+  .pj-list .pj-when {
+    grid-area: when;
+    align-self: start;
+  }
+  .pj-list .pj-title {
+    grid-area: title;
+  }
+  .pj-list .pj-meta {
+    grid-area: meta;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-1) var(--s-4);
+    min-width: 0;
+  }
+  .pj-list .pj-act {
+    grid-area: act;
+  }
+  .pj-confirm {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+  .pj-start {
+    grid-template-columns: 1fr;
+    padding: var(--s-6) var(--s-5);
+  }
+}
+@media (max-width: 480px) {
+  .pj-list li {
+    grid-template-columns: 56px minmax(0, 1fr);
+    grid-template-areas:
+      "when title"
+      "when meta"
+      "when act";
+  }
+  .pj-act {
+    justify-content: flex-start;
+  }
+  .pj-when b {
+    font-size: 1.75rem;
+  }
+  .pj-start {
+    padding: var(--s-5) var(--s-4);
+  }
+}

@@ -2,27 +2,27 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { JAMS, formatDay, trackById } from "@/data/catalog";
+import { SAMPLE_WINDOW, formatDay, jamState, pickNow, trackById } from "@/data/base";
+import { JAMS } from "@/data/jams";
 
-const RANGE_START = new Date("2026-11-01T00:00:00-03:00").getTime();
-const RANGE_END = new Date("2026-12-07T00:00:00-03:00").getTime();
+const RANGE_START = SAMPLE_WINDOW.start;
+const RANGE_END = SAMPLE_WINDOW.end;
 const DAY = 86400000;
-const FALLBACK_NOW = new Date("2026-11-12T15:00:00-03:00").getTime();
 
 const pct = (t: number) => ((Math.min(Math.max(t, RANGE_START), RANGE_END) - RANGE_START) / (RANGE_END - RANGE_START)) * 100;
 
-/** Festival schedule grid with a running "agora" line. Glow means live, nothing else. */
-export function JamSchedule() {
-  const [now, setNow] = useState(FALLBACK_NOW);
+/**
+ * Festival schedule grid with a running "agora" line. Glow means live, nothing
+ * else. `serverNow` is the pickNow() the page rendered with, so the server HTML
+ * matches the page around it; the browser then follows pickNow() each minute.
+ */
+export function JamSchedule({ serverNow }: { serverNow: number }) {
+  const [now, setNow] = useState(serverNow);
   const [laneW, setLaneW] = useState(1000);
   const axisRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const pick = () => {
-      const n = Date.now();
-      // Outside the sample window, keep the sample date so the grid stays meaningful.
-      if (n > RANGE_START && n < RANGE_END) setNow(n);
-    };
+    const pick = () => setNow(pickNow());
     pick();
     const iv = setInterval(pick, 60000);
     const el = axisRef.current;
@@ -47,6 +47,8 @@ export function JamSchedule() {
             <span
               key={t}
               className={`tick${i === mid ? " tick--mid" : ""}${i === ticks.length - 1 ? " tick--last" : ""}`}
+              // A pílula "agora" cobre a data que estiver a menos de ~60px dela.
+              data-under-now={Math.abs(pct(t) - pct(now)) * laneW < 6000 || undefined}
               style={{ left: `${pct(t)}%` }}
             >
               {formatDay(new Date(t).toISOString())}
@@ -57,10 +59,10 @@ export function JamSchedule() {
           </span>
         </div>
       </div>
-      {JAMS.map((j) => {
+      {[...JAMS].sort((a, b) => +new Date(a.start) - +new Date(b.start)).map((j) => {
         const s = new Date(j.start).getTime();
         const e = new Date(j.end).getTime();
-        const state = now > e ? "past" : now >= s ? "live" : "next";
+        const state = jamState(j, now);
         const tr = trackById(j.track);
         const w = Math.max(pct(e) - pct(s), 1.5);
         const label = `${formatDay(j.start)} → ${formatDay(j.end)}`;
@@ -69,13 +71,17 @@ export function JamSchedule() {
         return (
           <div className="schedule-row" role="row" key={j.slug}>
             <div className="who" role="cell">
-              <Link href={`/jams#${j.slug}`}>{j.title}</Link>
+              <Link href={`/jams/${j.slug}`}>{j.title}</Link>
               <small>
                 {state === "live" ? "rolando agora" : state === "past" ? "encerrada" : "em breve"} · tema “{j.theme}”
               </small>
             </div>
             <div className="lane" role="cell">
-              <span
+              {/* Pointer shortcut to the jam page; keyboard and screen readers use the title link in this row. */}
+              <Link
+                href={`/jams/${j.slug}`}
+                tabIndex={-1}
+                aria-hidden
                 className="schedule-bar"
                 data-state={state}
                 data-narrow={narrow}
@@ -90,7 +96,7 @@ export function JamSchedule() {
                 }
               >
                 {!narrow && <b>{label}</b>}
-              </span>
+              </Link>
               {narrow && (
                 <span
                   className="schedule-label"

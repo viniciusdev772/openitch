@@ -4,11 +4,13 @@ import {
   GAMES,
   TRACKS,
   creatorBySlug,
+  dayKey,
   entryNumber,
   formatDay,
   formatTime,
   gameBySlug,
   gamesByNewest,
+  pickNow,
   shortPrice,
 } from "@/data/catalog";
 import { Cover } from "@/components/Cover";
@@ -21,6 +23,9 @@ import { Entry, PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 export default function Home() {
   const orbita = gameBySlug("orbita")!;
   const lineup = gamesByNewest().slice(0, 7);
+  // Same clock as the jams: the real date inside the sample window, the sample date outside it.
+  const now = pickNow();
+  const today = dayKey(now);
 
   return (
     <>
@@ -100,7 +105,7 @@ export default function Home() {
           </div>
           <ol className="lineup">
             {lineup.map((g) => {
-              const isToday = g.published.startsWith("2026-11-12");
+              const isToday = dayKey(g.published) === today;
               return (
                 <li key={g.slug}>
                   <Link href={`/jogo/${g.slug}`} style={trackStyle(g.track)}>
@@ -245,18 +250,19 @@ export default function Home() {
           <div className="section-head">
             <h2 id="agenda">Agenda de jams</h2>
             <div className="aside">
-              <p>Maratonas com tema e prazo. As entradas caem direto no programa quando o relógio zera.</p>
+              <p>Maratonas com tema e prazo. As entradas caem no programa quando o relógio zera, ou na hora do envio, conforme a jam.</p>
               <Link href="/jams" className="btn btn--ghost btn--sm">
                 Todas as jams
               </Link>
             </div>
           </div>
-          <JamSchedule />
+          <JamSchedule serverNow={now} />
         </div>
       </section>
     </>
   );
 }
 
-export const dynamic = "force-static";
+// "Hoje" and the jam schedule follow pickNow(): rebuild every 5 minutes.
+export const revalidate = 300;
 

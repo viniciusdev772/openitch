@@ -17,8 +17,19 @@ export function Colophon() {
           <h2>Programa</h2>
           <ul>
             <li><Link href="/jogos">Catálogo completo</Link></li>
+            <li><Link href="/etiquetas">Índice de etiquetas</Link></li>
+            <li><Link href="/colecoes">Coleções do programa</Link></li>
             <li><Link href="/jams">Jams e agenda</Link></li>
+            <li><Link href="/criadores">Criadores</Link></li>
             <li><Link href="/publicar">Publicar um jogo</Link></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Guia</h2>
+          <ul>
+            <li><Link href="/sobre">Como funciona</Link></li>
+            <li><Link href="/ajuda">Ajuda</Link></li>
+            <li><Link href="/novidades">Novidades</Link></li>
           </ul>
         </div>
         <div>
@@ -43,7 +54,7 @@ export function Colophon() {
           </ul>
         </div>
         <div className="fine">
-          <span>Protótipo: pagamentos, contas e envio de arquivos ainda não estão conectados.</span>
+          <span>Contas já são reais. Pagamentos e envio de arquivos ainda não estão conectados.</span>
           <span>Todo o catálogo é material de amostra.</span>
         </div>
       </div>

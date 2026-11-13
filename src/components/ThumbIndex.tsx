@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { TRACKS, type TrackId } from "@/data/catalog";
+import { TRACKS, type TrackId } from "@/data/base";
 
 /**
  * Programme thumb-index: one coloured tab per track. Vertical on the page edge

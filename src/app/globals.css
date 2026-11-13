@@ -294,12 +294,87 @@ p {
   display: none;
 }
 
-@media (max-width: 720px) {
+/* Menu do programa: abaixo de 960px os links de seção vão para um painel. */
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: var(--s-1);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    background-color 180ms var(--ease-out),
+    color 180ms var(--ease-out);
+}
+.nav-toggle:hover,
+.nav-toggle[aria-expanded="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.nav-panel {
+  border-top: var(--rule);
+  background: var(--paper);
+}
+.nav-panel[hidden] {
+  display: none;
+}
+.nav-panel .wrap {
+  display: grid;
+  gap: var(--s-5);
+  padding-block: var(--s-4) var(--s-6);
+}
+.nav-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.nav-panel-main li {
+  border-bottom: var(--hair);
+}
+.nav-panel-main a {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  font-family: var(--display);
+  font-stretch: 60%;
+  font-weight: 850;
+  font-size: 2rem;
+  line-height: 0.95;
+  text-decoration: none;
+}
+.nav-panel-main a[aria-current="page"] {
+  text-decoration: underline;
+  text-decoration-color: var(--ultra);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+.nav-panel-guide {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+}
+.nav-panel-guide a {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-underline-offset: 4px;
+}
+
+@media (max-width: 1180px) {
   .wordmark span {
     display: none;
   }
-  .mainnav .hide-sm {
+}
+@media (max-width: 960px) {
+  .mainnav .nav-wide {
     display: none;
+  }
+  .nav-toggle {
+    display: inline-flex;
   }
   .masthead .wrap {
     gap: var(--s-2);
@@ -309,6 +384,11 @@ p {
   }
   .mainnav .btn {
     margin-left: var(--s-1);
+  }
+}
+@media (min-width: 961px) {
+  .nav-panel {
+    display: none;
   }
 }
 
@@ -1339,7 +1419,7 @@ p {
 }
 .colophon .wrap {
   display: grid;
-  grid-template-columns: minmax(0, 6fr) repeat(3, minmax(0, 2fr));
+  grid-template-columns: minmax(0, 5fr) repeat(4, minmax(0, 2fr));
   gap: var(--s-7) var(--s-6);
   padding-top: var(--s-8);
   padding-bottom: var(--s-7);
@@ -2389,6 +2469,9 @@ p {
   .ticks span.tick:not(:first-child):not(.tick--mid):not(.tick--last) {
     display: none;
   }
+}
+.ticks .tick[data-under-now] {
+  visibility: hidden;
 }
 .schedule-label {
   z-index: 2;

@@ -1,0 +1,409 @@
+/* ------------------------------------------------------------------ */
+/* Etiquetas: the programme's back-of-book index                       */
+/* ------------------------------------------------------------------ */
+.tag-index-wrap {
+  padding-top: var(--s-7);
+  padding-bottom: var(--s-9);
+}
+.tag-index-wrap .results-bar {
+  margin-bottom: var(--s-7);
+}
+
+/* The full alphabet prints, like the platform legend; absent letters fade. */
+.tag-letters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tag-letters .code {
+  width: 30px;
+  height: 30px;
+  font-size: 0.9375rem;
+  border-width: 2px;
+  text-decoration: none;
+}
+.tag-letters a.code {
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
+}
+.tag-letters a.code:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.tag-index {
+  columns: 3 280px;
+  column-gap: var(--s-7);
+  column-rule: var(--hair);
+}
+.tag-letter {
+  break-inside: avoid;
+  margin-bottom: var(--s-7);
+}
+.tag-letter h3 {
+  font-stretch: 55%;
+  font-weight: 900;
+  font-size: 4rem;
+  line-height: 0.8;
+  padding-bottom: var(--s-2);
+  border-bottom: 6px double var(--ink);
+}
+
+.tag-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tag-lines li {
+  border-bottom: var(--hair);
+}
+.tag-lines a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-2) var(--s-3);
+  margin: 0 calc(var(--s-3) * -1);
+  border-radius: 10px;
+  text-decoration: none;
+  transition:
+    background-color 200ms var(--ease-out),
+    color 200ms var(--ease-out);
+}
+.tag-lines a:hover {
+  background: var(--c);
+  color: var(--on);
+}
+.tag-name {
+  font-family: var(--display);
+  line-height: 0.95;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* Billing: four fixed steps by how many games carry the tag. */
+.tag-lines [data-bill="1"] .tag-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-stretch: 70%;
+}
+.tag-lines [data-bill="2"] .tag-name {
+  font-size: 1.625rem;
+  font-weight: 800;
+  font-stretch: 66%;
+}
+.tag-lines [data-bill="3"] .tag-name {
+  font-size: 2rem;
+  font-weight: 850;
+  font-stretch: 60%;
+}
+.tag-lines [data-bill="4"] .tag-name {
+  font-size: 2.5rem;
+  font-weight: 900;
+  font-stretch: 55%;
+  letter-spacing: -0.01em;
+}
+
+.tag-count {
+  flex: none;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+.tag-count .num {
+  font-size: 1rem;
+  font-weight: 800;
+  font-stretch: 75%;
+}
+.tag-count .unit {
+  color: var(--ink-soft);
+}
+a:hover .tag-count .unit {
+  color: inherit;
+}
+
+.tag-close {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4) var(--s-6);
+  padding-top: var(--s-5);
+  border-top: var(--rule);
+}
+.tag-close p {
+  max-width: 56ch;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------------ */
+/* One tag: games as a ruled list, tracks and neighbours aside         */
+/* ------------------------------------------------------------------ */
+.tag-head .wrap {
+  padding-top: var(--s-6);
+}
+.tag-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-width: 0;
+}
+.tag-head .crumbs {
+  margin-bottom: 0;
+}
+.tag-head h1 {
+  overflow-wrap: anywhere;
+  /* Room for accents and ascenders over the 0.82 line height. */
+  padding-top: 0.12em;
+}
+.tag-head .num {
+  font-weight: 800;
+  font-stretch: 75%;
+  font-size: 1.25rem;
+}
+
+.tag-page {
+  display: grid;
+  grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+  gap: var(--s-8);
+  align-items: start;
+  padding-top: var(--s-7);
+  padding-bottom: var(--s-9);
+}
+.tag-page .index-list {
+  margin-top: 0;
+}
+.tag-by {
+  font-weight: 650;
+  color: var(--ink);
+}
+.tag-page .index-list a:hover .tag-by,
+.tag-page .index-list a:hover p {
+  color: var(--on);
+}
+.tag-page .index-list a:hover {
+  color: var(--on);
+}
+
+.tag-aside {
+  position: sticky;
+  top: 88px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+}
+.tag-aside h2 {
+  font-stretch: 60%;
+  font-size: 2rem;
+  padding-bottom: var(--s-3);
+  margin-bottom: var(--s-3);
+  border-bottom: 6px double var(--ink);
+}
+.tag-tracks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tag-tracks li {
+  border-bottom: var(--hair);
+}
+.tag-tracks a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding: var(--s-2) var(--s-3);
+  margin: 0 calc(var(--s-3) * -1);
+  border-radius: 10px;
+  font-weight: 650;
+  text-decoration: none;
+  transition:
+    background-color 200ms var(--ease-out),
+    color 200ms var(--ease-out);
+}
+.tag-tracks a:hover {
+  background: var(--c);
+  color: var(--on);
+}
+.tag-track-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.tag-track-name i {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--c);
+  border: 1.5px solid var(--ink);
+}
+
+.tag-related,
+.entry-tags,
+.catalog-near .tags {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tag-related a .num,
+.catalog-near .tags a .num {
+  margin-left: 2px;
+  font-weight: 800;
+  font-stretch: 75%;
+}
+.tag-note {
+  margin-top: var(--s-3);
+  font-size: 0.8125rem;
+  color: var(--ink-mute);
+}
+.tag-aside-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-3);
+}
+.tag-back {
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.tag-missing {
+  padding-top: var(--s-9);
+  padding-bottom: var(--s-10);
+}
+
+@media (max-width: 960px) {
+  .tag-page {
+    grid-template-columns: 1fr;
+    gap: var(--s-7);
+  }
+  .tag-aside {
+    position: static;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Entries with linked tags: the title link covers the card            */
+/* ------------------------------------------------------------------ */
+.entry-tags span {
+  display: inline-block;
+  padding: 3px var(--s-3);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+.entry--split .entry-link {
+  color: inherit;
+  text-decoration: none;
+}
+.entry--split .entry-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+}
+.entry--split .entry-tags a {
+  position: relative;
+  z-index: 1;
+  background: var(--paper);
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
+}
+.entry--split .entry-tags a:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+.entry--split .entry-link:focus-visible {
+  outline: none;
+}
+.entry--split:has(.entry-link:focus-visible) {
+  outline: 3px solid var(--ultra);
+  outline-offset: 6px;
+  border-radius: 12px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Catalogue: tag filter, empty state                                  */
+/* ------------------------------------------------------------------ */
+.tag-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag-toggles button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-height: 36px;
+  padding: var(--s-2) var(--s-3);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
+}
+.tag-toggles button:hover {
+  background: var(--paper-deep);
+}
+.tag-toggles button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.tag-toggles .num {
+  font-weight: 800;
+  font-stretch: 75%;
+}
+.tag-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--s-3);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+.tag-all svg {
+  width: 16px;
+  height: 16px;
+}
+
+.catalog-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-3);
+}
+.catalog-near {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+  padding-top: var(--s-5);
+  border-top: var(--hair);
+  width: 100%;
+  max-width: 560px;
+}
+.catalog-near h3 {
+  font-family: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.catalog-near .tags {
+  justify-content: center;
+}
+.catalog-tag-note {
+  margin-top: var(--s-7);
+  padding-top: var(--s-4);
+  border-top: var(--hair);
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}

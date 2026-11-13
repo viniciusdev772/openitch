@@ -1,8 +1,8 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { Download } from "lucide-react";
-import type { Price } from "@/data/catalog";
+import type { Price } from "@/data/base";
 
 interface DL {
   file: string;
@@ -11,7 +11,20 @@ interface DL {
   name: string;
 }
 
-export function BuyCard({ price, title, downloads, playable }: { price: Price; title: string; downloads: DL[]; playable: boolean }) {
+export function BuyCard({
+  price,
+  title,
+  downloads,
+  playable,
+  save,
+}: {
+  price: Price;
+  title: string;
+  downloads: DL[];
+  playable: boolean;
+  /** Botão Guardar (ilha de cliente: o estado da estante chega depois do HTML). */
+  save?: ReactNode;
+}) {
   const id = useId();
   const min = price.kind === "pwyw" ? price.minimum : 0;
   const [amount, setAmount] = useState(price.kind === "pwyw" ? String(Math.max(min, 10)) : "");
@@ -87,6 +100,7 @@ export function BuyCard({ price, title, downloads, playable }: { price: Price; t
               ? `Pagar R$ ${n.toFixed(2).replace(".", ",")}`
               : "Baixar sem pagar"}
       </button>
+      {save}
       {done && (
         <p className="status" role="status">
           {done}
