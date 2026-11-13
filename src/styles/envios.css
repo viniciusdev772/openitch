@@ -1,0 +1,271 @@
+/* ------------------------------------------------------------------ */
+/* Envios: arquivos para baixar de um rascunho (DownloadFiles.tsx)      */
+/* Reaproveita .btn, .icon-btn, .code, .num, .dropzone, .field-error   */
+/* ------------------------------------------------------------------ */
+
+.dl {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  min-width: 0;
+}
+
+.dl-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-5);
+  padding-bottom: var(--s-3);
+  border-bottom: 6px double var(--ink);
+}
+.dl-head h3 {
+  font-family: var(--display);
+  font-stretch: 62%;
+  font-weight: 850;
+  font-size: 1.75rem;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+.dl-quota {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.dl-quota .num {
+  color: var(--ink);
+}
+.dl-meter {
+  position: relative;
+  display: block;
+  width: 96px;
+  height: 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+.dl-meter > span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+
+.dl-empty {
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+
+.dl-platform {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.dl-ph {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--display);
+  font-stretch: 66%;
+  font-weight: 800;
+  font-size: 1.375rem;
+  line-height: 1;
+}
+.dl-ph .code {
+  font-size: 0.75rem;
+}
+.dl-count {
+  margin-left: auto;
+  font-family: var(--text);
+  font-stretch: 100%;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ink-mute);
+}
+
+/* Lista pautada com coluna numeral. */
+.dl-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: var(--rule);
+}
+.dl-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: var(--s-2) var(--s-4);
+  align-items: center;
+  padding: var(--s-3) 0;
+  border-bottom: var(--hair);
+}
+.dl-row--live {
+  align-items: start;
+}
+.dl-n {
+  font-size: 1rem;
+  color: var(--ink-mute);
+  line-height: 1.3;
+}
+.dl-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.dl-name {
+  font-weight: 650;
+  font-size: 0.9375rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.dl-meta {
+  font-size: 0.8125rem;
+  color: var(--ink-mute);
+  line-height: 1.4;
+}
+.dl-meta .num {
+  color: var(--ink-soft);
+}
+.dl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-2);
+}
+.dl-row .field-error {
+  margin-top: 0;
+}
+
+/* Barra de envio: lima enquanto o envio está acontecendo agora. */
+.dl-bar {
+  display: block;
+  height: 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+.dl-bar > span {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  background: var(--lime);
+  border-right: 1.5px solid var(--ink);
+  transition: width 400ms linear;
+}
+.dl-bar[data-state="parado"] > span,
+.dl-bar[data-state="erro"] > span {
+  background: var(--ink-mute);
+}
+
+.dl-err {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  color: var(--alert);
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+.dl-err svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+
+/* Zona de soltar: a mesma tracejada do passo a passo; fica fina quando já há arquivos. */
+.dl-drop {
+  min-height: 128px;
+}
+.dl-drop:focus-within {
+  outline: 3px solid var(--ultra);
+  outline-offset: 2px;
+}
+.dl-drop[data-compact="true"] {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  min-height: 0;
+  padding: var(--s-3) var(--s-4);
+  gap: var(--s-1) var(--s-3);
+  text-align: left;
+  border-radius: 12px;
+}
+.dl-drop[data-compact="true"] svg {
+  width: 22px;
+  height: 22px;
+}
+.dl-drop[data-compact="true"] strong {
+  font-size: 0.9375rem;
+}
+.dl-drop[data-compact="true"] span {
+  font-size: 0.8125rem;
+}
+.dl-drop .num {
+  color: inherit;
+}
+
+.dl-note,
+.dl-alert {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-3) var(--s-4);
+  align-items: start;
+  padding: var(--s-4) var(--s-5);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper-deep);
+}
+.dl-note svg,
+.dl-alert svg {
+  width: 24px;
+  height: 24px;
+}
+.dl-note p,
+.dl-alert p {
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+.dl-note strong {
+  color: var(--ink);
+}
+.dl-alert {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  background: var(--paper-bright);
+}
+.dl-alert svg {
+  color: var(--alert);
+}
+
+@media (max-width: 560px) {
+  .dl-row {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+  .dl-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+  .dl-alert {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .dl-alert .btn {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dl-bar > span {
+    transition: none;
+  }
+}

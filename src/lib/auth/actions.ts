@@ -17,6 +17,8 @@ import {
 import { newTotpSecret, verifyTotp } from "./totp";
 import { clear, hit, peek, waitText } from "./ratelimit";
 import { requestInfo } from "./request";
+import { deleteUploadsOfUser } from "@/lib/uploads/server";
+import { deleteBuildsOfUser } from "@/lib/builds/cleanup";
 import {
   clearMfaChallenge,
   createMfaChallenge,
@@ -611,6 +613,10 @@ async function deleteAccountInner(_prev: FormState, form: FormData): Promise<For
         return { fields: { codigo: "Código incorreto ou já usado." } };
       }
     }
+    // Arquivos no MinIO primeiro (todas as versões e envios abertos): se o
+    // armazenamento falhar, nada é excluído e a pessoa tenta de novo.
+    await deleteUploadsOfUser(user._id);
+    await deleteBuildsOfUser(user._id);
     const { users, sessions, mfa, events, saves, follows, projects } = await db();
     await sessions.deleteMany({ userId: user._id });
     await mfa.deleteMany({ userId: user._id });
