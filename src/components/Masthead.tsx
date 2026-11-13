@@ -88,7 +88,8 @@ export function Masthead() {
             </button>
           </nav>
         </div>
-        <div id="menu-programa" className="nav-panel" hidden={!open}>
+        {/* Um toque em qualquer link fecha o painel, mesmo sem mudar de rota (âncoras, página atual). */}
+        <div id="menu-programa" className="nav-panel" hidden={!open} onClick={(e) => (e.target as HTMLElement).closest("a") && setOpen(false)}>
           <div className="wrap">
             <ul className="nav-panel-main">
               {NAV.map((n) => (
