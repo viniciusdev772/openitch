@@ -9,6 +9,7 @@ import {
   formatDate,
   formatPrice,
   gameBySlug,
+  jamBySlug,
   trackById,
 } from "@/data/catalog";
 import { Cover } from "@/components/Cover";
@@ -124,7 +125,7 @@ export default async function GamePage({ params }: Props) {
               <>
                 <dt>Jam</dt>
                 <dd>
-                  <Link href={`/jams#${game.jam}`}>Entrada da Mini Jam Silêncio</Link>
+                  <Link href={`/jams/${game.jam}`}>Entrada da {jamBySlug(game.jam)?.title ?? "jam"}</Link>
                 </dd>
               </>
             )}

@@ -28,10 +28,15 @@ export function AuthLink() {
   const inAuth = path.startsWith("/entrar") || path.startsWith("/criar-conta") || path.startsWith("/recuperar");
   if (name) {
     return (
-      <Link href="/conta" className="auth-link" aria-current={path.startsWith("/conta") ? "page" : undefined}>
-        <UserRound aria-hidden size={18} />
-        <span>{name}</span>
-      </Link>
+      <>
+        <Link href="/estante" className="nav-wide" aria-current={path.startsWith("/estante") ? "page" : undefined}>
+          Estante
+        </Link>
+        <Link href="/conta" className="auth-link" aria-current={path.startsWith("/conta") ? "page" : undefined}>
+          <UserRound aria-hidden size={18} />
+          <span>{name}</span>
+        </Link>
+      </>
     );
   }
   return (

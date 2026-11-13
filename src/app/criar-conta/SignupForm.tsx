@@ -27,7 +27,7 @@ export function SignupForm({ de, signedIn }: { de: string; signedIn: boolean }) 
         <p className="bo-ok" role="status">
           Conta criada. Você já está dentro.
         </p>
-        <RecoveryCodes codes={state.codes} email={email} continueHref={de} continueLabel="Ir para minha conta" />
+        <RecoveryCodes codes={state.codes} email={email} continueHref={de} continueLabel={de === "/conta" ? "Ir para minha conta" : "Continuar de onde parei"} />
       </div>
     );
   }
