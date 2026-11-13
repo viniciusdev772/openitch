@@ -1,5 +1,6 @@
 import "server-only";
 import { MongoClient, type Db, type ObjectId } from "mongodb";
+import type { Platform, TrackId } from "@/data/catalog";
 
 /**
  * Conexão com o MongoDB. A URI vem só do ambiente (MONGODB_URI), cadastrada
@@ -91,6 +92,37 @@ export interface FollowDoc {
   at: Date;
 }
 
+/**
+ * Rascunho de um jogo, criado em /publicar. Só o dono lê e grava; toda
+ * consulta filtra por `userId` da sessão. Valores de trilha, plataforma, jam e
+ * capa são conferidos contra o catálogo antes de chegar aqui (lib/projects).
+ */
+export type ProjectPrice =
+  | { kind: "free" }
+  | { kind: "fixed"; cents: number }
+  | { kind: "pwyw"; minimumCents: number };
+
+export interface ProjectDoc {
+  _id: ObjectId;
+  userId: ObjectId;
+  title: string;
+  /** Endereço sugerido a partir do título; não é reservado nem único. */
+  slug: string;
+  tagline: string;
+  description: string;
+  track: TrackId;
+  tags: string[];
+  platforms: Platform[];
+  price: ProjectPrice;
+  /** Capa provisória (um dos estilos de capa do catálogo). */
+  cover: string;
+  /** Slug da jam no catálogo, ou null. */
+  jam: string | null;
+  status: "rascunho";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export type SecurityEventType =
   | "conta_criada"
   | "entrada"
@@ -156,6 +188,7 @@ async function ensureIndexes(db: Db): Promise<void> {
         db.collection("security_events").createIndex({ at: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 180 }),
         db.collection("saves").createIndex({ userId: 1, game: 1 }, { unique: true }),
         db.collection("follows").createIndex({ userId: 1, creator: 1 }, { unique: true }),
+        db.collection("projects").createIndex({ userId: 1, updatedAt: -1 }),
       ]);
     })().catch((err) => {
       cache.indexes = undefined;
@@ -177,5 +210,6 @@ export async function db() {
     events: database.collection<SecurityEventDoc>("security_events"),
     saves: database.collection<SaveDoc>("saves"),
     follows: database.collection<FollowDoc>("follows"),
+    projects: database.collection<ProjectDoc>("projects"),
   };
 }
