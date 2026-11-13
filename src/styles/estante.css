@@ -52,6 +52,22 @@
   max-width: 36ch;
 }
 
+/* Volta do formulário sem JavaScript: a página é estática, a âncora escolhe a nota. */
+.lib-toggle .lib-done {
+  display: none;
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1.4;
+  max-width: 36ch;
+}
+.lib-toggle .lib-done:target {
+  display: block;
+}
+.lib-toggle .lib-done a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
 /* Onde o botão mora */
 .creator-card .lib-toggle,
 .creator-head-side .lib-toggle,
@@ -422,4 +438,9 @@
     grid-template-columns: 1fr;
     gap: var(--s-2);
   }
+}
+
+/* Começou a seguir a partir da sugestão: o quadro deixa de ser um vazio. */
+.shelf-empty[data-started] {
+  border-style: solid;
 }
