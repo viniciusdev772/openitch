@@ -19,7 +19,7 @@ const GUIDE = [
   { href: "/etiquetas", label: "Etiquetas" },
   { href: "/colecoes", label: "Coleções" },
   { href: "/estante", label: "Sua estante" },
-  { href: "/conta/projetos", label: "Seus rascunhos" },
+  { href: "/conta/projetos", label: "Seus jogos" },
   { href: "/sobre", label: "Como funciona" },
   { href: "/ajuda", label: "Ajuda" },
 ];

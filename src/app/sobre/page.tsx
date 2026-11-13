@@ -69,7 +69,7 @@ const STATUS: { part: string; state: State; note: React.ReactNode }[] = [
     note: (
       <>
         A página do jogo fica salva como rascunho na sua conta, em{" "}
-        <Link href="/conta/projetos">Seus rascunhos</Link>.
+        <Link href="/conta/projetos">Seus jogos</Link>.
       </>
     ),
   },

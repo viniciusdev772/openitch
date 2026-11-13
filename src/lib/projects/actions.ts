@@ -1,6 +1,6 @@
 "use server";
 
-import { ObjectId } from "mongodb";
+import { MongoServerError, ObjectId } from "mongodb";
 import { unstable_rethrow } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/auth/db";
@@ -12,6 +12,7 @@ import {
   WRITES_PER_WINDOW,
   WRITE_WINDOW_MS,
   publishFieldProblems,
+  suggestSlug,
   type DeleteResult,
   type PublishResult,
   type SaveResult,
@@ -21,6 +22,7 @@ import { ensureCreatorSlug, ensureNumber, ensurePublicSlug, publishProblems } fr
 import { revalidatePublic } from "@/lib/catalog/revalidate";
 import { deleteUploadsOfProject } from "@/lib/uploads/server";
 import { deleteBuildsOfProject } from "@/lib/builds/cleanup";
+import { deleteCoverObjects } from "./cover-store";
 
 /*
  * Rascunhos de jogos. Cada ação é um endpoint público: confere sozinha quem
@@ -140,12 +142,19 @@ export async function deleteDraft(form: FormData): Promise<DeleteResult> {
     const { projects } = await db();
     // Marca primeiro: a partir daqui nenhum envio novo entra neste rascunho (envios e builds
     // recusam projetos "excluindo"), então nada fica órfão entre apagar os arquivos e o registro.
-    const marked = await projects.updateOne({ _id: id, userId }, { $set: { status: "excluindo", updatedAt: new Date() } });
-    if (marked.matchedCount !== 1) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
+    const marked = await projects.findOneAndUpdate(
+      { _id: id, userId },
+      { $set: { status: "excluindo", updatedAt: new Date() } },
+      { projection: { coverImage: 1, pendingCover: 1 } },
+    );
+    if (!marked) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
+    // Sai do programa já, antes de apagar os arquivos.
+    revalidatePublic();
     // Arquivos e builds antes do registro: se o armazenamento falhar, o rascunho fica
     // (marcado) e a pessoa tenta de novo para terminar.
     await deleteUploadsOfProject(userId, id);
     await deleteBuildsOfProject(userId, id);
+    await deleteCoverObjects(marked);
     const res = await projects.deleteOne({ _id: id, userId });
     if (res.deletedCount !== 1) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
     revalidatePath("/conta/projetos");
@@ -260,5 +269,50 @@ export async function unpublishProject(form: FormData): Promise<PublishResult> {
     unstable_rethrow(err);
     console.error("[publicar]", err);
     return { ok: false, code: "servidor", error: PUBLISH_DOWN };
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Endereço público                                                    */
+/* ------------------------------------------------------------------ */
+
+export type AddressResult = { ok: true; slug: string } | { ok: false; error: string };
+
+/**
+ * Troca o endereço público (/jogo/<slug>) de um jogo que já foi publicado. O
+ * antigo continua levando ao novo (redirecionamento permanente), e quem tinha
+ * o jogo na estante continua tendo.
+ */
+export async function changeAddress(form: FormData): Promise<AddressResult> {
+  if (!(form instanceof FormData)) return { ok: false, error: "Pedido inválido." };
+  try {
+    const who = await owned(form, true);
+    if (!who.ok) return { ok: false, error: who.result.error };
+    const wanted = suggestSlug(str(form, "endereco", 120));
+    if ([...wanted].length < 2) return { ok: false, error: "Use pelo menos 2 letras ou números no endereço." };
+    const { projects, saves } = await db();
+    const p = await projects.findOne({ _id: who.id, userId: who.userId, status: { $ne: "excluindo" } }, { projection: { publicSlug: 1 } });
+    if (!p) return { ok: false, error: NOT_FOUND };
+    if (!p.publicSlug) return { ok: false, error: "O endereço é reservado na primeira publicação. Publique antes de trocar." };
+    if (p.publicSlug === wanted) return { ok: true, slug: wanted };
+    try {
+      const res = await projects.updateOne(
+        { _id: p._id, userId: who.userId, publicSlug: p.publicSlug },
+        { $set: { publicSlug: wanted, updatedAt: new Date() }, $addToSet: { previousSlugs: p.publicSlug } },
+      );
+      if (res.matchedCount !== 1) return { ok: false, error: "O endereço mudou em outra aba. Recarregue a página." };
+    } catch (err) {
+      if (err instanceof MongoServerError && err.code === 11000) return { ok: false, error: "Esse endereço já é de outro jogo. Escolha outro." };
+      throw err;
+    }
+    // Voltar a um endereço antigo: ele deixa de ser "antigo".
+    await projects.updateOne({ _id: p._id }, { $pull: { previousSlugs: wanted } });
+    await saves.updateMany({ game: p.publicSlug }, { $set: { game: wanted } }).catch(() => undefined);
+    revalidatePublic();
+    return { ok: true, slug: wanted };
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("[publicar]", err);
+    return { ok: false, error: PUBLISH_DOWN };
   }
 }

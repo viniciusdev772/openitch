@@ -53,10 +53,14 @@ export default async function PublishPage({ searchParams }: { searchParams: SP }
     <>
       <header className="page-head">
         <div className="wrap">
-          <h1>Publicar</h1>
+          <h1>{draft?.state === "publicado" ? "Editar" : "Publicar"}</h1>
           <p>
             {draft
-              ? `Você está editando um rascunho salvo. Mude o que quiser e salve de novo; a entrada à direita acompanha cada letra.${
+              ? `${
+                  draft.state === "publicado"
+                    ? "Você está editando um jogo publicado. Mude o que quiser: cada gravação vai ao ar na hora. No passo 6 dá para tirar do ar ou excluir."
+                    : "Você está editando um rascunho salvo. Mude o que quiser e salve de novo; a entrada à direita acompanha cada letra."
+                }${
                   staleJam ? " A jam que este rascunho tinha não está mais na agenda, então o campo de jam ficou vazio." : ""
                 }`
               : "Cinco passos, nesta ordem, todos reversíveis. À direita está a sua entrada no programa: ela muda enquanto você escreve."}

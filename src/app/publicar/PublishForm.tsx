@@ -9,15 +9,21 @@ import DownloadFiles from "@/components/uploads/DownloadFiles";
 import { WebBuild } from "@/components/builds/WebBuild";
 import { DraftBar, type SaveStatus } from "@/components/projetos/DraftBar";
 import { PublishPanel } from "@/components/projetos/PublishPanel";
+import { CoverUpload } from "@/components/projetos/CoverUpload";
+import { AddressEditor } from "@/components/projetos/AddressEditor";
 import { saveDraft } from "@/lib/projects/actions";
 import {
   DRAFT_COVERS,
   LIMITS,
   MAX_PRICE_TEXT,
   checkPrice,
+  linesProblem,
   parseCents,
+  parseCredits,
+  splitLines,
   splitTags,
   suggestSlug,
+  type DraftFieldKey,
   type DraftFields,
   type PriceKind,
   type SaveResult,
@@ -33,7 +39,7 @@ export interface JamOption {
   state: "past" | "live" | "next";
 }
 
-type FieldKey = "title" | "tagline" | "description" | "tags" | "amount" | "platforms";
+type FieldKey = DraftFieldKey;
 const FIELD_NAMES: Record<FieldKey, string> = {
   title: "Título",
   tagline: "Frase de apresentação",
@@ -41,6 +47,12 @@ const FIELD_NAMES: Record<FieldKey, string> = {
   tags: "Etiquetas",
   amount: "Preço",
   platforms: "Plataformas",
+  session: "Duração",
+  languages: "Idiomas",
+  controls: "Controles",
+  accessibility: "Acessibilidade",
+  contentNotes: "Avisos de conteúdo",
+  credits: "Créditos",
 };
 
 /** O que foi escrito sem conta (ou com a sessão vencida), para voltar depois de entrar. */
@@ -61,6 +73,12 @@ const blank = (jam: string): DraftFields => ({
   amount: "5",
   cover: "orbit",
   jam,
+  session: "",
+  languages: "",
+  controls: "",
+  accessibility: "",
+  contentNotes: "",
+  credits: "",
 });
 
 const pick = (d: SavedDraft): DraftFields => ({
@@ -74,12 +92,55 @@ const pick = (d: SavedDraft): DraftFields => ({
   amount: d.amount,
   cover: d.cover,
   jam: d.jam,
+  session: d.session,
+  languages: d.languages,
+  controls: d.controls,
+  accessibility: d.accessibility,
+  contentNotes: d.contentNotes,
+  credits: d.credits,
 });
 
 const count = (s: string) => [...s].length;
 
 const PRICE_KINDS: PriceKind[] = ["free", "fixed", "pwyw"];
 const AMOUNT_MAX = 9;
+type LineKey = "controls" | "accessibility" | "contentNotes" | "credits";
+const LINE_FIELDS: { key: LineKey; label: string; placeholder: string; hint: string }[] = [
+  {
+    key: "controls",
+    label: "Controles",
+    placeholder: "Setas ou A/D: inclina o barco\nEspaço: pula",
+    hint: "Um por linha, como Tecla: o que faz. A página desenha as teclas.",
+  },
+  {
+    key: "accessibility",
+    label: "Acessibilidade",
+    placeholder: "Legendas em todos os diálogos\nJoga com uma mão só",
+    hint: "Um recurso por linha.",
+  },
+  {
+    key: "contentNotes",
+    label: "Avisos de conteúdo",
+    placeholder: "Luzes piscando",
+    hint: "Um por linha. Aparecem antes de jogar.",
+  },
+  {
+    key: "credits",
+    label: "Créditos",
+    placeholder: "Música: Ana Souza\nArte: Beto Lima",
+    hint: "Um por linha, como Papel: Nome.",
+  },
+];
+
+/** O mesmo aviso do servidor, já enquanto escreve (linhas demais, longas demais, crédito sem Papel: Nome). */
+function lineHint(key: LineKey, raw: string): string | undefined {
+  const items = splitLines(raw);
+  const problem = linesProblem(items, LIMITS[key]);
+  if (problem) return problem;
+  if (key === "credits" && !parseCredits(items)) return "Escreva cada crédito como Papel: Nome, um por linha.";
+  return undefined;
+}
+
 const LEAVE_WARNING = "Este rascunho tem alterações não salvas. Sair da página mesmo assim? O que não foi salvo se perde.";
 
 /**
@@ -103,6 +164,12 @@ function fromStash(raw: unknown, base: DraftFields, jamSlugs: Set<string>): Draf
     amount: typeof s.amount === "string" && s.amount.length <= AMOUNT_MAX && /^[\d,.]*$/.test(s.amount) ? s.amount : base.amount,
     cover: DRAFT_COVERS.some((c) => c.style === s.cover) ? (s.cover as DraftFields["cover"]) : base.cover,
     jam: typeof s.jam === "string" && (s.jam === "" || jamSlugs.has(s.jam)) ? s.jam : base.jam,
+    session: text(s.session, LIMITS.session, base.session),
+    languages: text(s.languages, LIMITS.languagesRaw, base.languages),
+    controls: text(s.controls, LIMITS.controls.lines * (LIMITS.controls.line + 1), base.controls),
+    accessibility: text(s.accessibility, LIMITS.accessibility.lines * (LIMITS.accessibility.line + 1), base.accessibility),
+    contentNotes: text(s.contentNotes, LIMITS.contentNotes.lines * (LIMITS.contentNotes.line + 1), base.contentNotes),
+    credits: text(s.credits, LIMITS.credits.lines * (LIMITS.credits.line + 1), base.credits),
   };
 }
 
@@ -158,6 +225,8 @@ function PublishForm({
   const [pending, startTransition] = useTransition();
   // Qual rascunho está no ar (o passo 6 fica feito só para ele).
   const [liveId, setLiveId] = useState<string | null>(initial?.state === "publicado" ? initial.id : null);
+  const [coverImage, setCoverImage] = useState<string | null>(initial?.coverImage ?? null);
+  const [publicSlug, setPublicSlug] = useState<string | null>(initial?.publicSlug ?? null);
   const refs = useRef<Partial<Record<FieldKey, HTMLElement | null>>>({});
 
   const snap = JSON.stringify(f);
@@ -262,9 +331,10 @@ function PublishForm({
       languages: [],
       cover: cover.style,
       palette: cover.palette,
+      coverImage: coverImage ?? undefined,
       downloads: [],
     }),
-    [f, cents, cover],
+    [f, cents, cover, coverImage],
   );
 
   // A mesma conferência do servidor (checkPrice), com as mesmas mensagens.
@@ -306,6 +376,12 @@ function PublishForm({
     fd.set("preco", f.priceKind);
     fd.set("valor", f.amount);
     fd.set("jam", f.jam);
+    fd.set("duracao", f.session);
+    fd.set("idiomas", f.languages);
+    fd.set("controles", f.controls);
+    fd.set("acessibilidade", f.accessibility);
+    fd.set("avisos", f.contentNotes);
+    fd.set("creditos", f.credits);
     for (const p of f.platforms) fd.append("plataforma", p);
     setStatus({ kind: "saving" });
     startTransition(async () => {
@@ -364,6 +440,7 @@ function PublishForm({
       onSaveAsNew={() => save({ asNew: true })}
       onFocusField={(k) => focusField(k as FieldKey)}
       onLeave={stash}
+      live={liveId !== null && liveId === draftId}
     />
   );
 
@@ -430,25 +507,25 @@ function PublishForm({
                   {titleError ? (
                     <p className="field-error" id={`${id}-t-err`}>{titleError}</p>
                   ) : null}
-                  <p className="field-hint" id={`${id}-t-hint`}>
-                    {f.title.trim() ? (
-                      <>
-                        {initial?.publicSlug ? (
-                          <>
-                            Endereço no programa: <span className="pj-slug">/jogo/{initial.publicSlug}</span>. Ele fica o
-                            mesmo, mesmo se o título mudar.
-                          </>
-                        ) : (
-                          <>
-                            Endereço sugerido: <span className="pj-slug">/jogo/{suggestSlug(f.title) || "…"}</span>. Ele fica
-                            reservado quando você publica.
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      "Só o título já basta para salvar um rascunho."
-                    )}
-                  </p>
+                  {publicSlug && draftId && account === "dentro" ? (
+                    <>
+                      <p className="field-hint" id={`${id}-t-hint`}>
+                        O endereço não muda quando o título muda.
+                      </p>
+                      <AddressEditor draftId={draftId} slug={publicSlug} onChange={setPublicSlug} />
+                    </>
+                  ) : (
+                    <p className="field-hint" id={`${id}-t-hint`}>
+                      {f.title.trim() ? (
+                        <>
+                          Endereço sugerido: <span className="pj-slug">/jogo/{suggestSlug(f.title) || "…"}</span>. Ele fica
+                          reservado quando você publica, e dá para trocar depois.
+                        </>
+                      ) : (
+                        "Só o título já basta para salvar um rascunho."
+                      )}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="field-label" htmlFor={`${id}-g`}>Frase de apresentação</label>
@@ -530,7 +607,11 @@ function PublishForm({
                   </div>
                 </fieldset>
                 <fieldset className="pj-fieldset">
-                  <legend className="field-label">Capa provisória</legend>
+                  <legend className="field-label">Imagem de capa</legend>
+                  <CoverUpload draftId={account === "dentro" ? draftId : null} url={coverImage} onChange={setCoverImage} />
+                </fieldset>
+                <fieldset className="pj-fieldset">
+                  <legend className="field-label">{coverImage ? "Capa provisória (se tirar a imagem)" : "Capa provisória"}</legend>
                   <div className="seg">
                     {DRAFT_COVERS.map((c) => (
                       <button key={c.style} type="button" aria-pressed={f.cover === c.style} onClick={() => set("cover", c.style)}>
@@ -690,6 +771,71 @@ function PublishForm({
                 <span className="num">{count(f.description).toLocaleString("pt-BR")}</span> de{" "}
                 <span className="num">{LIMITS.description.toLocaleString("pt-BR")}</span> caracteres.
               </p>
+
+              <div className="pj-details">
+                <h3>Detalhes da página</h3>
+                <p className="field-hint">Todos opcionais. Cada um que você preencher aparece na página do jogo.</p>
+                <div className="pj-details-pair">
+                  <div>
+                    <label className="field-label" htmlFor={`${id}-dur`}>Duração</label>
+                    <input
+                      id={`${id}-dur`}
+                      ref={(el) => {
+                        refs.current.session = el;
+                      }}
+                      className="input"
+                      value={f.session}
+                      maxLength={LIMITS.session}
+                      onChange={(e) => set("session", e.target.value, "session")}
+                      placeholder="10 minutos"
+                      aria-invalid={errors.session ? true : undefined}
+                      aria-describedby={describe(errors.session && `${id}-dur-err`)}
+                    />
+                    {errors.session ? <p className="field-error" id={`${id}-dur-err`}>{errors.session}</p> : null}
+                  </div>
+                  <div>
+                    <label className="field-label" htmlFor={`${id}-lang`}>Idiomas</label>
+                    <input
+                      id={`${id}-lang`}
+                      ref={(el) => {
+                        refs.current.languages = el;
+                      }}
+                      className="input"
+                      value={f.languages}
+                      maxLength={LIMITS.languagesRaw}
+                      onChange={(e) => set("languages", e.target.value, "languages")}
+                      placeholder="Português, Inglês"
+                      aria-invalid={errors.languages ? true : undefined}
+                      aria-describedby={describe(errors.languages && `${id}-lang-err`, `${id}-lang-hint`)}
+                    />
+                    {errors.languages ? <p className="field-error" id={`${id}-lang-err`}>{errors.languages}</p> : null}
+                    <p className="field-hint" id={`${id}-lang-hint`}>Separados por vírgula.</p>
+                  </div>
+                </div>
+                {LINE_FIELDS.map((lf) => {
+                  const lineError = errors[lf.key] ?? lineHint(lf.key, f[lf.key]);
+                  return (
+                    <div key={lf.key}>
+                      <label className="field-label" htmlFor={`${id}-${lf.key}`}>{lf.label}</label>
+                      <textarea
+                        id={`${id}-${lf.key}`}
+                        ref={(el) => {
+                          refs.current[lf.key] = el;
+                        }}
+                        className="textarea pj-lines"
+                        rows={3}
+                        value={f[lf.key]}
+                        onChange={(e) => set(lf.key, e.target.value, lf.key)}
+                        placeholder={lf.placeholder}
+                        aria-invalid={lineError ? true : undefined}
+                        aria-describedby={describe(lineError && `${id}-${lf.key}-err`, `${id}-${lf.key}-hint`)}
+                      />
+                      {lineError ? <p className="field-error" id={`${id}-${lf.key}-err`}>{lineError}</p> : null}
+                      <p className="field-hint" id={`${id}-${lf.key}-hint`}>{lf.hint}</p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </li>
 
@@ -718,7 +864,11 @@ function PublishForm({
                     : { state: "rascunho", slug: null, number: null }
                 }
                 onFocusField={(k) => focusField(k)}
-                onLiveChange={(on) => setLiveId(on ? draftId : null)}
+                slug={publicSlug}
+                onLiveChange={(on, slug) => {
+                  setLiveId(on ? draftId : null);
+                  if (slug) setPublicSlug(slug);
+                }}
               />
             </div>
           </li>

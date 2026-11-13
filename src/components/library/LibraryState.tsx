@@ -15,12 +15,18 @@ interface Result {
   status: "out" | "down" | "ready";
   saved?: boolean;
   following?: boolean;
+  /** Id do rascunho, quando o jogo da página é de quem está vendo. */
+  ownProject?: string;
+  /** A página de criador é de quem está vendo. */
+  ownProfile?: boolean;
 }
 
 interface Value {
   status: "loading" | Result["status"];
   saved?: boolean;
   following?: boolean;
+  ownProject?: string;
+  ownProfile?: boolean;
   game?: string;
   creator?: string;
 }
@@ -38,10 +44,16 @@ function load(query: string): Promise<Result> {
       if (r.status === 401) return { status: "out" };
       if (!r.ok) return { status: "down" };
       const d = (await r.json()) as {
-        jogo: { guardado: boolean } | null;
-        criador: { seguindo: boolean } | null;
+        jogo: { guardado: boolean; dono?: { projeto: string } | null } | null;
+        criador: { seguindo: boolean; dono?: boolean } | null;
       };
-      return { status: "ready", saved: d.jogo?.guardado === true, following: d.criador?.seguindo === true };
+      return {
+        status: "ready",
+        saved: d.jogo?.guardado === true,
+        following: d.criador?.seguindo === true,
+        ownProject: typeof d.jogo?.dono?.projeto === "string" ? d.jogo.dono.projeto : undefined,
+        ownProfile: d.criador?.dono === true,
+      };
     })
     .catch((): Result => ({ status: "down" }))
     .finally(() => inflight.delete(query));
@@ -81,4 +93,10 @@ export function useLibraryStatus(kind: LibraryKind, slug: string): LibraryStatus
   if (v.status === "loading" || v.status === "out" || v.status === "down") return v.status;
   if (kind === "save") return v.game === slug ? Boolean(v.saved) : "loading";
   return v.creator === slug ? Boolean(v.following) : "loading";
+}
+
+/** O que a página sabe sobre quem está vendo ser o dono (jogo ou perfil). */
+export function useOwnership(): { project?: string; profile: boolean } {
+  const v = useContext(Ctx);
+  return { project: v.ownProject, profile: v.ownProfile === true };
 }

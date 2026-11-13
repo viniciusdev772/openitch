@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, LoaderCircle } from "lucide-react";
 import { entryNumber } from "@/data/base";
-import { checkPublish, publishProject, unpublishProject } from "@/lib/projects/actions";
+import { useRouter } from "next/navigation";
+import { checkPublish, deleteDraft, publishProject, unpublishProject } from "@/lib/projects/actions";
 import { FILES_CHANGED } from "@/lib/projects/events";
 import {
   publishFieldProblems,
@@ -33,6 +34,7 @@ export function PublishPanel({
   initial,
   onFocusField,
   onLiveChange,
+  slug,
 }: {
   signedIn: boolean;
   draftId: string | null;
@@ -43,7 +45,9 @@ export function PublishPanel({
   initial: Live;
   onFocusField: (k: PublishField) => void;
   /** O passo fica marcado como feito enquanto o jogo está no ar. */
-  onLiveChange?: (live: boolean) => void;
+  onLiveChange?: (live: boolean, slug: string | null) => void;
+  /** Endereço atual (muda quando o dono troca o endereço no passo 1). */
+  slug?: string | null;
 }) {
   const [live, setLive] = useState<Live>(initial);
   const [files, setFiles] = useState<PublishProblem[] | null>(null);
@@ -111,7 +115,7 @@ export function PublishPanel({
       }
       if (res.ok) {
         setLive({ state: res.state, slug: res.slug, number: res.number });
-        onLiveChange?.(res.state === "publicado");
+        onLiveChange?.(res.state === "publicado", res.slug);
         setFiles([]);
         setMessage({ ok: true, text: done(res) });
         return;
@@ -140,7 +144,8 @@ export function PublishPanel({
   }
 
   const blocked = dirty || problems.length > 0;
-  const href = live.slug ? `/jogo/${live.slug}` : null;
+  const current = slug ?? live.slug;
+  const href = current ? `/jogo/${current}` : null;
 
   return (
     <div className="pj-publish" data-live={isLive || undefined}>
@@ -246,6 +251,76 @@ export function PublishPanel({
           ) : null}
         </p>
       ) : null}
+
+      <DeleteGame draftId={draftId} live={isLive} />
+    </div>
+  );
+}
+
+/** Excluir de vez, com a confirmação no próprio lugar (sem janela por cima). */
+function DeleteGame({ draftId, live }: { draftId: string; live: boolean }) {
+  const router = useRouter();
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const keepRef = useRef<HTMLButtonElement>(null);
+  const askRef = useRef<HTMLButtonElement>(null);
+  const was = useRef(false);
+
+  useEffect(() => {
+    if (confirming) keepRef.current?.focus();
+    else if (was.current) askRef.current?.focus();
+    was.current = confirming;
+  }, [confirming]);
+
+  const remove = () => {
+    if (pending) return;
+    const fd = new FormData();
+    fd.set("id", draftId);
+    fd.set("confirmar", "excluir");
+    setError(null);
+    startTransition(async () => {
+      try {
+        const res = await deleteDraft(fd);
+        if (res.ok || res.code === "nao_encontrado") {
+          router.push("/conta/projetos");
+          return;
+        }
+        setError(res.error);
+      } catch {
+        setError("Sem conexão com o servidor. Nada foi excluído: tente de novo.");
+      }
+    });
+  };
+
+  return (
+    <div className="pj-delete" data-confirm={confirming || undefined}>
+      {confirming ? (
+        <>
+          <p>
+            <strong>Excluir este jogo de vez?</strong>{" "}
+            {live ? "Ele sai do programa agora, com" : "Vão junto"} os arquivos, os builds e a capa. Não dá para desfazer.
+          </p>
+          {error ? (
+            <p className="field-error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <div className="pj-publish-act">
+            <button type="button" className="btn btn--sm pj-danger" onClick={remove} aria-disabled={pending}>
+              {pending ? <LoaderCircle aria-hidden className="bo-spin" /> : null}
+              {pending ? "Excluindo" : "Excluir de vez"}
+            </button>
+            <button ref={keepRef} type="button" className="btn btn--sm btn--ghost" onClick={() => setConfirming(false)} disabled={pending}>
+              Manter
+            </button>
+          </div>
+        </>
+      ) : (
+        <button ref={askRef} type="button" className="bo-link pj-delete-ask" onClick={() => setConfirming(true)}>
+          Excluir este jogo
+        </button>
+      )}
     </div>
   );
 }

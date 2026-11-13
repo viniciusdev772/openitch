@@ -16,6 +16,7 @@ import {
   s3Config,
 } from "@/lib/storage/s3";
 import { ensureStorage } from "@/lib/storage/setup";
+import { revalidateIfLive } from "@/lib/catalog/revalidate";
 import { usageOf } from "@/lib/uploads/server";
 import { MAX_WEB_BUILD_BYTES, MAX_WEB_BUILD_FILES, USER_QUOTA_BYTES, formatBytes } from "@/lib/storage/limits";
 import { cleanBuildPath, COI_FILE, dirOf } from "./paths";
@@ -403,6 +404,7 @@ export async function finishBuild(userId: ObjectId, publicId: string) {
     { returnDocument: "after", projection: { files: 0 } },
   );
   if (!res) throw new BuildError(409, "O build mudou durante a conclusão. Atualize a página.");
+  await revalidateIfLive(res.projectId).catch(() => undefined);
   return summary(res);
 }
 
@@ -443,6 +445,7 @@ export async function deleteBuild(userId: ObjectId, publicId: string) {
   const build = await openBuild(userId, publicId);
   await rate("escrever", userId);
   await purge(build);
+  await revalidateIfLive(build.projectId).catch(() => undefined);
   return { ok: true };
 }
 

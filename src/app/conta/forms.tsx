@@ -7,6 +7,7 @@ import {
   disableTotp,
   regenerateRecoveryCodes,
   updateName,
+  updateProfile,
   type FormState,
 } from "@/lib/auth/actions";
 import { Field, FormAlert, PasswordField, Submit } from "@/components/auth/Fields";
@@ -33,6 +34,61 @@ export function NameForm({ name }: { name: string }) {
       <div className="bo-row bo-row--end">
         <Submit pendingLabel="Salvando" className="btn--sm">
           Salvar nome
+        </Submit>
+      </div>
+    </form>
+  );
+}
+
+/** Cidade e apresentação, impressas na página de criador e ao lado de cada jogo. */
+export function ProfileForm({ city, bio, page }: { city: string; bio: string; page: string | null }) {
+  const [state, action] = useActionState<FormState, FormData>(updateProfile, undefined);
+  const bioValue = state?.values?.bio ?? bio;
+  return (
+    <form action={action} className="acc-form" noValidate>
+      <FormAlert error={state?.error} ok={state?.ok} />
+      <Field
+        label="Cidade (opcional)"
+        name="cidade"
+        autoComplete="address-level2"
+        maxLength={60}
+        defaultValue={state?.values?.cidade ?? city}
+        error={state?.fields?.cidade}
+        hint="Aparece ao lado do seu nome nos seus jogos."
+      />
+      <div>
+        <label className="field-label" htmlFor="perfil-bio">
+          Apresentação (opcional)
+        </label>
+        <textarea
+          id="perfil-bio"
+          name="bio"
+          className="textarea"
+          maxLength={280}
+          rows={3}
+          defaultValue={bioValue}
+          aria-invalid={state?.fields?.bio ? true : undefined}
+          aria-describedby={state?.fields?.bio ? "perfil-bio-erro perfil-bio-dica" : "perfil-bio-dica"}
+        />
+        {state?.fields?.bio ? (
+          <p className="field-error" id="perfil-bio-erro">
+            {state.fields.bio}
+          </p>
+        ) : null}
+        <p className="field-hint" id="perfil-bio-dica">
+          Uma ou duas frases sobre quem faz, até 280 caracteres.{" "}
+          {page ? (
+            <>
+              Sai na sua <a href={page}>página de criador</a>.
+            </>
+          ) : (
+            "Sai na sua página de criador, que aparece quando você publica o primeiro jogo."
+          )}
+        </p>
+      </div>
+      <div className="bo-row bo-row--end">
+        <Submit pendingLabel="Salvando" className="btn--sm">
+          Salvar perfil
         </Submit>
       </div>
     </form>

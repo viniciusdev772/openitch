@@ -584,6 +584,21 @@ function Art({ game }: { game: Game }) {
 }
 
 export function Cover({ game, label, fit = "slice" }: { game: Game; label?: string; fit?: "slice" | "meet" }) {
+  // A imagem enviada por quem fez ocupa o mesmo quadro (5:4) que a capa desenhada.
+  if (game.coverImage) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- servida direto do armazenamento, sem otimização da Vercel
+      <img
+        src={game.coverImage}
+        alt={label === "" ? "" : (label ?? `Capa de ${game.title}`)}
+        aria-hidden={label === "" ? true : undefined}
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
+        style={{ display: "block", width: "100%", height: "auto", aspectRatio: `${W} / ${H}`, objectFit: fit === "meet" ? "contain" : "cover" }}
+      />
+    );
+  }
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}

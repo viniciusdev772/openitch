@@ -115,7 +115,7 @@ const CHAPTERS: Chapter[] = [
         a: (
           <p>
             Com a conta aberta, o texto, a trilha, a capa, as plataformas, o preço e a jam ficam guardados como rascunho,
-            só para você, em <Link href="/conta/projetos">Seus rascunhos</Link>, junto com os arquivos que você enviou. Dá
+            só para você, em <Link href="/conta/projetos">Seus jogos</Link>, junto com os arquivos que você enviou. Dá
             para reabrir e continuar depois. O rascunho só vira página pública quando você clica em Publicar no programa.
           </p>
         ),

@@ -18,7 +18,19 @@ export const LIMITS = {
   slug: 48,
   /** Teto de preço: R$ 1.000,00, em centavos. */
   priceCents: 100_000,
+  /* Detalhes da página (todos opcionais). */
+  session: 40,
+  languages: 6,
+  language: 24,
+  languagesRaw: 6 * 26,
+  controls: { lines: 12, line: 80 },
+  accessibility: { lines: 10, line: 100 },
+  contentNotes: { lines: 8, line: 100 },
+  credits: { lines: 20, line: 100 },
 } as const;
+
+/** Uma lista de linhas como o campo de texto a escreve (uma por linha). */
+export type LineLimit = { lines: number; line: number };
 
 /** Gravações (salvar e excluir somadas) por conta a cada janela. */
 export const WRITES_PER_WINDOW = 30;
@@ -48,6 +60,18 @@ export interface DraftFields {
   amount: string;
   cover: CoverStyle;
   jam: string;
+  /** Duração ("10 minutos"). */
+  session: string;
+  /** Idiomas separados por vírgula. */
+  languages: string;
+  /** Uma linha por controle: "Setas: move o barco". */
+  controls: string;
+  /** Uma linha por recurso de acessibilidade. */
+  accessibility: string;
+  /** Uma linha por aviso de conteúdo. */
+  contentNotes: string;
+  /** Uma linha por crédito: "Música: Fulana". */
+  credits: string;
 }
 
 export interface SavedDraft extends DraftFields {
@@ -61,6 +85,8 @@ export interface SavedDraft extends DraftFields {
   publicSlug: string | null;
   /** Número da entrada no programa, depois da primeira publicação. */
   number: number | null;
+  /** Imagem de capa enviada, quando há. */
+  coverImage: string | null;
 }
 
 /** Uma linha da lista de rascunhos. */
@@ -77,13 +103,28 @@ export interface DraftRow {
   publicSlug: string | null;
 }
 
+/** Campos do formulário que podem voltar com erro. */
+export type DraftFieldKey =
+  | "title"
+  | "tagline"
+  | "description"
+  | "tags"
+  | "amount"
+  | "platforms"
+  | "session"
+  | "languages"
+  | "controls"
+  | "accessibility"
+  | "contentNotes"
+  | "credits";
+
 export type SaveResult =
   | { ok: true; id: string; slug: string; savedAt: string }
   | {
       ok: false;
       code: "campos" | "sessao" | "limite" | "taxa" | "nao_encontrado" | "servidor";
       error: string;
-      fields?: Partial<Record<"title" | "tagline" | "description" | "tags" | "amount" | "platforms", string>>;
+      fields?: Partial<Record<DraftFieldKey, string>>;
     };
 
 export type DeleteResult = { ok: true } | { ok: false; error: string; code?: "sessao" | "taxa" | "nao_encontrado" | "servidor" };
@@ -212,3 +253,40 @@ export type PublishResult =
       error: string;
       problems?: PublishProblem[];
     };
+
+/* ------------------------------------------------------------------ */
+/* Detalhes da página: listas de linhas                                */
+/* ------------------------------------------------------------------ */
+
+/** Linhas de um campo de várias linhas: limpas, sem vazias, sem repetidas. */
+export function splitLines(raw: string): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const part of raw.replace(/\r\n?/g, "\n").split("\n")) {
+    const t = stripInvisible(part).replace(/\s+/g, " ").trim();
+    if (!t || seen.has(t)) continue;
+    seen.add(t);
+    out.push(t);
+  }
+  return out;
+}
+
+/** O que há de errado com uma lista de linhas, ou null. Mesmo texto no formulário e no servidor. */
+export function linesProblem(items: string[], limit: LineLimit): string | null {
+  if (items.length > limit.lines) return `Use até ${limit.lines} linhas.`;
+  if (items.some((t) => [...t].length > limit.line)) return `Cada linha pode ter até ${limit.line} caracteres.`;
+  return null;
+}
+
+/** Créditos "Papel: Nome", um por linha. null quando alguma linha não tem os dois lados. */
+export function parseCredits(items: string[]): { role: string; name: string }[] | null {
+  const out: { role: string; name: string }[] = [];
+  for (const line of items) {
+    const i = line.indexOf(":");
+    const role = i > 0 ? line.slice(0, i).trim() : "";
+    const name = i > 0 ? line.slice(i + 1).trim() : "";
+    if (!role || !name) return null;
+    out.push({ role, name });
+  }
+  return out;
+}

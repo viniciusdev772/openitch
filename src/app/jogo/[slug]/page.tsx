@@ -3,15 +3,16 @@ import "@/styles/jogo.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { tagHref } from "@/components/etiquetas/slug";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { ArrowRight, Check, Play, TriangleAlert } from "lucide-react";
 import { PLATFORMS, entryNumber, formatDate, formatPrice, jamBySlug, trackById } from "@/data/catalog";
-import { getCatalog } from "@/lib/catalog/server";
+import { getCatalog, movedSlug } from "@/lib/catalog/server";
 import { creatorLine } from "@/components/creatorLine";
 import { Cover } from "@/components/Cover";
 import { Entry, PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 import { LibraryButton } from "@/components/library/LibraryButton";
 import { LibraryState } from "@/components/library/LibraryState";
+import { OwnerBar } from "@/components/library/OwnerBar";
 import { BuyCard } from "./BuyCard";
 import { Controls, DayNumeral, gameLog } from "./parts";
 
@@ -39,7 +40,12 @@ export default async function GamePage({ params }: Props) {
   const { slug } = await params;
   const catalog = await getCatalog();
   const game = catalog.gameBySlug(slug);
-  if (!game) notFound();
+  if (!game) {
+    // Endereço antigo de um jogo que mudou de endereço: leva ao atual.
+    const moved = await movedSlug(slug);
+    if (moved) permanentRedirect(`/jogo/${moved}`);
+    notFound();
+  }
   const creator = catalog.creatorBySlug(game.creator);
   if (!creator) notFound();
   const track = trackById(game.track);
@@ -54,6 +60,7 @@ export default async function GamePage({ params }: Props) {
 
   return (
     <LibraryState game={game.slug} creator={creator.slug}>
+      <OwnerBar title={game.title} />
       <section id="palco" className={`game-stage${track.on === "--paper" ? " on-field" : ""}`} style={trackStyle(game.track)}>
         <div className="wrap">
           <nav className="crumbs" aria-label="Trilha de navegação">

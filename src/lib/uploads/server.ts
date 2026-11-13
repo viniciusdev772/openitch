@@ -1,5 +1,6 @@
 import "server-only";
 import { requestInfo } from "@/lib/auth/request";
+import { revalidateIfLive } from "@/lib/catalog/revalidate";
 import { ObjectId } from "mongodb";
 import { db, type ProjectDoc, type UploadDoc, type UserDoc } from "@/lib/auth/db";
 import { toObjectId } from "@/lib/auth/session";
@@ -576,6 +577,7 @@ export async function completeUpload(userId: ObjectId, rawId: unknown) {
       await discard(u, "cancelado durante a conclusão");
       throw new UploadError(409, "estado", "Esse envio foi cancelado.");
     }
+    await revalidateIfLive(u.projectId).catch(() => undefined);
     return { file: view(res) };
   } catch (err) {
     if (!(err instanceof UploadError)) await unlock().catch(() => undefined);
@@ -609,6 +611,7 @@ export async function removeUpload(userId: ObjectId, rawId: unknown) {
     );
     await deleteObject(u.bucket, u.key);
     await uploads.deleteOne({ _id: u._id, userId });
+    await revalidateIfLive(u.projectId).catch(() => undefined);
     return { removed: "excluido" as const };
   }
   await uploads.deleteOne({ _id: u._id, userId });

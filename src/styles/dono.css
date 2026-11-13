@@ -1,0 +1,57 @@
+/* Faixa do dono: um campo de tinta, como o colofão, sobre a página pública.
+   Lime só no botão de ação (ação sobre um campo); vermelho só na exclusão. */
+.owner-bar {
+  background: var(--ink);
+  color: var(--paper);
+  border-bottom: 2px solid var(--ink);
+}
+.owner-bar .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-5);
+  padding-top: var(--s-3);
+  padding-bottom: var(--s-3);
+}
+.owner-bar p {
+  font-size: 0.9375rem;
+  color: color-mix(in oklab, var(--paper) 82%, var(--ink));
+}
+.owner-bar p strong {
+  color: var(--paper);
+}
+.owner-act {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.owner-bar .btn--ghost {
+  color: var(--paper);
+  border-color: var(--paper);
+}
+.owner-bar .btn--ghost:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+.owner-bar .owner-ask:hover,
+.owner-bar .owner-danger {
+  background: var(--alert);
+  border-color: var(--alert);
+  color: var(--paper);
+}
+.owner-bar[data-confirm] {
+  border-bottom-color: var(--alert);
+}
+.owner-bar :focus-visible {
+  outline-color: var(--lime);
+}
+.owner-error {
+  flex-basis: 100%;
+  font-weight: 650;
+  color: var(--paper) !important;
+  padding: var(--s-2) var(--s-3);
+  border: 1.5px solid var(--alert);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--alert) 35%, var(--ink));
+}
