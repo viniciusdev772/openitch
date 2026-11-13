@@ -18,6 +18,7 @@ const GUIDE = [
   { href: "/jogos#busca", label: "Buscar jogos" },
   { href: "/etiquetas", label: "Etiquetas" },
   { href: "/estante", label: "Sua estante" },
+  { href: "/conta/projetos", label: "Seus rascunhos" },
   { href: "/sobre", label: "Como funciona" },
   { href: "/ajuda", label: "Ajuda" },
 ];

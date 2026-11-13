@@ -102,18 +102,20 @@ const CHAPTERS: Chapter[] = [
         q: "Como publico um jogo?",
         a: (
           <p>
-            Em <Link href="/publicar">Publicar</Link>, em cinco passos: o jogo, a trilha e a capa, os arquivos, o preço e a
-            página. A sua entrada aparece ao lado e muda enquanto você escreve.
+            Em <Link href="/publicar">Publicar</Link>, em cinco passos: o jogo, a trilha e a capa, as plataformas e os
+            arquivos, o preço e a página. A sua entrada aparece ao lado e muda enquanto você escreve.
           </p>
         ),
       },
       {
         id: "publicar-botao",
-        q: "O que acontece quando clico em “Publicar no programa”?",
+        q: "O que fica salvo quando clico em “Salvar rascunho”?",
         a: (
           <p>
-            Nesta edição, nada é enviado. Você vê a confirmação e a prévia, mas a página não é criada e nenhum arquivo sai
-            do seu computador.
+            Com a conta aberta, o texto, a trilha, a capa, as plataformas, o preço e a jam ficam guardados como rascunho,
+            só para você, em <Link href="/conta/projetos">Seus rascunhos</Link>. Dá para reabrir e continuar depois. A
+            publicação no programa ainda não existe: nenhum rascunho vira página pública, e nenhum arquivo sai do seu
+            computador.
           </p>
         ),
       },
@@ -132,8 +134,8 @@ const CHAPTERS: Chapter[] = [
         q: "Preciso de conta para publicar?",
         a: (
           <p>
-            Para testar o formulário, não. Quando a publicação estiver ligada, vai ser preciso uma conta.{" "}
-            <Link href="/criar-conta">Criar conta</Link> leva um minuto.
+            Para testar o formulário, não. Para salvar um rascunho, sim, e a publicação também vai pedir uma conta quando
+            estiver ligada. <Link href="/criar-conta">Criar conta</Link> leva um minuto.
           </p>
         ),
       },

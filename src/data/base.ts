@@ -223,6 +223,9 @@ export function jamState(jam: Pick<Jam, "start" | "end">, now: string | number =
   return "next";
 }
 
+/** Inteiros sem centavos (R$ 12); frações com vírgula e dois dígitos (R$ 12,50). */
+const money = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(".", ","));
+
 export function formatPrice(price: Price): string {
   switch (price.kind) {
     case "free":
@@ -231,7 +234,7 @@ export function formatPrice(price: Price): string {
       return `R$ ${price.amount.toFixed(2).replace(".", ",")}`;
     case "pwyw":
       return price.minimum > 0
-        ? `Pague o que quiser · mín. R$ ${price.minimum}`
+        ? `Pague o que quiser · mín. R$ ${money(price.minimum)}`
         : "Pague o que quiser";
   }
 }
@@ -241,9 +244,9 @@ export function shortPrice(price: Price): string {
     case "free":
       return "Grátis";
     case "fixed":
-      return `R$ ${price.amount}`;
+      return `R$ ${money(price.amount)}`;
     case "pwyw":
-      return price.minimum > 0 ? `R$ ${price.minimum}+` : "Livre";
+      return price.minimum > 0 ? `R$ ${money(price.minimum)}+` : "Livre";
   }
 }
 
