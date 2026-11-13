@@ -14,7 +14,7 @@ export default async function CriarContaPage({ searchParams }: { searchParams: P
   return (
     <>
       <BoxHead title="Criar conta">
-        <p>Uma conta para publicar jogos, montar sua página de criador e entrar em jams. Leva um minuto.</p>
+        <p>Uma conta para publicar seus jogos e inscrevê-los em jams. Leva um minuto.</p>
       </BoxHead>
       <BoxBody
         notes={
@@ -23,9 +23,9 @@ export default async function CriarContaPage({ searchParams }: { searchParams: P
             items={[
               [
                 "Senha",
-                "Conferimos se ela já apareceu em vazamentos de outros sites, enviando só um pedaço do resumo dela, nunca a senha.",
+                "Conferimos se ela já apareceu em vazamentos de outros sites. Para isso, mandamos só um pedaço do resumo dela, nunca a senha.",
               ],
-              ["Recuperação", "Ao terminar você recebe 10 códigos de recuperação. Sem e-mail de redefinição, são eles que te trazem de volta."],
+              ["Recuperação", "Ao terminar você recebe 10 códigos de recuperação. Não há e-mail de redefinição: se esquecer a senha, só eles devolvem o acesso."],
               ["Proteção extra", "Depois, na sua conta, dá para ligar a verificação em duas etapas com um app autenticador."],
               ["Registro", "Guardamos as entradas na conta (aparelho e local aproximado) por 180 dias, visíveis só para você."],
             ]}

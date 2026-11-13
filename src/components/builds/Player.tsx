@@ -188,7 +188,7 @@ export function Player(p: PlayerProps) {
         {p.mode === "previa" ? (
           <p className="play-private">
             Prévia do rascunho: esta página só abre para você. Os arquivos do jogo ficam num endereço longo e impossível de
-            adivinhar, mas quem receber o link de “Abrir em aba própria” consegue jogar.
+            adivinhar, mas quem receber o link de "Abrir em aba própria" consegue jogar.
           </p>
         ) : p.mode === "dono-publicado" ? (
           <p className="play-private">Este jogo está no programa: qualquer pessoa abre esta tela, com ou sem conta.</p>
@@ -232,8 +232,8 @@ export function Player(p: PlayerProps) {
         </dl>
         {(coi === "falhou" || coi === "sem-suporte") && (
           <p className="play-help">
-            Abra o jogo em aba própria: lá o isolamento recarrega a página uma vez e costuma funcionar. Se nem assim, o
-            navegador não oferece SharedArrayBuffer.
+            Abra o jogo em aba própria: lá o isolamento recarrega a página uma vez e costuma funcionar. Se não der
+            certo, este navegador não oferece SharedArrayBuffer.
           </p>
         )}
         <div className="play-actions">

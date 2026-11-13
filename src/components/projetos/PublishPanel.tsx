@@ -126,9 +126,9 @@ export function PublishPanel({
   };
 
   const publish = () =>
-    run(publishProject, (r) => `Publicado como ${entryNumber(r.number ?? 0)}. A página já está no programa, aberta a todos.`);
+    run(publishProject, (r) => `Publicado como ${entryNumber(r.number ?? 0)}. A página já está no programa e qualquer pessoa pode abrir.`);
   const takeDown = () =>
-    run(unpublishProject, () => "O jogo saiu do programa e voltou a ser rascunho. O endereço e o número ficam guardados para quando voltar.");
+    run(unpublishProject, () => "O jogo saiu do programa e voltou a ser rascunho. O endereço e o número continuam reservados para quando ele voltar.");
 
   if (!signedIn || !draftId) {
     return (
@@ -312,7 +312,7 @@ function DeleteGame({ draftId, live }: { draftId: string; live: boolean }) {
               {pending ? "Excluindo" : "Excluir de vez"}
             </button>
             <button ref={keepRef} type="button" className="btn btn--sm btn--ghost" onClick={() => setConfirming(false)} disabled={pending}>
-              Manter
+              Manter o jogo
             </button>
           </div>
         </>

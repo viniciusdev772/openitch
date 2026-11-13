@@ -53,6 +53,6 @@ export async function GET(request: Request) {
     );
   } catch (err) {
     console.error("[estante/estado]", err);
-    return fail(503, "A estante está fora do ar agora.");
+    return fail(503, "A estante está fora do ar agora. Tente de novo em instantes.");
   }
 }

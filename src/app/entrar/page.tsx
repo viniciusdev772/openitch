@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Entrar", robots: { index: false } };
 const NOTICES: Record<string, { tone: "ok" | "error"; text: string }> = {
   expirou: { tone: "error", text: "O tempo para digitar o código acabou. Entre de novo com sua senha." },
   tentativas: { tone: "error", text: "Muitos códigos errados. Por segurança, entre de novo com sua senha." },
-  redefinida: { tone: "ok", text: "Senha nova salva e todas as sessões antigas encerradas. Entre com a senha nova." },
+  redefinida: { tone: "ok", text: "Senha nova salva. Encerramos todas as sessões antigas; entre com a senha nova." },
 };
 
 type SP = Promise<{ de?: string | string[]; motivo?: string | string[] }>;
@@ -25,7 +25,7 @@ export default async function EntrarPage({ searchParams }: { searchParams: SP })
   return (
     <>
       <BoxHead title="Entrar">
-        <p>A bilheteria do programa. Entre para publicar, acompanhar seus jogos e cuidar da sua conta.</p>
+        <p>A bilheteria do programa. Entre para publicar e acompanhar seus jogos.</p>
       </BoxHead>
       <BoxBody
         notes={
@@ -34,7 +34,7 @@ export default async function EntrarPage({ searchParams }: { searchParams: SP })
             items={[
               ["Tentativas", "Cinco senhas erradas seguidas, da mesma rede, pausam as entradas neste e-mail por 15 minutos."],
               ["Duas etapas", "Se você ligou a verificação em duas etapas, pedimos o código do app depois da senha."],
-              ["Sessão", "Sem “manter conectado”, a sessão acaba ao fechar o navegador ou depois de 2 horas parada."],
+              ["Sessão", `Sem "Manter conectado", a sessão acaba ao fechar o navegador ou depois de 2 horas parada.`],
               ["Senha esquecida", "Você volta com um dos códigos de recuperação que recebeu ao criar a conta."],
             ]}
           />

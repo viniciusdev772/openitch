@@ -22,10 +22,10 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const STEPS: [string, string][] = [
   ["O jogo", "Título e uma frase. Só o título já basta para salvar."],
   ["Trilha e capa", "A cor da sua seção no programa e uma capa provisória."],
-  ["Plataformas e arquivos", "Onde o jogo roda, os builds para baixar e a versão de navegador."],
-  ["Preço", "Grátis, preço fixo ou pague o que quiser."],
-  ["A página", "O que é o jogo, quanto dura e para quem é."],
-  ["No programa", "Publicar: número e endereço próprios, aberto a todos."],
+  ["Plataformas e arquivos", "Onde o jogo roda e o arquivo de cada plataforma."],
+  ["Preço", "Por enquanto, só jogos grátis entram no programa."],
+  ["A página", "A descrição e detalhes como duração e controles."],
+  ["No programa", "Publicado, o jogo ganha número e endereço e abre para todos."],
 ];
 
 /**
@@ -51,7 +51,7 @@ export function DraftList({
 
   const onDeleted = (d: DraftRow) => {
     setRemoved((s) => new Set(s).add(d.id));
-    setNotice(`“${d.title}” foi excluído.`);
+    setNotice(`"${d.title}" foi excluído.`);
   };
 
   useEffect(() => {
@@ -172,7 +172,7 @@ function Row({ draft, jamTitle, onDeleted }: { draft: DraftRow; jamTitle?: strin
       {confirming ? (
         <div className="pj-confirm" role="group" aria-label={`Confirmar exclusão de ${draft.title}`}>
           <p>
-            <strong>Excluir “{draft.title}”?</strong>{" "}
+            <strong>Excluir "{draft.title}"?</strong>{" "}
             {draft.state === "publicado" ? "Ele sai do programa junto, com os arquivos. Não dá para desfazer." : "Não dá para desfazer."}
           </p>
           {error ? (
@@ -186,7 +186,7 @@ function Row({ draft, jamTitle, onDeleted }: { draft: DraftRow; jamTitle?: strin
               {pending ? "Excluindo" : "Excluir de vez"}
             </button>
             <button ref={keepRef} type="button" className="btn btn--sm btn--ghost" onClick={() => setConfirming(false)}>
-              Manter
+              Manter o jogo
             </button>
           </div>
         </div>
@@ -245,8 +245,8 @@ function FirstUse({
             {notice ? "Nenhum rascunho agora" : "Nenhum rascunho ainda"}
           </h2>
           <p className="pj-start-lead">
-            Cada jogo que você começar em Publicar e salvar fica aqui, com a hora da última gravação. Escreva aos poucos,
-            feche a página e continue de onde parou.
+            Cada jogo que você salvar em Publicar aparece aqui, com a hora da última gravação. Dá para escrever aos
+            poucos e continuar de onde parou.
           </p>
           <div className="pj-start-go">
             <Link href="/publicar" className="btn">
@@ -257,7 +257,7 @@ function FirstUse({
             </Link>
           </div>
         </div>
-        <ol className="pj-steps" aria-label="Os cinco passos de Publicar">
+        <ol className="pj-steps" aria-label="Os passos de Publicar">
           {STEPS.map(([name, text], i) => (
             <li key={name} data-first={i === 0 || undefined}>
               <span className="pj-step-num" aria-hidden>

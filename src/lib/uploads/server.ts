@@ -547,7 +547,7 @@ export async function completeUpload(userId: ObjectId, rawId: unknown) {
     if (!head) {
       await unlock();
       if (u.mode === "single") return { missing: [1] };
-      throw new UploadError(409, "incompleto", "O MinIO não encontrou o arquivo concluído. Tente concluir de novo.");
+      throw new UploadError(409, "incompleto", "O armazenamento não encontrou o arquivo concluído. Tente de novo.");
     }
     if (head.size !== u.size || head.size > MAX_FILE_BYTES) {
       await discard(u, "HEAD diferente");

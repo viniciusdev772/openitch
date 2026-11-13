@@ -76,7 +76,7 @@ export function OwnerBar({ title, kind = "game" }: { title: string; kind?: "game
         {confirming ? (
           <>
             <p>
-              <strong>Excluir “{title}” de vez?</strong> Sai do programa com todos os arquivos e a capa. Não dá para desfazer.
+              <strong>Excluir "{title}" de vez?</strong> Sai do programa com todos os arquivos e a capa. Não dá para desfazer.
             </p>
             <div className="owner-act">
               <button type="button" className="btn btn--sm owner-danger" onClick={() => run(deleteDraft, "/conta/projetos")} aria-disabled={pending}>

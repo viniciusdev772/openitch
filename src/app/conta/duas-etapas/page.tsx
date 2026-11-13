@@ -86,7 +86,7 @@ export default async function DuasEtapasPage() {
                       <path d={qr.path} />
                     </svg>
                     <div className="totp-key">
-                      <p>Sem câmera? Digite esta chave no app, como conta “VibeGames”:</p>
+                      <p>Sem câmera? Digite esta chave no app, como conta "VibeGames":</p>
                       <code>{key}</code>
                       <a href={uri} className="btn btn--ghost btn--sm">
                         Abrir no app deste aparelho
@@ -105,7 +105,7 @@ export default async function DuasEtapasPage() {
               </span>
               <div>
                 <h2>Confirme com um código</h2>
-                <p>Digite os 6 dígitos que o app mostra para a VibeGames. Assim sabemos que o celular e a conta estão em sintonia.</p>
+                <p>Digite os 6 dígitos que o app mostra para a VibeGames. Assim sabemos que o app ficou configurado certo.</p>
                 {pending ? <ConfirmTotp /> : null}
               </div>
             </li>

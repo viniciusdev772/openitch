@@ -72,13 +72,13 @@ export function WebBuild({ projectId }: { projectId: string }) {
     try {
       const res = await fetch(`/api/builds?projeto=${encodeURIComponent(projectId)}`, { cache: "no-store" });
       const data = (await res.json().catch(() => ({}))) as { builds?: BuildRow[]; error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Não deu para listar os builds.");
+      if (!res.ok) throw new Error(data.error ?? "Não deu para carregar a lista de builds. Recarregue a página.");
       setBuilds(data.builds ?? []);
       setListError(null);
       // O painel de publicar confere de novo o que falta.
       window.dispatchEvent(new Event(FILES_CHANGED));
     } catch (err) {
-      setListError(err instanceof Error ? err.message : "Não deu para listar os builds.");
+      setListError(err instanceof Error ? err.message : "Não deu para carregar a lista de builds. Recarregue a página.");
     }
   }, [projectId]);
 
@@ -124,7 +124,7 @@ export function WebBuild({ projectId }: { projectId: string }) {
     try {
       files = await prepareFiles(analysis, entry, isolation);
     } catch (err) {
-      setStage({ kind: "erro", message: err instanceof Error ? err.message : "Não deu para preparar os arquivos." });
+      setStage({ kind: "erro", message: err instanceof Error ? err.message : "Não deu para preparar os arquivos para o envio. Tente de novo." });
       return;
     }
     const up = new BuildUpload(
@@ -170,11 +170,11 @@ export function WebBuild({ projectId }: { projectId: string }) {
     try {
       const res = await fetch(`/api/builds/${id}`, { method: "DELETE" });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Não deu para excluir.");
+      if (!res.ok) throw new Error(data.error ?? "Não deu para excluir o build. Tente de novo.");
       setConfirming(null);
       await load();
     } catch (err) {
-      setListError(err instanceof Error ? err.message : "Não deu para excluir.");
+      setListError(err instanceof Error ? err.message : "Não deu para excluir o build. Tente de novo.");
     } finally {
       setBusy(null);
     }
@@ -322,7 +322,7 @@ export function WebBuild({ projectId }: { projectId: string }) {
                         {busy === b.id ? "Excluindo…" : "Excluir de vez"}
                       </button>
                       <button type="button" className="btn btn--ghost btn--sm" onClick={() => setConfirming(null)}>
-                        Manter
+                        Manter o build
                       </button>
                     </>
                   ) : (
@@ -438,7 +438,7 @@ function Proof(props: {
           <span>
             Precisa de isolamento (threads, SharedArrayBuffer)
             <span className="field-hint">
-              {d.isolationReason ?? "Ligue só se o motor exportou com threads. A plataforma acrescenta um service worker que ativa o isolamento."}
+              {d.isolationReason ?? "Ligue só se o motor exportou com threads. O site acrescenta um service worker que liga o isolamento."}
             </span>
           </span>
         </label>
@@ -494,7 +494,7 @@ function Proof(props: {
             )}
             {sending.phase === "concluindo" && "Conferindo no armazenamento…"}
             {sending.phase === "pronto" && "Build no ar."}
-            {sending.phase === "falhas" && `${sending.failed.length} arquivo(s) não subiram.`}
+            {sending.phase === "falhas" && `${sending.failed.length} ${sending.failed.length === 1 ? "arquivo não subiu" : "arquivos não subiram"}.`}
             {sending.phase === "cancelado" && "Envio cancelado. O que tinha subido foi apagado."}
             {sending.phase === "erro" && (sending.error ?? "O envio parou.")}
           </p>

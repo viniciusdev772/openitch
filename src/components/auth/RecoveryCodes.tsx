@@ -64,8 +64,8 @@ export function RecoveryCodes({
         Guarde seus códigos de recuperação
       </h2>
       <p>
-        Sem e-mail de redefinição, estes dez códigos são o seu caminho de volta se esquecer a senha ou perder o celular.
-        Eles aparecem só agora. Cada um funciona uma vez.
+        Não há e-mail de redefinição. Se você esquecer a senha ou perder o celular, só estes dez códigos devolvem o
+        acesso. Eles aparecem só agora, e cada um funciona uma vez.
       </p>
       <ol className="bo-code-list">
         {codes.map((c, i) => (

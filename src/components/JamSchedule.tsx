@@ -77,7 +77,7 @@ export function JamSchedule({ serverNow }: { serverNow: number }) {
             <div className="who" role="cell">
               <Link href={`/jams/${j.slug}`}>{j.title}</Link>
               <small>
-                {state === "live" ? "rolando agora" : state === "past" ? "encerrada" : "em breve"} · tema “{j.theme}”
+                {state === "live" ? "rolando agora" : state === "past" ? "encerrada" : "em breve"} · tema "{j.theme}"
               </small>
             </div>
             <div className="lane" role="cell">

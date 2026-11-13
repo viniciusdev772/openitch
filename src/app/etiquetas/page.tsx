@@ -27,7 +27,7 @@ export default async function TagIndexPage() {
         </header>
         <section className="wrap">
           <EmptyProgramme title="Nenhuma etiqueta ainda" action={{ href: "/publicar", label: "Começar um rascunho" }}>
-            Cada jogo publicado traz as próprias etiquetas, como “um botão” ou “cartas”. O índice se monta sozinho a
+            Cada jogo publicado traz as próprias etiquetas, como "um botão" ou "cartas". O índice se monta sozinho a
             partir delas, com quantos jogos levam cada uma.
           </EmptyProgramme>
         </section>

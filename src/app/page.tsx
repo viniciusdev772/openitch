@@ -28,7 +28,7 @@ export default async function Home() {
               vibe<em>games</em>
             </h1>
             <p className="cover-hook">
-              Um festival de jogos independentes que nunca fecha. Publique o seu hoje, pelo preço que quiser, ou de graça.
+              Um festival de jogos independentes que não fecha. Publique o seu hoje: por enquanto, só jogos grátis entram.
             </p>
             <form className="cover-search" action="/jogos" role="search">
               <label htmlFor="busca-capa" className="visually-hidden">
@@ -38,7 +38,7 @@ export default async function Home() {
                 id="busca-capa"
                 name="q"
                 className="input"
-                placeholder="Jogo, criador ou tag"
+                placeholder="Jogo, criador ou etiqueta"
                 autoComplete="off"
               />
               <button className="btn btn--lime" type="submit">
@@ -116,7 +116,7 @@ export default async function Home() {
             <h2 id="hoje">Hoje no programa</h2>
             <div className="aside">
               <p>
-                Tudo que entrou no programa, na ordem em que chegou. Nada de ranking de vendas: o que é novo fica no topo.
+                Tudo que entrou no programa, na ordem em que chegou, com o mais novo no topo.
               </p>
               <Link href="/jogos" className="btn btn--ghost btn--sm">
                 Catálogo completo
@@ -125,8 +125,8 @@ export default async function Home() {
           </div>
           {lineup.length === 0 ? (
             <EmptyProgramme title="O programa ainda não tem jogos">
-              Quando os primeiros jogos entrarem, eles aparecem aqui na ordem em que chegaram, com hora, trilha,
-              plataformas e preço. Quem publica já pode montar a página do jogo e salvar como rascunho.
+              Os primeiros jogos vão aparecer aqui na ordem em que chegarem, com hora, trilha, plataformas e preço.
+              Quem publica já pode montar a página, enviar os arquivos e publicar.
             </EmptyProgramme>
           ) : (
           <ol className="lineup">
@@ -217,7 +217,7 @@ export default async function Home() {
           <div className="section-head">
             <h2 id="criar">Para quem faz</h2>
             <div className="aside">
-              <p>Três promessas, cada uma ao lado da peça que a cumpre.</p>
+              <p>Cada ponto vem com a peça do site que mostra como ele funciona.</p>
               <Link href="/publicar" className="btn">
                 Começar a publicar <ArrowRight aria-hidden />
               </Link>
@@ -226,8 +226,11 @@ export default async function Home() {
 
           <div className="pitch">
             <div>
-              <h3>Você decide o preço. Inclusive nenhum.</h3>
-              <p>Grátis, valor fixo ou pague o que quiser com um mínimo opcional. Mude quando quiser, sem pedir a ninguém.</p>
+              <h3>Você escolhe o modelo de preço.</h3>
+              <p>
+                Grátis, valor fixo ou pague o que quiser, com mínimo opcional. Os pagamentos ainda não estão ligados,
+                então por enquanto só jogos grátis entram no programa.
+              </p>
             </div>
             <div className="pitch-proof">
               <PriceDemo />
@@ -238,7 +241,7 @@ export default async function Home() {
             <div>
               <h3>Jogos de navegador rodam na página.</h3>
               <p>
-                Um .zip com um index.html na raiz vira a tela do jogo, e para quem joga é um clique. Unity, Godot,
+                Um .zip com um index.html na raiz vira a tela do jogo, e quem joga só precisa de um clique. Unity, Godot,
                 Construct, GameMaker e HTML5 rodam aqui; builds de até 3 GB para desktop e Android ficam para baixar.
               </p>
             </div>

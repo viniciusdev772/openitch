@@ -9,7 +9,7 @@ import { trackStyle } from "@/components/bits";
 
 export const metadata: Metadata = {
   title: "Criadores",
-  description: "Todas as pessoas, duplas e coletivos que publicam no programa, com cidade, jogos e trilhas.",
+  description: "Quem publica no programa, com a cidade e os jogos de cada um.",
 };
 
 type Props = { searchParams: Promise<{ ordem?: string | string[] }> };
@@ -48,7 +48,7 @@ function dayMonth(iso: string) {
 
 const ORDERS: { id: Order; label: string; href: string }[] = [
   { id: "recentes", label: "Mais recentes", href: "/criadores" },
-  { id: "az", label: "A–Z", href: "/criadores?ordem=az" },
+  { id: "az", label: "A-Z", href: "/criadores?ordem=az" },
 ];
 
 export default async function CreatorsPage({ searchParams }: Props) {
@@ -61,7 +61,7 @@ export default async function CreatorsPage({ searchParams }: Props) {
         <header className="page-head">
           <div className="wrap">
             <h1>Criadores</h1>
-            <p>Quem publica no programa: pessoas, duplas e coletivos. Cada nome abre a página com todos os jogos de quem fez.</p>
+            <p>Quem publica no programa, sozinho ou em grupo. Cada nome abre uma página com todos os jogos de quem fez.</p>
           </div>
         </header>
         <section className="wrap">
@@ -70,8 +70,8 @@ export default async function CreatorsPage({ searchParams }: Props) {
             action={{ href: "/criar-conta", label: "Criar uma conta" }}
             secondary={{ href: "/publicar", label: "Começar um rascunho" }}
           >
-            Esta lista mostra quem tem jogos no programa, com cidade, trilhas e o lançamento mais recente. Ela começa
-            com o primeiro jogo publicado.
+            Aqui aparece quem tem jogos no programa, com a cidade e o lançamento mais recente. O primeiro nome entra
+            junto com o primeiro jogo publicado.
           </EmptyProgramme>
         </section>
       </>
@@ -88,7 +88,7 @@ export default async function CreatorsPage({ searchParams }: Props) {
       <header className="page-head">
         <div className="wrap">
           <h1>Criadores</h1>
-          <p>Quem publica no programa: pessoas, duplas e coletivos. Cada nome abre a página com todos os jogos de quem fez.</p>
+          <p>Quem publica no programa, sozinho ou em grupo. Cada nome abre uma página com todos os jogos de quem fez.</p>
         </div>
       </header>
 

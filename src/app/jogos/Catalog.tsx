@@ -21,7 +21,7 @@ const PRICES: [PriceFilter, string][] = [
 ];
 const SORTS: [Sort, string][] = [
   ["recentes", "Mais recentes"],
-  ["az", "A–Z"],
+  ["az", "A-Z"],
   ["preco", "Preço"],
 ];
 const PLATFORM_IDS = Object.keys(PLATFORMS) as Platform[];
@@ -174,8 +174,8 @@ export function Catalog({ games }: { games: Game[] }) {
   const summary = (
     <>
       <span className="num">{results.length}</span> {results.length === 1 ? "entrada" : "entradas"}
-      {filters.tag && <> com a etiqueta “{filters.tag.tag}”</>}
-      {q.trim() && <> para “{q.trim()}”</>}
+      {filters.tag && <> com a etiqueta "{filters.tag.tag}"</>}
+      {q.trim() && <> para "{q.trim()}"</>}
     </>
   );
 
@@ -184,7 +184,7 @@ export function Catalog({ games }: { games: Game[] }) {
       <header className={`page-head${active?.on === "--paper" ? " on-field" : ""}`} style={active ? trackStyle(active.id) : undefined}>
         <div className="wrap">
           <h1>{active ? active.name : "Catálogo"}</h1>
-          <p>{active ? active.blurb : "Todas as entradas do programa. Cada filtro é um controle à vista: nada escondido em menus."}</p>
+          <p>{active ? active.blurb : "Todas as entradas do programa, com todos os filtros à vista."}</p>
         </div>
       </header>
 
@@ -348,13 +348,13 @@ export function Catalog({ games }: { games: Game[] }) {
               <h2>Nada nesta combinação</h2>
               <p>
                 {q.trim() && !narrowed
-                  ? `Nenhum título, criador, cidade ou etiqueta tem “${q.trim()}”. Confira a grafia ou tente uma palavra mais curta.`
+                  ? `Nenhum título, criador, cidade ou etiqueta tem "${q.trim()}". Confira a grafia ou tente uma palavra mais curta.`
                   : "Nenhuma entrada atende a todos os filtros ao mesmo tempo. Tire um deles ou busque por outra palavra."}
               </p>
               <div className="catalog-empty-actions">
                 {withoutFilters > 0 && (
                   <button type="button" className="btn" onClick={() => go({ track: null, platforms: [], price: "all", tag: null })}>
-                    Ver {withoutFilters} {withoutFilters === 1 ? "entrada" : "entradas"} com “{q.trim()}” sem os outros filtros
+                    Ver {withoutFilters} {withoutFilters === 1 ? "entrada" : "entradas"} com "{q.trim()}" sem os outros filtros
                   </button>
                 )}
                 <button type="button" className={withoutFilters > 0 ? "btn btn--ghost" : "btn"} onClick={clear}>
@@ -379,7 +379,7 @@ export function Catalog({ games }: { games: Game[] }) {
           )}
           {filters.tag && results.length > 0 && (
             <p className="catalog-tag-note">
-              Etiqueta “{filters.tag.tag}”: <Link href={`/etiqueta/${filters.tag.slug}`}>ver a página da etiqueta</Link>, com as
+              Etiqueta "{filters.tag.tag}": <Link href={`/etiqueta/${filters.tag.slug}`}>ver a página da etiqueta</Link>, com as
               trilhas e as etiquetas que aparecem junto.
             </p>
           )}

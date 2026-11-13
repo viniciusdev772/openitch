@@ -517,7 +517,7 @@ export class BuildUpload {
       this.phase = "cancelado";
     } else {
       this.phase = "erro";
-      this.fatal = err instanceof Error ? err.message : "Falha inesperada no envio.";
+      this.fatal = err instanceof Error ? err.message : "O envio parou por um erro inesperado. Tente de novo.";
     }
     this.emit(true);
   }
