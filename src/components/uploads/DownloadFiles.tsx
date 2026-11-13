@@ -1,5 +1,7 @@
 "use client";
 
+import { FILES_CHANGED } from "@/lib/projects/events";
+
 import "@/styles/envios.css";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { CloudUpload, Download, Pause, Play, RotateCcw, Trash2, TriangleAlert, X } from "lucide-react";
@@ -82,6 +84,7 @@ export default function DownloadFiles({ projectId, platforms }: Props) {
     try {
       const data = await api<ListResponse>(`/api/envios?projeto=${encodeURIComponent(projectId)}`);
       setList(data);
+      window.dispatchEvent(new Event(FILES_CHANGED));
       setLoadError(null);
     } catch (err) {
       setLoadError(err instanceof ApiError ? err.message : "Não conseguimos carregar os arquivos.");
@@ -198,6 +201,7 @@ export default function DownloadFiles({ projectId, platforms }: Props) {
     if (cancel && up) {
       const uploadId = up.snapshot().uploadId;
       if (uploadId) setList((l) => (l ? { ...l, files: l.files.filter((f) => f.id !== uploadId) } : l));
+      window.dispatchEvent(new Event(FILES_CHANGED));
       await up.cancel();
       setAnnounce(`Envio de ${name} cancelado.`);
       await refresh();

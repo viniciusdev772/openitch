@@ -424,7 +424,10 @@ Today's lineup, the catalogue index and past jams are ruled lists: a fixed numer
 A timeline of pill bars (2px ink border, track field, 0.75rem/750 labels) over weekly gridlines at 12% ink. Past bars are paper-deep with paper-edge borders. A single lime "agora" line with the live glow runs through every lane, topped by a lime pill on the axis.
 
 ### Publish sequence
-Numbered steps in a 72px margin column, numbers in Anybody 900 at 4rem, each step opened by a 2px ink rule. A dashed 16px-corner drop zone turns lime and solid on hover or drag. The preview column shows the real programme entry on its track field and updates in place.
+Numbered steps in a 72px margin column, numbers in Anybody 900 at 4rem, each step opened by a 2px ink rule. A dashed 16px-corner drop zone turns lime and solid on hover or drag. The preview column shows the real programme entry on its track field and updates in place. Step 6, "No programa", closes the sequence: a bright-stock sheet (2px ink, 16px corners) with the state line (draft, or a 12px lime live dot with an ink border, pulsing, plus the entry number when it is on air), a ruled "what is missing" list (2px ink rule under a label and a tabular count, hairlines between items, an "Ir ao campo" link that focuses the field), a lime-ticked "Tudo pronto" line when nothing is missing, and the actions: "Publicar no programa" (primary) or, on air, "Ver a página publicada" and "Tirar do ar" (ghost). The confirmation is the lime ok note. In the drafts list an on-air row prints the same live dot and "No programa" under its tagline, and gains a ghost "Ver" action.
+
+### Featured screening
+When a browser game is published, the cover's screening slot shows the newest one: head "Em cartaz" with the live dot and the entry number, the game's cover on its own ground filling the stage (the stage opens the game), and the foot with title (links to the game page), creator and price, and a lime "Jogar agora".
 
 ## Do's and Don'ts
 

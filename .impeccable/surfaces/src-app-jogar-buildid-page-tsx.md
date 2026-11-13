@@ -22,5 +22,5 @@ FORM: programme margin notes beside the projected game; seed: da6bcd48718183bb73
 Signature interaction: fullscreen takes the frame alone; the margin reports isolation as a live state (preparing, isolated, unavailable) in plain words.
 
 ## Unresolved
-- Public access when publishing exists (canView).
+- (Resolved) Published games open to anyone, without an account; the back link goes to the game page; owner keeps the preview copy.
 - A dedicated play domain for MinIO to separate builds from each other (shared origin today).

@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Play } from "lucide-react";
 import "@/styles/colecoes.css";
-import { creatorBySlug, entryNumber, gamesByCreator, shortPrice } from "@/data/catalog";
+import { entryNumber, shortPrice, type Catalog } from "@/data/catalog";
+import { getCatalog } from "@/lib/catalog/server";
+import { creatorLine } from "@/components/creatorLine";
 import { Cover } from "@/components/Cover";
 import { PlatformCodes, trackStyle } from "@/components/bits";
 import {
@@ -41,8 +43,9 @@ export default async function ColecaoPage({ params }: Props) {
   const c = colecaoBySlug(slug);
   if (!c) notFound();
 
-  const entries = colecaoEntries(c);
-  const curator = colecaoCurator(c);
+  const cat = await getCatalog();
+  const entries = colecaoEntries(cat, c);
+  const curator = colecaoCurator(cat, c);
   const others = COLECOES.filter((o) => o.slug !== c.slug);
 
   return (
@@ -79,7 +82,7 @@ export default async function ColecaoPage({ params }: Props) {
           </h2>
           <ol className="col-order">
             {entries.map(({ game, note }, i) => {
-              const maker = creatorBySlug(game.creator);
+              const maker = cat.creatorBySlug(game.creator);
               const href = `/jogo/${game.slug}`;
               const alsoIn = colecoesWithGame(game.slug).filter((o) => o.slug !== c.slug);
               return (
@@ -132,7 +135,7 @@ export default async function ColecaoPage({ params }: Props) {
           </ol>
         </section>
 
-        <CuratorNote c={c} />
+        <CuratorNote cat={cat} c={c} />
 
         <section className="col-others" aria-labelledby="outras">
           <h2 id="outras" className="col-h2">
@@ -140,7 +143,7 @@ export default async function ColecaoPage({ params }: Props) {
           </h2>
           <ol className="col-rows">
             {others.map((o) => (
-              <ColecaoRow key={o.slug} c={o} />
+              <ColecaoRow cat={cat} key={o.slug} c={o} />
             ))}
           </ol>
           <p className="col-back">
@@ -155,8 +158,8 @@ export default async function ColecaoPage({ params }: Props) {
 }
 
 /** Who put the block together: the creator's card, or the team's house rule. */
-function CuratorNote({ c }: { c: Colecao }) {
-  const curator = colecaoCurator(c);
+function CuratorNote({ cat, c }: { cat: Catalog; c: Colecao }) {
+  const curator = colecaoCurator(cat, c);
   if (curator.kind === "team") {
     return (
       <aside className="col-curator" aria-labelledby="quem-montou">
@@ -169,13 +172,11 @@ function CuratorNote({ c }: { c: Colecao }) {
     );
   }
   const { creator } = curator;
-  const published = gamesByCreator(creator.slug).length;
+  const published = cat.gamesByCreator(creator.slug).length;
   return (
     <aside className="col-curator" aria-labelledby="quem-montou">
       <h2 id="quem-montou">{creator.name}</h2>
-      <p>
-        {creator.city}. {creator.bio}
-      </p>
+      <p>{creatorLine(creator)}</p>
       <Link className="col-curator-link" href={`/criador/${creator.slug}`}>
         <span>
           Página de {creator.name}

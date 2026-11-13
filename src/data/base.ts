@@ -51,6 +51,8 @@ export interface Creator {
   members?: string[];
   /** Outside links. */
   links?: CreatorLink[];
+  /** ISO timestamp of the account's first publication (optional). */
+  joined?: string;
 }
 
 export interface CreatorLink {
@@ -74,6 +76,8 @@ export interface Download {
   platform: Platform;
   file: string;
   size: string;
+  /** Where the file is served (a short redirect to storage), when it is live. */
+  href?: string;
 }
 
 export interface Game {
@@ -96,6 +100,10 @@ export interface Game {
   /** Cover palette: [ground, figure, accent] as CSS vars */
   palette: [string, string, string];
   downloads: Download[];
+  /** The creator's display name, resolved when the catalogue is loaded (optional). */
+  creatorName?: string;
+  /** The browser build's play page, when one is live (optional). */
+  play?: string;
   jam?: string;
   /** How to play, one control per line (optional) */
   controls?: string[];

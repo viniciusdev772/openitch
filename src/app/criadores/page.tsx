@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "@/styles/jams-criadores.css";
 import { EmptyProgramme } from "@/components/EmptyProgramme";
-import { CREATORS, GAMES, TRACKS, type Creator, type Game, type TrackId, formatDate } from "@/data/catalog";
+import { TRACKS, type Catalog, type Creator, type Game, type TrackId, formatDate } from "@/data/catalog";
+import { getCatalog } from "@/lib/catalog/server";
+import { creatorSince } from "@/components/creatorLine";
 import { trackStyle } from "@/components/bits";
 
 export const metadata: Metadata = {
@@ -22,11 +24,9 @@ type Row = {
 };
 
 /** One roster row per creator: their games, the newest one, and the tracks they publish in. */
-function roster(): Row[] {
-  return CREATORS.map((creator) => {
-    const games = GAMES.filter((g) => g.creator === creator.slug).sort(
-      (a, b) => +new Date(b.published) - +new Date(a.published),
-    );
+function roster(catalog: Catalog): Row[] {
+  return catalog.creators.map((creator) => {
+    const games = catalog.gamesByCreator(creator.slug);
     const tally = new Map<TrackId, number>();
     for (const g of games) tally.set(g.track, (tally.get(g.track) ?? 0) + 1);
     const tracks = TRACKS.map((t) => t.id).filter((id) => tally.has(id));
@@ -54,7 +54,8 @@ const ORDERS: { id: Order; label: string; href: string }[] = [
 export default async function CreatorsPage({ searchParams }: Props) {
   const sp = await searchParams;
   const order: Order = sp.ordem === "az" ? "az" : "recentes";
-  if (CREATORS.length === 0) {
+  const catalog = await getCatalog();
+  if (catalog.creators.length === 0) {
     return (
       <>
         <header className="page-head">
@@ -76,7 +77,7 @@ export default async function CreatorsPage({ searchParams }: Props) {
       </>
     );
   }
-  const rows = roster().sort((a, b) =>
+  const rows = roster(catalog).sort((a, b) =>
     order === "az"
       ? a.creator.name.localeCompare(b.creator.name, "pt-BR", { sensitivity: "base" })
       : +new Date(b.latest?.published ?? 0) - +new Date(a.latest?.published ?? 0),
@@ -128,7 +129,7 @@ export default async function CreatorsPage({ searchParams }: Props) {
                       {creator.name}
                     </Link>
                   </h3>
-                  <p>{creator.bio}</p>
+                  <p>{creator.bio || creatorSince(creator)}</p>
                 </div>
                 <p className="roster-city">{creator.city}</p>
                 <p className="roster-count">

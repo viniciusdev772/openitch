@@ -1,6 +1,7 @@
 import "@/styles/leitura.css";
 import type { Metadata } from "next";
-import { DEVLOGS, DEVLOG_KINDS, devlogsByNewest, type DevlogKind } from "@/data/devlogs";
+import { DEVLOG_KINDS, liveDevlogs, type DevlogKind } from "@/data/devlogs";
+import { getCatalog } from "@/lib/catalog/server";
 import { GuideHead } from "@/components/leitura/Guide";
 import { Diary } from "@/components/leitura/Diary";
 import { EmptyProgramme } from "@/components/EmptyProgramme";
@@ -11,8 +12,12 @@ export const metadata: Metadata = {
     "Diário do programa: lançamentos, atualizações, diários de desenvolvimento e notas de jam dos jogos da VibeGames.",
 };
 
-export default function NovidadesPage() {
-  if (DEVLOGS.length === 0) {
+export const revalidate = 60;
+
+export default async function NovidadesPage() {
+  const cat = await getCatalog();
+  const notes = liveDevlogs(cat);
+  if (notes.length === 0) {
     return (
       <>
         <GuideHead title="Diário do programa" current="novidades">
@@ -26,10 +31,9 @@ export default function NovidadesPage() {
       </>
     );
   }
-  const notes = devlogsByNewest();
   const kinds = (Object.keys(DEVLOG_KINDS) as DevlogKind[]).map((k) => ({
     kind: k,
-    count: DEVLOGS.filter((d) => d.kind === k).length,
+    count: notes.filter((d) => d.kind === k).length,
   }));
   return (
     <>
@@ -52,7 +56,7 @@ export default function NovidadesPage() {
             ))}
           </ul>
         </div>
-        <Diary notes={notes} />
+        <Diary cat={cat} notes={notes} />
       </section>
     </>
   );

@@ -26,13 +26,13 @@ export async function GET(request: Request) {
   if (jogoRaw.length > 1 || criadorRaw.length > 1) return fail(400, "Um jogo e um criador por pedido.");
   if (jogoRaw.length === 0 && criadorRaw.length === 0) return fail(400, "Diga qual jogo ou criador.");
 
-  const jogo = jogoRaw.length ? catalogSlug("save", jogoRaw[0]) : null;
-  const criador = criadorRaw.length ? catalogSlug("follow", criadorRaw[0]) : null;
-  if ((jogoRaw.length && !jogo) || (criadorRaw.length && !criador)) {
-    return fail(400, "Esse item não está no catálogo.");
-  }
-
   try {
+    const jogo = jogoRaw.length ? await catalogSlug("save", jogoRaw[0]) : null;
+    const criador = criadorRaw.length ? await catalogSlug("follow", criadorRaw[0]) : null;
+    if ((jogoRaw.length && !jogo) || (criadorRaw.length && !criador)) {
+      return fail(400, "Esse item não está no catálogo.");
+    }
+
     const session = await getSession();
     if (!session) return fail(401, "Entre na sua conta.");
     const userId = session.user._id;

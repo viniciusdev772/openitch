@@ -34,7 +34,7 @@ Open by default *(inherited from the project's first name, "openitch")*: creator
 
 ## Capabilities and Constraints
 
-- Real today: accounts (own auth on MongoDB, with two-step verification and recovery codes), the shelf (save games, follow creators), project drafts, and file storage on MinIO (S3): builds up to 3 GB per file sent straight from the browser in parallel parts, and browser builds (Unity, Godot, Unreal 4 HTML5, Construct, GameMaker, Defold, PICO-8, HTML5) extracted in the browser and served straight from MinIO in an isolated iframe, so Vercel never carries game bytes. Not yet: publishing a draft to the public programme (files and the playable are an owner-only preview), payments. Unreal 5 has no browser export; its builds are downloads. Forms must not pretend to complete a payment or publication.
+- Real today: accounts (own auth on MongoDB, with two-step verification and recovery codes), the shelf (save games, follow creators), project drafts, and file storage on MinIO (S3): builds up to 3 GB per file sent straight from the browser in parallel parts, and browser builds (Unity, Godot, Unreal 4 HTML5, Construct, GameMaker, Defold, PICO-8, HTML5) extracted in the browser and served straight from MinIO in an isolated iframe, so Vercel never carries game bytes. Publishing: a complete draft (title, tagline, description, at least one platform, a ready file for every platform it lists, price free) enters the public programme with a permanent entry number (Nº 0001…) and address (/jogo/<slug>); the creator gets a /criador/<slug> page; public pages read published games from MongoDB and refresh within a minute (at once on publish, edit, take-down). Take-down returns it to draft and keeps number and address. Not yet: payments, so only free games publish (a draft may keep another price). Unreal 5 has no browser export; its builds are downloads. Forms must not pretend to complete a payment.
 - Platform categories: Web (HTML5), Windows, macOS, Linux, Android.
 - Pricing models: free, paid with a fixed price, pay-what-you-want with an optional minimum.
 - Undecided: platform fee or revenue split, payment provider, moderation policy.
@@ -46,7 +46,7 @@ Open by default *(inherited from the project's first name, "openitch")*: creator
 
 ## Evidence on Hand
 
-None. There are no published games, creators, statistics, testimonials, or press yet. The owner ordered all demonstration content removed: the catalogue, jams, diary and collections start empty, and every surface shows an honest empty state that points to the next step. Never invent games, people, counts, revenue, or download numbers to fill a surface.
+None beyond what creators publish themselves. There are no statistics, testimonials, or press. The owner ordered all demonstration content removed: the catalogue, jams, diary and collections start empty, and every surface shows an honest empty state that points to the next step. Never invent games, people, counts, revenue, or download numbers to fill a surface.
 
 ## Product Principles
 

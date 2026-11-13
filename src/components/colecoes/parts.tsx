@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import type { Game } from "@/data/catalog";
+import type { Catalog, Game } from "@/data/catalog";
 import { trackById } from "@/data/catalog";
 import { Cover } from "@/components/Cover";
 import { trackStyle } from "@/components/bits";
@@ -38,8 +38,8 @@ export function MiniCovers({ games }: { games: Game[] }) {
  * title, intro and curator, then the first three covers. The row fills with
  * the block's track field on hover.
  */
-export function ColecaoRow({ c, headingLevel = 3 }: { c: Colecao; headingLevel?: 2 | 3 }) {
-  const entries = colecaoEntries(c);
+export function ColecaoRow({ cat, c, headingLevel = 3 }: { cat: Catalog; c: Colecao; headingLevel?: 2 | 3 }) {
+  const entries = colecaoEntries(cat, c);
   const H = `h${headingLevel}` as "h2" | "h3";
   return (
     <li>
@@ -51,7 +51,7 @@ export function ColecaoRow({ c, headingLevel = 3 }: { c: Colecao; headingLevel?:
         <div className="col-row-text">
           <H>{c.title}</H>
           <p className="col-row-intro">{c.intro}</p>
-          <p className="col-row-by">Curadoria: {colecaoCurator(c).name}</p>
+          <p className="col-row-by">Curadoria: {colecaoCurator(cat, c).name}</p>
         </div>
         <MiniCovers games={entries.slice(0, 3).map((e) => e.game)} />
         <ArrowRight aria-hidden className="col-row-arrow" />

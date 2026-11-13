@@ -4,7 +4,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
-import { CREATORS, GAMES, creatorBySlug, formatDay, gameBySlug, jamsByHost } from "@/data/catalog";
+import { formatDay } from "@/data/catalog";
+import { getCatalog } from "@/lib/catalog/server";
+import { creatorLine } from "@/components/creatorLine";
 import { DEVLOGS, DEVLOG_KINDS } from "@/data/devlogs";
 import { Entry, Joined, TrackChip, trackStyle } from "@/components/bits";
 import { LibraryButton } from "@/components/library/LibraryButton";
@@ -12,20 +14,22 @@ import { LibraryState } from "@/components/library/LibraryState";
 import { DayNumeral } from "@/app/jogo/[slug]/parts";
 
 /*
- * Página estática (generateStaticParams, nenhuma API de pedido). O botão
- * Seguir lê o estado de quem está vendo na ilha <LibraryState>.
+ * Página sem API de pedido: renderizada na primeira visita e guardada
+ * (revalidate), refeita quando um jogo de quem faz é publicado ou sai do ar.
+ * O botão Seguir lê o estado de quem está vendo na ilha <LibraryState>.
  */
 
 type Props = { params: Promise<{ slug: string }> };
 
+export const revalidate = 60;
 export function generateStaticParams() {
-  return CREATORS.map((c) => ({ slug: c.slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const c = creatorBySlug(slug);
-  return c ? { title: c.name, description: c.bio } : {};
+  const c = (await getCatalog()).creatorBySlug(slug);
+  return c ? { title: c.name, description: creatorLine(c) } : {};
 }
 
 /** Só links https saem para fora; qualquer outra coisa no dado não vira link. */
@@ -42,16 +46,17 @@ const byNewest = <T,>(at: (x: T) => string) => (a: T, b: T) => +new Date(at(b)) 
 
 export default async function CreatorPage({ params }: Props) {
   const { slug } = await params;
-  const creator = creatorBySlug(slug);
+  const catalog = await getCatalog();
+  const creator = catalog.creatorBySlug(slug);
   if (!creator) notFound();
-  const games = GAMES.filter((g) => g.creator === slug);
+  const games = catalog.gamesByCreator(slug);
   const members = creator.members ?? [];
   const links = (creator.links ?? []).flatMap((l) => {
     const href = safeHref(l.href);
     return href ? [{ label: l.label, href, host: new URL(href).hostname }] : [];
   });
-  const jams = [...jamsByHost(slug)].sort(byNewest((j) => j.start));
-  const notes = DEVLOGS.filter((d) => gameBySlug(d.game)?.creator === slug).sort(byNewest((d) => d.at));
+  const jams = [...catalog.jamsByHost(slug)].sort(byNewest((j) => j.start));
+  const notes = DEVLOGS.filter((d) => catalog.gameBySlug(d.game)?.creator === slug).sort(byNewest((d) => d.at));
 
   return (
     <LibraryState creator={creator.slug}>
@@ -59,9 +64,7 @@ export default async function CreatorPage({ params }: Props) {
         <div className="wrap">
           <h1>{creator.name}</h1>
           <div className="creator-head-side">
-            <p>
-              {creator.city}. {creator.bio}
-            </p>
+            <p>{creatorLine(creator)}</p>
             {(members.length > 0 || links.length > 0) && (
               <dl className="creator-facts">
                 {members.length > 0 && (
@@ -118,7 +121,7 @@ export default async function CreatorPage({ params }: Props) {
               <h2 id="diario">Diário</h2>
               <ol className="game-log game-log--links">
                 {notes.map((n) => {
-                  const game = gameBySlug(n.game)!;
+                  const game = catalog.gameBySlug(n.game)!;
                   return (
                     <li key={n.slug}>
                       <DayNumeral iso={n.at} />

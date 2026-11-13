@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { formatDay, formatTime, trackById } from "@/data/catalog";
+import { getCatalog } from "@/lib/catalog/server";
 import {
   DEVLOGS,
   DEVLOG_KINDS,
@@ -19,6 +20,7 @@ import { DiaryCompact } from "@/components/leitura/Diary";
 
 type Props = { params: Promise<{ slug: string }> };
 
+export const revalidate = 60;
 export function generateStaticParams() {
   return DEVLOGS.map((d) => ({ slug: d.slug }));
 }
@@ -26,8 +28,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const note = devlogBySlug(slug);
-  if (!note) return {};
-  const game = devlogGame(note);
+  const game = note ? devlogGame(await getCatalog(), note) : undefined;
+  if (!note || !game) return {};
   return {
     title: `${note.title} · ${game.title}`,
     description: note.body[0],
@@ -36,12 +38,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function NovidadePage({ params }: Props) {
   const { slug } = await params;
+  const cat = await getCatalog();
   const note = devlogBySlug(slug);
-  if (!note) notFound();
-  const game = devlogGame(note);
-  const creator = devlogCreator(note);
+  const game = note ? devlogGame(cat, note) : undefined;
+  if (!note || !game) notFound();
+  const creator = devlogCreator(cat, note);
   const track = trackById(game.track);
-  const more = devlogsBySameCreator(note);
+  const more = devlogsBySameCreator(cat, note);
   const { older, newer } = devlogNeighbours(note);
 
   return (
@@ -93,7 +96,7 @@ export default async function NovidadePage({ params }: Props) {
           {more.length > 0 && creator ? (
             <section aria-labelledby="note-mais">
               <h2 id="note-mais">Mais de {creator.name}</h2>
-              <DiaryCompact notes={more} />
+              <DiaryCompact cat={cat} notes={more} />
               <p className="note-side-link">
                 <Link href={`/criador/${creator.slug}`}>Todos os jogos de {creator.name}</Link>
               </p>

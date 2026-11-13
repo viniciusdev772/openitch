@@ -1,60 +1,42 @@
-"use client";
-
-import { useId, useState, type ReactNode } from "react";
-import { Download } from "lucide-react";
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { Download, Play } from "lucide-react";
 import type { Price } from "@/data/base";
 
 interface DL {
   file: string;
   size: string;
+  /** Link de download (redireciona para o armazenamento), ou null se o arquivo não está no ar. */
+  href: string | null;
   code: string;
   name: string;
 }
 
+const reais = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
+
+/**
+ * O cartão de obter o jogo: o preço, o botão de jogar (build de navegador) e
+ * um link por arquivo. Só jogos grátis entram no programa enquanto os
+ * pagamentos não existem; um preço que ainda apareça aqui não libera arquivo.
+ */
 export function BuyCard({
   price,
   title,
   downloads,
-  playable,
+  play,
   save,
 }: {
   price: Price;
   title: string;
   downloads: DL[];
-  playable: boolean;
+  /** Página de jogar no navegador, quando há build. */
+  play: string | null;
   /** Botão Guardar (ilha de cliente: o estado da estante chega depois do HTML). */
   save?: ReactNode;
 }) {
-  const id = useId();
-  const min = price.kind === "pwyw" ? price.minimum : 0;
-  const [amount, setAmount] = useState(price.kind === "pwyw" ? String(Math.max(min, 10)) : "");
-  const [done, setDone] = useState<string | null>(null);
-  const n = Number(amount.replace(",", ".")) || 0;
-  const below = price.kind === "pwyw" && n < min;
-
-  const headline = price.kind === "free" ? "Grátis" : price.kind === "fixed" ? `R$ ${price.amount.toFixed(2).replace(".", ",")}` : "Você decide";
-
-  const browserOnly = playable && downloads.length === 0;
-  const act = () => {
-    if (below) return;
-    if (browserOnly && (price.kind === "free" || n === 0)) {
-      const stage = document.getElementById("palco");
-      stage?.scrollIntoView({ behavior: "smooth", block: "start" });
-      const target = stage?.querySelector<HTMLElement>("canvas, [aria-disabled]");
-      target?.focus({ preventScroll: true });
-      setDone(
-        stage?.querySelector("canvas")
-          ? null
-          : `A build de navegador de ${title} ainda não foi enviada: o envio de arquivos ainda não está ligado.`,
-      );
-      return;
-    }
-    setDone(
-      price.kind === "free" || (price.kind === "pwyw" && n === 0)
-        ? `Os arquivos de ${title} ainda não estão disponíveis: o envio de arquivos ainda não está ligado.`
-        : `Nenhuma cobrança foi feita: pagamentos ainda não estão conectados. Valor escolhido: R$ ${n.toFixed(2).replace(".", ",")}.`,
-    );
-  };
+  const free = price.kind === "free";
+  const headline = free ? "Grátis" : price.kind === "fixed" ? reais(price.amount) : "Você decide";
+  const files = free ? downloads.filter((d) => d.href) : [];
 
   return (
     <div className="buy-card">
@@ -62,68 +44,40 @@ export function BuyCard({
         Preço
       </span>
       <span className="amount">{headline}</span>
-      {price.kind === "pwyw" && (
-        <div>
-          <label className="field-label" htmlFor={`${id}-v`}>
-            Quanto você quer pagar? {min > 0 ? `(mínimo R$ ${min})` : "(pode ser zero)"}
-          </label>
-          <div className="money">
-            <span aria-hidden>R$</span>
-            <input
-              id={`${id}-v`}
-              className="input"
-              inputMode="decimal"
-              value={amount}
-              aria-invalid={below}
-              aria-describedby={below ? `${id}-e` : undefined}
-              onChange={(e) => {
-                setAmount(e.target.value.replace(/[^\d,.]/g, ""));
-                setDone(null);
-              }}
-            />
-          </div>
-          {below && (
-            <p className="publish-error" id={`${id}-e`}>
-              O mínimo definido por quem fez é R$ {min}. Aumente o valor para continuar.
-            </p>
-          )}
-        </div>
+      {free && play && (
+        <Link href={play} className="btn">
+          <Play aria-hidden /> Jogar agora
+        </Link>
       )}
-      <button type="button" className="btn" onClick={act} disabled={below}>
-        {browserOnly && (price.kind === "free" || n === 0)
-          ? "Jogar agora"
-          : price.kind === "free"
-          ? "Baixar grátis"
-          : price.kind === "fixed"
-            ? "Comprar"
-            : n > 0
-              ? `Pagar R$ ${n.toFixed(2).replace(".", ",")}`
-              : "Baixar sem pagar"}
-      </button>
       {save}
-      {done && (
-        <p className="status" role="status">
-          {done}
-        </p>
-      )}
-      {downloads.length > 0 && (
-        <ul className="downloads" aria-label="Arquivos">
-          {downloads.map((d) => (
-            <li key={d.file}>
+      {files.length > 0 && (
+        <ul className="downloads" aria-label={`Arquivos de ${title}`}>
+          {files.map((d) => (
+            <li key={d.href}>
               <span className="code" title={d.name} aria-hidden>
                 {d.code}
               </span>
-              <span>{d.file}</span>
-              <small>{d.size}</small>
+              <a className="download-link" href={d.href!} rel="nofollow">
+                <span>{d.file}</span>
+                <span className="visually-hidden">, para {d.name}, {d.size}</span>
+              </a>
+              <small aria-hidden>{d.size}</small>
             </li>
           ))}
         </ul>
       )}
-      {playable && downloads.length === 0 && <p className="note">Roda no navegador. Não há arquivos para baixar.</p>}
-      <p className="note">
-        <Download aria-hidden size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 6 }} />
-        Pagamentos e downloads ainda não estão ligados: nada é cobrado e nenhum arquivo é transferido.
-      </p>
+      {free ? (
+        <p className="note">
+          <Download aria-hidden size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 6 }} />
+          {files.length > 0
+            ? "Cada arquivo baixa direto do armazenamento do programa, sem conta e sem custo."
+            : play
+              ? "Roda no navegador. Não há arquivos para baixar."
+              : "Os arquivos deste jogo estão sendo trocados. Volte em instantes."}
+        </p>
+      ) : (
+        <p className="note">Pagamentos ainda não estão ligados: este jogo ainda não pode ser obtido por aqui.</p>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 /**
  * GET /baixar/<uploadId>: redireciona (302) para uma URL curta do MinIO. Os
  * bytes nunca passam pela Vercel. Quem pode baixar é decidido em canView
- * (hoje: só o dono do rascunho). Sem permissão, id forjado ou arquivo
+ * (o dono do rascunho, ou qualquer pessoa se o jogo está publicado). Sem permissão, id forjado ou arquivo
  * inexistente: a mesma resposta 404.
  */
 const HEADERS = { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer", Vary: "Cookie" };

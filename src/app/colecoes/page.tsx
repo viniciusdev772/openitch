@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
 import "@/styles/colecoes.css";
-import { creatorBySlug } from "@/data/catalog";
+import { getCatalog } from "@/lib/catalog/server";
 import { Cover } from "@/components/Cover";
 import { trackStyle } from "@/components/bits";
 import { COLECOES, colecaoCurator, colecaoEntries } from "@/data/colecoes";
@@ -15,7 +15,10 @@ export const metadata: Metadata = {
     "Blocos temáticos do programa: jogos escolhidos por quem publica na VibeGames, cada um com a nota de por que está ali.",
 };
 
-export default function ColecoesPage() {
+export const revalidate = 60;
+
+export default async function ColecoesPage() {
+  const cat = await getCatalog();
   if (COLECOES.length === 0) {
     return (
       <>
@@ -37,8 +40,8 @@ export default function ColecoesPage() {
   const [lead, ...rest] = COLECOES;
   const billed = rest.slice(0, 2);
   const rows = rest.slice(2);
-  const leadEntries = colecaoEntries(lead);
-  const leadCurator = colecaoCurator(lead);
+  const leadEntries = colecaoEntries(cat, lead);
+  const leadCurator = colecaoCurator(cat, lead);
 
   return (
     <>
@@ -87,7 +90,7 @@ export default function ColecoesPage() {
                   <span className="col-lead-caption">
                     <span className="num">{String(i + 1).padStart(2, "0")}</span>
                     <span className="col-lead-title">{game.title}</span>
-                    {i === 0 && <span className="col-lead-maker">{creatorBySlug(game.creator)?.name}</span>}
+                    {i === 0 && <span className="col-lead-maker">{game.creatorName}</span>}
                   </span>
                 </Link>
               </li>
@@ -100,7 +103,7 @@ export default function ColecoesPage() {
         {/* Second billing: two blocks as field cards */}
         <div className="col-pair">
           {billed.map((c) => {
-            const entries = colecaoEntries(c);
+            const entries = colecaoEntries(cat, c);
             return (
               <Link
                 key={c.slug}
@@ -111,7 +114,7 @@ export default function ColecoesPage() {
                 <h2>{c.title}</h2>
                 <p className="col-card-intro">{c.intro}</p>
                 <p className="col-card-line">
-                  <span>Curadoria: {colecaoCurator(c).name}</span>
+                  <span>Curadoria: {colecaoCurator(cat, c).name}</span>
                   <span>
                     <GameCount n={entries.length} />
                   </span>
@@ -134,7 +137,7 @@ export default function ColecoesPage() {
           </h2>
           <ol className="col-rows">
             {rows.map((c) => (
-              <ColecaoRow key={c.slug} c={c} />
+              <ColecaoRow cat={cat} key={c.slug} c={c} />
             ))}
           </ol>
         </section>

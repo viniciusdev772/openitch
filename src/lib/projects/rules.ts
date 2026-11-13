@@ -51,7 +51,7 @@ function paragraphs(raw: string): string {
     .trim();
 }
 
-export type DraftValues = Omit<ProjectDoc, "_id" | "userId" | "status" | "createdAt" | "updatedAt">;
+export type DraftValues = Omit<ProjectDoc, "_id" | "userId" | "status" | "createdAt" | "updatedAt" | "publicSlug" | "number" | "publishedAt">;
 
 type Parsed = { ok: true; value: DraftValues } | { ok: false; result: Extract<SaveResult, { ok: false }> };
 
@@ -154,6 +154,9 @@ function toFields(doc: ProjectDoc): SavedDraft {
     amount,
     cover: (COVER_IDS.has(doc.cover) ? doc.cover : "orbit") as CoverStyle,
     jam: doc.jam && JAM_SLUGS.has(doc.jam) ? doc.jam : "",
+    state: doc.status === "publicado" ? "publicado" : "rascunho",
+    publicSlug: doc.publicSlug ?? null,
+    number: doc.number ?? null,
   };
 }
 
@@ -162,7 +165,7 @@ export async function readDraft(userId: ObjectId, rawId: string): Promise<SavedD
   const id = typeof rawId === "string" ? toObjectId(rawId) : null;
   if (!id) return null;
   const { projects } = await db();
-  const doc = await projects.findOne({ _id: id, userId });
+  const doc = await projects.findOne({ _id: id, userId, status: { $ne: "excluindo" } });
   return doc ? toFields(doc) : null;
 }
 
@@ -170,7 +173,7 @@ export async function readDraft(userId: ObjectId, rawId: string): Promise<SavedD
 export async function listDrafts(userId: ObjectId): Promise<DraftRow[]> {
   const { projects } = await db();
   const docs = await projects
-    .find({ userId }, { projection: { title: 1, tagline: 1, track: 1, jam: 1, updatedAt: 1 } })
+    .find({ userId }, { projection: { title: 1, tagline: 1, track: 1, jam: 1, updatedAt: 1, status: 1, publicSlug: 1 } })
     .sort({ updatedAt: -1 })
     .limit(LIMITS.drafts * 2)
     .toArray();
@@ -181,5 +184,7 @@ export async function listDrafts(userId: ObjectId): Promise<DraftRow[]> {
     track: TRACK_IDS.has(d.track) ? d.track : "navegador",
     jam: d.jam && JAM_SLUGS.has(d.jam) ? d.jam : null,
     updatedAt: d.updatedAt.toISOString(),
+    state: d.status === "publicado" ? "publicado" : "rascunho",
+    publicSlug: d.status === "publicado" ? (d.publicSlug ?? null) : null,
   }));
 }

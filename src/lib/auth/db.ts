@@ -42,6 +42,10 @@ export interface UserDoc {
   };
   /** Segredo gerado na configuração, ainda não confirmado. */
   totpPending: { secret: string; expiresAt: Date } | null;
+  /** Endereço público de criador (/criador/<slug>), reservado na primeira publicação. */
+  creatorSlug?: string;
+  /** Quando a conta publicou pela primeira vez. */
+  firstPublishedAt?: Date;
 }
 
 export interface SessionDoc {
@@ -118,8 +122,17 @@ export interface ProjectDoc {
   cover: string;
   /** Slug da jam no catálogo, ou null. */
   jam: string | null;
-  /** "excluindo": a exclusão começou (arquivos sendo apagados); não aceita envios novos. */
-  status: "rascunho" | "excluindo";
+  /**
+   * "publicado": está no programa, aberto a todos. "excluindo": a exclusão
+   * começou (arquivos sendo apagados); não aceita envios novos.
+   */
+  status: "rascunho" | "publicado" | "excluindo";
+  /** Endereço público (/jogo/<slug>), único, reservado na primeira publicação e mantido depois. */
+  publicSlug?: string;
+  /** Número da entrada no programa (Nº 0001), dado na primeira publicação e mantido depois. */
+  number?: number;
+  /** Primeira publicação. */
+  publishedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -166,6 +179,12 @@ export interface UploadDoc {
   etag?: string | null;
   /** Trava curta enquanto o servidor conclui o multipart. */
   completing?: Date | null;
+}
+
+/** Contador sequencial (ex.: "entradas", o número de cada jogo no programa). */
+export interface CounterDoc {
+  _id: string;
+  seq: number;
 }
 
 /** Documento genérico da coleção "meta" (estado interno, sem dados de usuário). */
@@ -287,6 +306,15 @@ async function ensureIndexes(db: Db): Promise<void> {
         db.collection("saves").createIndex({ userId: 1, game: 1 }, { unique: true }),
         db.collection("follows").createIndex({ userId: 1, creator: 1 }, { unique: true }),
         db.collection("projects").createIndex({ userId: 1, updatedAt: -1 }),
+        db.collection("projects").createIndex({ status: 1, publishedAt: -1 }),
+        db.collection("projects").createIndex(
+          { publicSlug: 1 },
+          { unique: true, partialFilterExpression: { publicSlug: { $type: "string" } } },
+        ),
+        db.collection("users").createIndex(
+          { creatorSlug: 1 },
+          { unique: true, partialFilterExpression: { creatorSlug: { $type: "string" } } },
+        ),
         db.collection("uploads").createIndex({ projectId: 1, createdAt: -1 }),
         db.collection("uploads").createIndex({ userId: 1, status: 1 }),
         db.collection("builds").createIndex({ projectId: 1, createdAt: -1 }),
@@ -317,5 +345,6 @@ export async function db() {
     builds: database.collection<BuildDoc>("builds"),
     /** Estado interno do sistema (ex.: configuração do armazenamento já aplicada). */
     meta: database.collection<MetaDoc>("meta"),
+    counters: database.collection<CounterDoc>("counters"),
   };
 }

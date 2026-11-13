@@ -80,8 +80,8 @@ const CHAPTERS: Chapter[] = [
         q: "Posso baixar os jogos?",
         a: (
           <p>
-            A página de cada jogo vai listar os arquivos por plataforma, com nome e tamanho, e o download sai direto do
-            armazenamento. Como nenhum jogo foi publicado ainda, por enquanto só quem enviou baixa os próprios arquivos.
+            Sim. A página de cada jogo lista os arquivos por plataforma, com nome e tamanho, e o download sai direto do
+            armazenamento, sem conta.
           </p>
         ),
       },
@@ -102,8 +102,10 @@ const CHAPTERS: Chapter[] = [
         q: "Como publico um jogo?",
         a: (
           <p>
-            Em <Link href="/publicar">Publicar</Link>, em cinco passos: o jogo, a trilha e a capa, as plataformas e os
-            arquivos, o preço e a página. A sua entrada aparece ao lado e muda enquanto você escreve.
+            Em <Link href="/publicar">Publicar</Link>: o jogo, a trilha e a capa, as plataformas e os arquivos, o preço e a
+            página. A sua entrada aparece ao lado e muda enquanto você escreve. Salve, envie um arquivo para cada
+            plataforma marcada e, no último passo, clique em Publicar no programa. O jogo ganha um número e um endereço
+            próprios e abre para todos. Dá para tirar do ar quando quiser; o número e o endereço ficam guardados.
           </p>
         ),
       },
@@ -114,8 +116,7 @@ const CHAPTERS: Chapter[] = [
           <p>
             Com a conta aberta, o texto, a trilha, a capa, as plataformas, o preço e a jam ficam guardados como rascunho,
             só para você, em <Link href="/conta/projetos">Seus rascunhos</Link>, junto com os arquivos que você enviou. Dá
-            para reabrir e continuar depois. A publicação no programa ainda não existe: nenhum rascunho vira página
-            pública.
+            para reabrir e continuar depois. O rascunho só vira página pública quando você clica em Publicar no programa.
           </p>
         ),
       },
@@ -137,8 +138,7 @@ const CHAPTERS: Chapter[] = [
         q: "Preciso de conta para publicar?",
         a: (
           <p>
-            Para testar o formulário, não. Para salvar um rascunho, sim, e a publicação também vai pedir uma conta quando
-            estiver ligada. <Link href="/criar-conta">Criar conta</Link> leva um minuto.
+            Para testar o formulário, não. Para salvar um rascunho e publicar, sim: o nome da conta assina os seus jogos. <Link href="/criar-conta">Criar conta</Link> leva um minuto.
           </p>
         ),
       },
@@ -224,7 +224,8 @@ const CHAPTERS: Chapter[] = [
         q: "Consigo pagar por um jogo hoje?",
         a: (
           <p>
-            Não. Os pagamentos não estão ligados. O cartão de compra mostra o valor e o botão, mas nada é cobrado.
+            Não. Os pagamentos não estão ligados, então por enquanto só jogos grátis entram no programa. Um rascunho
+            pode guardar outro preço para quando os pagamentos existirem.
           </p>
         ),
       },

@@ -1,4 +1,5 @@
 import "server-only";
+import { requestInfo } from "@/lib/auth/request";
 import { ObjectId } from "mongodb";
 import { db, type ProjectDoc, type UploadDoc, type UserDoc } from "@/lib/auth/db";
 import { toObjectId } from "@/lib/auth/session";
@@ -623,7 +624,9 @@ export async function downloadUrlFor(viewer: Pick<UserDoc, "_id"> | null, rawId:
   if (!storageConfigured()) return null;
   const id = typeof rawId === "string" ? toObjectId(rawId) : null;
   if (!id) return null;
+  // Com conta, por conta; sem conta (jogo publicado), por IP.
   if (viewer) await limit(`envios:baixar:${viewer._id.toHexString()}`, 120);
+  else await limit(`envios:baixar:ip:${(await requestInfo()).ip}`, 60);
   const { uploads, projects } = await db();
   const u = await uploads.findOne({ _id: id, status: "pronto", kind: "download" });
   if (!u) return null;

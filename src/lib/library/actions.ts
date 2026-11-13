@@ -53,7 +53,13 @@ const COPY: Record<Kind, { missing: string; full: string }> = {
 };
 
 async function toggle(kind: Kind, form: FormData): Promise<ToggleState> {
-  const slug = catalogSlug(kind, str(form, "slug", 80));
+  let slug: string | null;
+  try {
+    slug = await catalogSlug(kind, str(form, "slug", 80));
+  } catch (err) {
+    console.error("[estante]", err);
+    return { on: false, error: SERVER_DOWN };
+  }
   const quero = str(form, "quero", 2);
   if (quero !== "1" && quero !== "0") return { on: false, error: SERVER_DOWN };
   const want = quero === "1";
@@ -135,7 +141,7 @@ export async function toggleFollow(_prev: ToggleState, form: FormData): Promise<
  * volta depois. Repetir o envio não muda nada.
  */
 async function keep(kind: Kind, form: FormData): Promise<never> {
-  const slug = catalogSlug(kind, str(form, "slug", 80));
+  const slug = await catalogSlug(kind, str(form, "slug", 80));
   if (!slug) redirect(kind === "save" ? "/jogos" : "/criadores");
   const want = new FormData();
   want.set("slug", slug);
