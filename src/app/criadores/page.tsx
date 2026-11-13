@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "@/styles/jams-criadores.css";
+import { EmptyProgramme } from "@/components/EmptyProgramme";
 import { CREATORS, GAMES, TRACKS, type Creator, type Game, type TrackId, formatDate } from "@/data/catalog";
 import { trackStyle } from "@/components/bits";
 
@@ -53,6 +54,28 @@ const ORDERS: { id: Order; label: string; href: string }[] = [
 export default async function CreatorsPage({ searchParams }: Props) {
   const sp = await searchParams;
   const order: Order = sp.ordem === "az" ? "az" : "recentes";
+  if (CREATORS.length === 0) {
+    return (
+      <>
+        <header className="page-head">
+          <div className="wrap">
+            <h1>Criadores</h1>
+            <p>Quem publica no programa: pessoas, duplas e coletivos. Cada nome abre a página com todos os jogos de quem fez.</p>
+          </div>
+        </header>
+        <section className="wrap">
+          <EmptyProgramme
+            title="Ninguém publicou ainda"
+            action={{ href: "/criar-conta", label: "Criar uma conta" }}
+            secondary={{ href: "/publicar", label: "Começar um rascunho" }}
+          >
+            Esta lista mostra quem tem jogos no programa, com cidade, trilhas e o lançamento mais recente. Ela começa
+            com o primeiro jogo publicado.
+          </EmptyProgramme>
+        </section>
+      </>
+    );
+  }
   const rows = roster().sort((a, b) =>
     order === "az"
       ? a.creator.name.localeCompare(b.creator.name, "pt-BR", { sensitivity: "base" })

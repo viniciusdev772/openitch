@@ -216,7 +216,7 @@ export default async function JamPage({ params }: Props) {
               {jam.entries > entries.length && (
                 <p className="jam-entries-note">
                   <span className="num">{entries.length}</span> de <span className="num">{jam.entries}</span> entradas
-                  aparecem aqui; as outras não fazem parte desta edição de demonstração.
+                  estão publicadas no programa.
                 </p>
               )}
           </div>

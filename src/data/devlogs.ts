@@ -1,6 +1,5 @@
-// Synthetic devlogs and release notes for the sample catalogue. Every note,
-// date and detail here is invented demonstration material, written for games
-// that already exist in catalog.ts.
+// Devlogs and release notes for games in catalog.ts. Empty until games publish
+// notes.
 
 import { creatorBySlug, gameBySlug, type Game } from "./catalog";
 

@@ -1,5 +1,5 @@
-// Synthetic sample catalogue. Every game, creator, jam and number here is
-// invented demonstration material; the UI labels it as such.
+// The programme catalogue: creators and games. Empty until real games are
+// published; every page renders an empty state while it is.
 
 import {
   TRACKS,

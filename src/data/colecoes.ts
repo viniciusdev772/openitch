@@ -1,9 +1,8 @@
-// Synthetic programme collections: themed blocks of the sample catalogue,
-// like the blocks of a festival programme. Every title, intro and note is
-// demonstration material. Each note only states what the game's own page
-// states (session, controls, platforms, accessibility, description).
+// Programme collections: themed blocks of the catalogue, like the blocks of a
+// festival programme. Each note only states what the game's own page states
+// (session, controls, platforms, accessibility, description). Empty for now.
 //
-// House rules for the sample data:
+// House rules:
 // - a block signed by a creator never includes that creator's own games;
 //   blocks that do are signed by the programme team (curator: null);
 // - a block's track is the most frequent track among its games.
@@ -61,7 +60,7 @@ export function colecaoCurator(c: Colecao): Curator {
 /** Blocks a game appears in. */
 export const colecoesWithGame = (slug: string) => COLECOES.filter((c) => c.items.some((i) => i.game === slug));
 
-/** Sanity check for the sample data (used by development scripts, not by pages). */
+/** Sanity check for the collections data (used by development scripts, not by pages). */
 export function colecaoProblems(): string[] {
   const problems: string[] = [];
   for (const c of COLECOES) {

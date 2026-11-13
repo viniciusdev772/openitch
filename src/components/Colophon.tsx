@@ -55,7 +55,6 @@ export function Colophon() {
         </div>
         <div className="fine">
           <span>Contas já são reais. Pagamentos e envio de arquivos ainda não estão conectados.</span>
-          <span>Todo o catálogo é material de amostra.</span>
         </div>
       </div>
     </footer>

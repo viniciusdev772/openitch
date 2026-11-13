@@ -2,28 +2,26 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import {
   GAMES,
+  JAMS,
   TRACKS,
   creatorBySlug,
   dayKey,
-  entryNumber,
   formatDay,
   formatTime,
-  gameBySlug,
   gamesByNewest,
   pickNow,
   shortPrice,
 } from "@/data/catalog";
 import { Cover } from "@/components/Cover";
-import { OrbitaGame } from "@/components/OrbitaGame";
 import { PriceDemo } from "@/components/PriceDemo";
 import { JamSchedule } from "@/components/JamSchedule";
 import { EditDemo } from "@/components/EditDemo";
+import { EmptyProgramme } from "@/components/EmptyProgramme";
 import { Entry, PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 
 export default function Home() {
-  const orbita = gameBySlug("orbita")!;
   const lineup = gamesByNewest().slice(0, 7);
-  // Same clock as the jams: the real date inside the sample window, the sample date outside it.
+  // Same clock as the jams.
   const now = pickNow();
   const today = dayKey(now);
 
@@ -63,26 +61,24 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="screening" aria-label="Em cartaz agora">
+          {/* A sala de exibição espera o primeiro jogo: moldura tracejada, nada aceso. */}
+          <div className="screening screening--empty" aria-labelledby="sala-titulo">
             <div className="screening-head">
-              <span className="live-dot" style={{ color: "var(--lime)" }}>
-                Em cartaz agora
-              </span>
-              <span className="num">{entryNumber(orbita.number)}</span>
+              <span>Sala de exibição</span>
+              <span className="num">Nº 0001</span>
             </div>
             <div className="screening-stage">
-              <OrbitaGame />
+              <div className="screening-wait">
+                <p>A sala está pronta. O primeiro jogo de navegador do programa vai rodar aqui.</p>
+              </div>
             </div>
             <div className="screening-foot">
               <div>
-                <h2>{orbita.title}</h2>
-                <p>
-                  {creatorBySlug(orbita.creator)?.name} · roda aqui, sem instalar ·{" "}
-                  <strong style={{ color: "var(--lime)" }}>{shortPrice(orbita.price)}</strong>
-                </p>
+                <h2 id="sala-titulo">Lugar vago</h2>
+                <p>A entrada Nº 0001 ainda não tem dono.</p>
               </div>
-              <Link href={`/jogo/${orbita.slug}`} className="btn btn--lime btn--sm">
-                Página do jogo
+              <Link href="/publicar" className="btn btn--lime btn--sm">
+                Começar um rascunho
               </Link>
             </div>
           </div>
@@ -103,6 +99,12 @@ export default function Home() {
               </Link>
             </div>
           </div>
+          {lineup.length === 0 ? (
+            <EmptyProgramme title="O programa ainda não tem jogos">
+              Quando os primeiros jogos entrarem, eles aparecem aqui na ordem em que chegaram, com hora, trilha,
+              plataformas e preço. Quem publica já pode montar a página do jogo e salvar como rascunho.
+            </EmptyProgramme>
+          ) : (
           <ol className="lineup">
             {lineup.map((g) => {
               const isToday = dayKey(g.published) === today;
@@ -130,6 +132,7 @@ export default function Home() {
               );
             })}
           </ol>
+          )}
         </div>
       </section>
 
@@ -137,7 +140,6 @@ export default function Home() {
       {TRACKS.map((t, i) => {
         const games = GAMES.filter((g) => g.track === t.id);
         const [lead, ...rest] = games;
-        if (!lead) return null;
         return (
           <section
             key={t.id}
@@ -151,14 +153,16 @@ export default function Home() {
               <div className="band-intro">
                 <h2 id={`t-${t.id}`}>{t.name}</h2>
                 <p>{t.blurb}</p>
-                <div className="count">
-                  <Link href={`/jogos?trilha=${t.id}`} className="btn btn--ghost">
-                    Ver as {games.length} entradas <ArrowRight aria-hidden />
-                  </Link>
-                </div>
+                {lead ? (
+                  <div className="count">
+                    <Link href={`/jogos?trilha=${t.id}`} className="btn btn--ghost">
+                      Ver {games.length === 1 ? "a entrada" : `as ${games.length} entradas`} <ArrowRight aria-hidden />
+                    </Link>
+                  </div>
+                ) : null}
               </div>
-              <div className="band-entries">
-                <Entry game={lead} variant="lead" />
+              <div className="band-entries" data-empty={!lead || undefined}>
+                {lead ? <Entry game={lead} variant="lead" /> : null}
                 <div className="band-more">
                   {rest.slice(0, 3).map((g) => (
                     <Entry key={g.slug} game={g} variant="row" />
@@ -167,7 +171,11 @@ export default function Home() {
                     <Link href="/publicar" className="open-slot">
                       <span>
                         <strong>Vaga aberta em {t.name}</strong>
-                        <span>Esta trilha tem lugar para o próximo jogo. Pode ser o seu.</span>
+                        <span>
+                          {lead
+                            ? "Esta trilha tem lugar para o próximo jogo. Pode ser o seu."
+                            : "Nenhum jogo nesta trilha ainda. O primeiro pode ser o seu."}
+                        </span>
                       </span>
                       <ArrowRight aria-hidden />
                     </Link>
@@ -204,29 +212,24 @@ export default function Home() {
 
           <div className="pitch">
             <div>
-              <h3>Seu jogo roda aqui mesmo.</h3>
+              <h3>Jogos de navegador rodam na página.</h3>
               <p>
-                Como a Órbita lá em cima: envie um .zip com um index.html e a página do jogo vira a tela. Para quem joga, é um clique.
+                Um .zip com um index.html na raiz vira a tela do jogo, e para quem joga é um clique. O envio de arquivos
+                ainda não está ligado: por enquanto a página do jogo fica salva como rascunho.
               </p>
             </div>
             <div className="pitch-proof">
-              <span className="field-label">orbita-web.zip</span>
+              <span className="field-label">seu-jogo-web.zip</span>
               <ul className="filetree">
                 <li className="is-entry">
                   <span>index.html</span>
-                  <span>2 KB</span>
+                  <span>abre primeiro</span>
                 </li>
                 <li>
                   <span>jogo.js</span>
-                  <span>9 KB</span>
                 </li>
                 <li>
-                  <span>sons/estrela.ogg</span>
-                  <span>14 KB</span>
-                </li>
-                <li>
-                  <span>sons/colisao.ogg</span>
-                  <span>11 KB</span>
+                  <span>sons/</span>
                 </li>
               </ul>
             </div>
@@ -256,7 +259,14 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <JamSchedule serverNow={now} />
+          {JAMS.length === 0 ? (
+            <EmptyProgramme title="Nenhuma jam na agenda" action={null} secondary={{ href: "/jams", label: "Como funcionam as jams" }}>
+              Jams são maratonas com tema e prazo. Quando uma for marcada, ela aparece aqui numa linha do tempo, com a
+              marca de agora.
+            </EmptyProgramme>
+          ) : (
+            <JamSchedule serverNow={now} />
+          )}
         </div>
       </section>
     </>

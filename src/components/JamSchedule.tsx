@@ -2,12 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { SAMPLE_WINDOW, formatDay, jamState, pickNow, trackById } from "@/data/base";
+import { formatDay, jamState, pickNow, trackById } from "@/data/base";
 import { JAMS } from "@/data/jams";
 
-const RANGE_START = SAMPLE_WINDOW.start;
-const RANGE_END = SAMPLE_WINDOW.end;
 const DAY = 86400000;
+// The grid spans the jams on the agenda: from the Sunday before the first start
+// to a week after the last end (in UTC weeks; labels print in Brasília time).
+const firstStart = Math.min(...JAMS.map((j) => +new Date(j.start)));
+const lastEnd = Math.max(...JAMS.map((j) => +new Date(j.end)));
+const RANGE_START = Math.floor(firstStart / (7 * DAY)) * 7 * DAY - 4 * DAY;
+const RANGE_END = lastEnd + 7 * DAY;
 
 const pct = (t: number) => ((Math.min(Math.max(t, RANGE_START), RANGE_END) - RANGE_START) / (RANGE_END - RANGE_START)) * 100;
 
@@ -39,7 +43,7 @@ export function JamSchedule({ serverNow }: { serverNow: number }) {
   const mid = Math.floor(ticks.length / 2);
 
   return (
-    <div className="schedule" role="table" aria-label="Agenda de jams, novembro a dezembro de 2026">
+    <div className="schedule" role="table" aria-label="Agenda de jams">
       <div className="schedule-axis" role="row">
         <span role="columnheader">Jam</span>
         <div className="ticks" role="columnheader" aria-label="Semanas" ref={axisRef}>

@@ -12,7 +12,7 @@ related_targets: ["src/app/etiqueta/[tag]/page.tsx"]
 - Route `/etiqueta/[tag]`: one tag. Mode: Operate (scan the games that carry it, move to a track, a related tag or the filtered catalogue).
 - Visitor success: finds a theme they like ("chuva", "um botão") faster than by searching, sees how many games carry it, and opens a game.
 - Slugs: lowercase, no accents, spaces to hyphens; the page maps the slug back to the tag and matches games without case or accents. Unknown slug: not-found page that points back to the index.
-- Constraints: owner absent; every game and tag is sample data; counts are counts of sample entries, never presented as popularity.
+- Constraints: owner absent; the index starts empty (demonstration content removed by the owner); counts are counts of entries, never presented as popularity.
 
 ## Direction contract
 THESIS: the tag index is the back-of-book index of the printed programme; it refuses the category default of a word cloud with random sizes and colours.

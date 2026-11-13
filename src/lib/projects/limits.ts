@@ -26,7 +26,7 @@ export const WRITE_WINDOW_MS = 5 * 60 * 1000;
 
 /** Capas provisórias: um subconjunto dos estilos de capa do catálogo. */
 export const DRAFT_COVERS: { style: CoverStyle; palette: [string, string, string]; name: string }[] = [
-  { style: "orbit", palette: ["--ultra", "--lime", "--paper"], name: "Órbita" },
+  { style: "orbit", palette: ["--ultra", "--lime", "--paper"], name: "Órbitas" },
   { style: "beam", palette: ["--ink", "--tangerine", "--paper"], name: "Farol" },
   { style: "weave", palette: ["--paper", "--magenta", "--ultra"], name: "Trama" },
   { style: "tide", palette: ["--teal", "--lime", "--ink"], name: "Maré" },

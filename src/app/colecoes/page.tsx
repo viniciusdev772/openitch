@@ -7,6 +7,7 @@ import { Cover } from "@/components/Cover";
 import { trackStyle } from "@/components/bits";
 import { COLECOES, colecaoCurator, colecaoEntries } from "@/data/colecoes";
 import { ColecaoRow, GameCount, MiniCovers, fieldClass } from "@/components/colecoes/parts";
+import { EmptyProgramme } from "@/components/EmptyProgramme";
 
 export const metadata: Metadata = {
   title: "Coleções",
@@ -15,6 +16,24 @@ export const metadata: Metadata = {
 };
 
 export default function ColecoesPage() {
+  if (COLECOES.length === 0) {
+    return (
+      <>
+        <header className="page-head">
+          <div className="wrap">
+            <h1>Coleções</h1>
+            <p>Blocos do programa montados por quem publica aqui, como os blocos temáticos de um festival.</p>
+          </div>
+        </header>
+        <section className="wrap">
+          <EmptyProgramme title="Nenhuma coleção ainda">
+            Coleções reúnem jogos do programa em torno de uma ideia. A primeira aparece aqui quando houver jogos
+            publicados para escolher.
+          </EmptyProgramme>
+        </section>
+      </>
+    );
+  }
   const [lead, ...rest] = COLECOES;
   const billed = rest.slice(0, 2);
   const rows = rest.slice(2);
@@ -28,7 +47,7 @@ export default function ColecoesPage() {
           <h1>Coleções</h1>
           <p>
             Blocos do programa montados por quem publica aqui e pela equipe, como os blocos temáticos de um festival. Cada
-            jogo vem com uma nota curta dizendo por que está no bloco. Seleções e notas são material de demonstração.
+            jogo vem com uma nota curta dizendo por que está no bloco.
           </p>
         </div>
       </header>

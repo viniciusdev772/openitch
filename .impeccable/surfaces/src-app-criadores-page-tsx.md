@@ -11,7 +11,7 @@ related_targets: []
 - Route `/criadores`: index of every creator in the programme. Mode: Operate (scan, sort, open a creator).
 - Visitor success: finds a creator by name or by who published most recently, sees city, game count, the tracks they publish in and their latest game, and opens `/criador/<slug>`.
 - Sorting: "Mais recentes" (default) and "A–Z" via the `ordem` search param, drawn as the existing segmented control with links (works without JavaScript).
-- Constraints: owner absent; every creator is sample data; no follower counts or invented metrics.
+- Constraints: owner absent; the roster starts empty (demonstration content removed by the owner); no follower counts or invented metrics.
 
 ## Direction contract
 THESIS: the creators index is the programme's list of contributors, a ruled roster; it refuses the category default of a grid of equal avatar cards.

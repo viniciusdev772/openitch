@@ -38,6 +38,10 @@ export default async function PublishPage({ searchParams }: { searchParams: SP }
   // Abrir um rascunho pede conta: entra e volta direto para ele.
   if (account === "visitante" && projeto) redirect(`/entrar?de=${encodeURIComponent(`/publicar?projeto=${projeto}`)}`);
 
+  // Um rascunho pode apontar para uma jam que saiu da agenda: o campo volta a "nenhuma jam",
+  // senão o rascunho não salvaria de novo.
+  const staleJam = Boolean(draft?.jam && !jamBySlug(draft.jam));
+  if (draft && staleJam) draft = { ...draft, jam: "" };
   const missing = account === "dentro" && asked && !draft;
   const now = pickNow();
   const selected = draft?.jam || jam;
@@ -52,7 +56,9 @@ export default async function PublishPage({ searchParams }: { searchParams: SP }
           <h1>Publicar</h1>
           <p>
             {draft
-              ? "Você está editando um rascunho salvo. Mude o que quiser e salve de novo; a entrada à direita acompanha cada letra."
+              ? `Você está editando um rascunho salvo. Mude o que quiser e salve de novo; a entrada à direita acompanha cada letra.${
+                  staleJam ? " A jam que este rascunho tinha não está mais na agenda, então o campo de jam ficou vazio." : ""
+                }`
               : "Cinco passos, nesta ordem, todos reversíveis. À direita está a sua entrada no programa: ela muda enquanto você escreve."}
           </p>
         </div>

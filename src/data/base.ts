@@ -1,6 +1,6 @@
 // Programme basics shared by server and client code: types, tracks, platforms,
-// the sample clock and print formatting. Kept apart from the sample data so
-// client components can import them without shipping the whole catalogue.
+// the programme clock and print formatting. Kept apart from the catalogue data
+// so client components can import them without shipping the whole catalogue.
 
 export type TrackId = "navegador" | "acao" | "narrativo" | "puzzle" | "experimental";
 export type Platform = "web" | "windows" | "macos" | "linux" | "android";
@@ -49,7 +49,7 @@ export interface Creator {
   bio: string;
   /** People behind a studio, duo or collective (optional) */
   members?: string[];
-  /** Outside links. Sample data uses reserved .example domains only. */
+  /** Outside links. */
   links?: CreatorLink[];
 }
 
@@ -95,7 +95,6 @@ export interface Game {
   cover: CoverStyle;
   /** Cover palette: [ground, figure, accent] as CSS vars */
   palette: [string, string, string];
-  playable?: "orbita";
   downloads: Download[];
   jam?: string;
   /** How to play, one control per line (optional) */
@@ -188,20 +187,12 @@ export const PLATFORMS: Record<Platform, { code: string; name: string }> = {
 export const trackById = (id: TrackId) => TRACKS.find((t) => t.id === id)!;
 
 /**
- * The sample programme's clock, the one source every page shares. The demo
- * programme covers SAMPLE_WINDOW (Brasília time): inside it the real clock
- * runs; outside it, SAMPLE_NOW stands in so the pages stay meaningful.
- * Read "now" through pickNow(), not Date.now() or SAMPLE_NOW directly.
+ * The programme's "now" in ms: the real clock. Pages and client components read
+ * it through pickNow() so a server render can hand the same instant to the
+ * browser (see JamSchedule's serverNow).
  */
-export const SAMPLE_NOW = "2026-11-13T15:00:00-03:00";
-export const SAMPLE_WINDOW = {
-  start: +new Date("2026-11-01T00:00:00-03:00"),
-  end: +new Date("2026-12-07T00:00:00-03:00"),
-} as const;
-
-/** The programme's "now" in ms: the real clock inside SAMPLE_WINDOW, SAMPLE_NOW outside it. */
 export function pickNow(real: number = Date.now()): number {
-  return real > SAMPLE_WINDOW.start && real < SAMPLE_WINDOW.end ? real : +new Date(SAMPLE_NOW);
+  return real;
 }
 
 /** Calendar date (YYYY-MM-DD) of an instant in Brasília time. */

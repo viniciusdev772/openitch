@@ -36,6 +36,7 @@ export function FirstUse({ creators }: { creators: ShelfPerson[] }) {
         </div>
       </section>
 
+      {creators.length > 0 ? (
       <section className="acc-section shelf-people-pick" aria-labelledby="criadores">
         <div className="acc-head">
           <h2 id="criadores">Criadores no programa</h2>
@@ -56,6 +57,7 @@ export function FirstUse({ creators }: { creators: ShelfPerson[] }) {
           ))}
         </ol>
       </section>
+      ) : null}
     </div>
   );
 }
