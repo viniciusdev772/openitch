@@ -432,6 +432,7 @@ export async function signParts(userId: ObjectId, rawId: unknown, input: { parts
 /* ------------------------------------------------------------------ */
 
 export async function uploadState(userId: ObjectId, rawId: unknown) {
+  await limit(`envios:estado:${userId.toHexString()}`, 300);
   const u = await ownUpload(userId, rawId);
   const parts = u.status === "enviando" && storageConfigured() ? await partsOf(u) : [];
   return { file: view(u), parts };
