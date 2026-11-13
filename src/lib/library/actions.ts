@@ -7,6 +7,7 @@ import { db } from "@/lib/auth/db";
 import { getSession } from "@/lib/auth/session";
 import { hit, waitText } from "@/lib/auth/ratelimit";
 import { str } from "@/lib/auth/validate";
+import { LIBRARY_FRAGMENT } from "@/components/library/copy";
 import {
   MAX_ITEMS,
   TOGGLES_PER_WINDOW,
@@ -25,6 +26,12 @@ import {
  *
  * O formulário manda o estado desejado ("quero" = 1 ou 0), não um "inverta":
  * dois cliques que chegam juntos dão o mesmo resultado, sem corrida.
+ *
+ * As páginas de jogo e de criador são HTML estático e não sabem quem está
+ * vendo. Lá o botão nasce neutro ("Guardar", "Seguir") e, sem JavaScript, usa
+ * keepSave / keepFollow: só gravam (quero = 1, idempotente) e voltam para a
+ * página com uma âncora que mostra a confirmação. Com JavaScript a ilha lê o
+ * estado real em /api/estante/estado e passa a usar toggleSave / toggleFollow.
  */
 
 export interface ToggleState {
@@ -98,8 +105,8 @@ async function toggle(kind: Kind, form: FormData): Promise<ToggleState> {
         await follows.deleteOne({ userId, creator: slug });
       }
 
-      // Limpa o cache do navegador: voltar para a página mostra o estado novo.
-      revalidatePath(itemPath(kind, slug));
+      // A estante é a única página que imprime o estado; as de jogo e criador
+      // são estáticas e leem o estado no cliente, então não há o que refazer nelas.
       revalidatePath("/estante");
       return { on: want };
     })();
@@ -120,4 +127,30 @@ export async function toggleSave(_prev: ToggleState, form: FormData): Promise<To
 /** Segue ou deixa de seguir um criador. */
 export async function toggleFollow(_prev: ToggleState, form: FormData): Promise<ToggleState> {
   return toggle("follow", form);
+}
+
+/**
+ * Formulário neutro das páginas estáticas, sem JavaScript: grava (nunca tira)
+ * e volta para a página do item. Visitante sem sessão vai para /entrar e
+ * volta depois. Repetir o envio não muda nada.
+ */
+async function keep(kind: Kind, form: FormData): Promise<never> {
+  const slug = catalogSlug(kind, str(form, "slug", 80));
+  if (!slug) redirect(kind === "save" ? "/jogos" : "/criadores");
+  const want = new FormData();
+  want.set("slug", slug);
+  want.set("quero", "1");
+  const result = await toggle(kind, want);
+  const frag = LIBRARY_FRAGMENT[kind];
+  redirect(`${itemPath(kind, slug)}#${result.error || !result.on ? frag.error : frag.ok}`);
+}
+
+/** Guarda um jogo a partir do botão neutro (sem JavaScript). */
+export async function keepSave(form: FormData): Promise<void> {
+  await keep("save", form);
+}
+
+/** Segue um criador a partir do botão neutro (sem JavaScript). */
+export async function keepFollow(form: FormData): Promise<void> {
+  await keep("follow", form);
 }

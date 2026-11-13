@@ -22,7 +22,7 @@ export function BuyCard({
   title: string;
   downloads: DL[];
   playable: boolean;
-  /** Botão Guardar, resolvido no servidor (estado da estante de quem está dentro). */
+  /** Botão Guardar (ilha de cliente: o estado da estante chega depois do HTML). */
   save?: ReactNode;
 }) {
   const id = useId();
