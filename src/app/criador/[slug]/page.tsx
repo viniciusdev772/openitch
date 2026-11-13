@@ -11,6 +11,7 @@ import { DEVLOGS, DEVLOG_KINDS } from "@/data/devlogs";
 import { Entry, Joined, TrackChip, trackStyle } from "@/components/bits";
 import { LibraryButton } from "@/components/library/LibraryButton";
 import { LibraryState } from "@/components/library/LibraryState";
+import { OwnerBar } from "@/components/library/OwnerBar";
 import { DayNumeral } from "@/app/jogo/[slug]/parts";
 
 /*
@@ -60,6 +61,7 @@ export default async function CreatorPage({ params }: Props) {
 
   return (
     <LibraryState creator={creator.slug}>
+      <OwnerBar title={creator.name} kind="profile" />
       <header className="page-head">
         <div className="wrap">
           <h1>{creator.name}</h1>

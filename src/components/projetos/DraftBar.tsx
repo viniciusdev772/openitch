@@ -41,6 +41,7 @@ export function DraftBar({
   onSaveAsNew,
   onFocusField,
   onLeave,
+  live = false,
 }: {
   account: "visitante" | "dentro" | "indisponivel";
   status: SaveStatus;
@@ -54,6 +55,8 @@ export function DraftBar({
   onSaveAsNew: () => void;
   onFocusField: (field: string) => void;
   onLeave: () => void;
+  /** O jogo está no programa: salvar atualiza a página pública. */
+  live?: boolean;
 }) {
   const back = encodeURIComponent(nextPath);
 
@@ -98,7 +101,7 @@ export function DraftBar({
         <Check />
       </span>
       <span>
-        Rascunho salvo <When iso={saved} />
+        {live ? "Salvo e no ar" : "Rascunho salvo"} <When iso={saved} />
       </span>
     </>
   ) : saved ? (
@@ -145,7 +148,7 @@ export function DraftBar({
           ) : null}
           {status.code === "limite" ? (
             <Link href="/conta/projetos" className="btn btn--sm btn--ghost">
-              Abrir seus rascunhos
+              Abrir seus jogos
             </Link>
           ) : null}
           {status.code === "nao_encontrado" ? (
@@ -159,14 +162,15 @@ export function DraftBar({
       <div className="pj-bar-act">
         {/* aria-disabled e não disabled: o foco do teclado fica no botão enquanto salva. */}
         <button type="submit" className="btn" aria-disabled={saving}>
-          {saving ? "Salvando" : "Salvar rascunho"}
+          {saving ? "Salvando" : live ? "Salvar e atualizar a página" : "Salvar rascunho"}
         </button>
         <Link href="/conta/projetos" className="bo-link">
-          Seus rascunhos
+          Seus jogos
         </Link>
       </div>
       <p className="pj-hint">
-        Só você vê seus rascunhos. <kbd>Ctrl</kbd> + <kbd>S</kbd> também salva.
+        {live ? "Este jogo está no programa: cada gravação vai ao ar." : "Só você vê seus rascunhos."} <kbd>Ctrl</kbd> +{" "}
+        <kbd>S</kbd> também salva.
       </p>
     </section>
   );

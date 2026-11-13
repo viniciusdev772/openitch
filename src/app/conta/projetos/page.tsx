@@ -11,7 +11,7 @@ import { getSession } from "@/lib/auth/session";
 import { listDrafts } from "@/lib/projects/rules";
 import { LIMITS, type DraftRow } from "@/lib/projects/limits";
 
-export const metadata: Metadata = { title: "Seus rascunhos", robots: { index: false } };
+export const metadata: Metadata = { title: "Seus jogos", robots: { index: false } };
 
 export default async function ProjetosPage() {
   // null: o banco não respondeu. A página abre do mesmo jeito, dizendo isso e oferecendo tentar de novo.
@@ -36,13 +36,14 @@ export default async function ProjetosPage() {
 
   return (
     <>
-      <BoxHead title="Seus rascunhos">
+      <BoxHead title="Seus jogos">
         <p>
-          Os jogos que você começou em Publicar, do mais recente para o mais antigo. Só você vê esta página.
+          Os jogos que você começou em Publicar, rascunhos e publicados, do mais recente para o mais antigo. Abra
+          um para editar tudo, tirar do ar ou excluir. Só você vê esta página.
           {drafts && drafts.length > 0 ? (
             <>
               {" "}
-              Cabem <span className="num">{LIMITS.drafts}</span> rascunhos por conta.
+              Cabem <span className="num">{LIMITS.drafts}</span> jogos por conta, rascunhos e publicados somados.
             </>
           ) : null}
         </p>

@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth/session";
 import { catalogSlug, hasItem } from "@/lib/library/rules";
+import { db } from "@/lib/auth/db";
 
 export const dynamic = "force-dynamic";
 
@@ -36,14 +37,17 @@ export async function GET(request: Request) {
     const session = await getSession();
     if (!session) return fail(401, "Entre na sua conta.");
     const userId = session.user._id;
-    const [guardado, seguindo] = await Promise.all([
+    const { projects } = await db();
+    const [guardado, seguindo, meu] = await Promise.all([
       jogo ? hasItem("save", userId, jogo) : null,
       criador ? hasItem("follow", userId, criador) : null,
+      // O jogo é de quem está vendo? Então a página mostra as ferramentas do dono.
+      jogo ? projects.findOne({ publicSlug: jogo, userId, status: "publicado" }, { projection: { _id: 1 } }) : null,
     ]);
     return Response.json(
       {
-        jogo: jogo ? { slug: jogo, guardado } : null,
-        criador: criador ? { slug: criador, seguindo } : null,
+        jogo: jogo ? { slug: jogo, guardado, dono: meu ? { projeto: meu._id.toHexString() } : null } : null,
+        criador: criador ? { slug: criador, seguindo, dono: session.user.creatorSlug === criador } : null,
       },
       { headers: HEADERS },
     );

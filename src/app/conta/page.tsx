@@ -7,7 +7,7 @@ import { db, type SecurityEventType } from "@/lib/auth/db";
 import { getSession, sessionIsIdle } from "@/lib/auth/session";
 import { describeDevice } from "@/lib/auth/request";
 import { revokeOtherSessions, revokeSession, signOut } from "@/lib/auth/actions";
-import { DeleteAccountForm, DisableTotpForm, NameForm, PasswordForm, RecoveryCodesForm } from "./forms";
+import { DeleteAccountForm, DisableTotpForm, NameForm, PasswordForm, ProfileForm, RecoveryCodesForm } from "./forms";
 
 export const metadata: Metadata = { title: "Sua conta", robots: { index: false } };
 
@@ -181,6 +181,7 @@ export default async function ContaPage({ searchParams }: { searchParams: Promis
               <dd>{full.format(user.createdAt)}</dd>
             </dl>
             <NameForm name={user.name} />
+            <ProfileForm city={user.city ?? ""} bio={user.bio ?? ""} page={user.creatorSlug ? `/criador/${user.creatorSlug}` : null} />
           </section>
 
           <section className="acc-section" aria-labelledby="registro">
@@ -246,7 +247,7 @@ export default async function ContaPage({ searchParams }: { searchParams: Promis
             </Link>
             <Link href="/conta/projetos" className="btn btn--ghost">
               <FilePen aria-hidden />
-              Seus rascunhos
+              Seus jogos
             </Link>
             <form action={signOut}>
               <button type="submit" className="btn btn--ghost acc-out">

@@ -10,6 +10,9 @@ import {
   LIMITS,
   centsToText,
   checkPrice,
+  linesProblem,
+  parseCredits,
+  splitLines,
   splitTags,
   stripInvisible,
   suggestSlug,
@@ -51,7 +54,10 @@ function paragraphs(raw: string): string {
     .trim();
 }
 
-export type DraftValues = Omit<ProjectDoc, "_id" | "userId" | "status" | "createdAt" | "updatedAt" | "publicSlug" | "number" | "publishedAt">;
+export type DraftValues = Omit<
+  ProjectDoc,
+  "_id" | "userId" | "status" | "createdAt" | "updatedAt" | "publicSlug" | "number" | "publishedAt" | "previousSlugs" | "coverImage" | "pendingCover"
+>;
 
 type Parsed = { ok: true; value: DraftValues } | { ok: false; result: Extract<SaveResult, { ok: false }> };
 
@@ -74,6 +80,13 @@ export function parseDraft(form: FormData): Parsed {
   const amount = str(form, "valor", 20);
   const jam = str(form, "jam", 80);
   const platformList = form.getAll("plataforma");
+  const session = oneLine(str(form, "duracao", LIMITS.session * 4));
+  const languagesRaw = str(form, "idiomas", LIMITS.languagesRaw * 2);
+  const linesOf = (name: string, l: { lines: number; line: number }) => splitLines(str(form, name, l.lines * (l.line + 2) * 2));
+  const controls = linesOf("controles", LIMITS.controls);
+  const accessibility = linesOf("acessibilidade", LIMITS.accessibility);
+  const contentNotes = linesOf("avisos", LIMITS.contentNotes);
+  const creditLines = linesOf("creditos", LIMITS.credits);
 
   if (!TRACK_IDS.has(track) || !COVER_IDS.has(cover) || !PRICE_KINDS.has(priceKind)) return { ok: false, result: TAMPERED };
   if (jam && !JAM_SLUGS.has(jam)) return { ok: false, result: TAMPERED };
@@ -98,6 +111,24 @@ export function parseDraft(form: FormData): Parsed {
   } else if (tags.some((t) => len(t) > LIMITS.tag)) {
     fields.tags = `Cada etiqueta pode ter até ${LIMITS.tag} caracteres.`;
   }
+
+  if (len(session) > LIMITS.session) fields.session = `Use até ${LIMITS.session} caracteres na duração.`;
+  const languages = splitTags(languagesRaw);
+  if (len(languagesRaw) > LIMITS.languagesRaw || languages.length > LIMITS.languages) {
+    fields.languages = `Use até ${LIMITS.languages} idiomas.`;
+  } else if (languages.some((t) => len(t) > LIMITS.language)) {
+    fields.languages = `Cada idioma pode ter até ${LIMITS.language} caracteres.`;
+  }
+  const cp = linesProblem(controls, LIMITS.controls);
+  if (cp) fields.controls = cp;
+  const ap = linesProblem(accessibility, LIMITS.accessibility);
+  if (ap) fields.accessibility = ap;
+  const np = linesProblem(contentNotes, LIMITS.contentNotes);
+  if (np) fields.contentNotes = np;
+  const credits = parseCredits(creditLines);
+  const crp = linesProblem(creditLines, LIMITS.credits);
+  if (crp) fields.credits = crp;
+  else if (!credits) fields.credits = "Escreva cada crédito como Papel: Nome, um por linha.";
 
   let price: ProjectPrice = { kind: "free" };
   const priceCheck = checkPrice(priceKind as PriceKind, amount);
@@ -131,6 +162,12 @@ export function parseDraft(form: FormData): Parsed {
       price,
       cover,
       jam: jam || null,
+      session,
+      languages,
+      controls,
+      accessibility,
+      contentNotes,
+      credits: credits ?? [],
     },
   };
 }
@@ -157,6 +194,13 @@ function toFields(doc: ProjectDoc): SavedDraft {
     state: doc.status === "publicado" ? "publicado" : "rascunho",
     publicSlug: doc.publicSlug ?? null,
     number: doc.number ?? null,
+    coverImage: doc.coverImage?.url ?? null,
+    session: doc.session ?? "",
+    languages: (doc.languages ?? []).join(", "),
+    controls: (doc.controls ?? []).join("\n"),
+    accessibility: (doc.accessibility ?? []).join("\n"),
+    contentNotes: (doc.contentNotes ?? []).join("\n"),
+    credits: (doc.credits ?? []).map((c) => `${c.role}: ${c.name}`).join("\n"),
   };
 }
 

@@ -98,10 +98,15 @@ function toGame(p: ProjectDoc, creator: Creator, files: Files): Game | null {
     price,
     published: p.publishedAt.toISOString(),
     updated: p.updatedAt.toISOString(),
-    session: "",
-    languages: [],
+    session: p.session ?? "",
+    languages: p.languages ?? [],
+    controls: p.controls?.length ? p.controls : undefined,
+    accessibility: p.accessibility?.length ? p.accessibility : undefined,
+    contentNotes: p.contentNotes?.length ? p.contentNotes : undefined,
+    credits: p.credits?.length ? p.credits : undefined,
     cover: cover.style,
     palette: cover.palette,
+    coverImage: p.coverImage?.url,
     downloads: downloads.filter((d) => platforms.includes(d.platform)),
     play,
     jam: p.jam && jamBySlug(p.jam) ? p.jam : undefined,
@@ -116,7 +121,7 @@ async function load(): Promise<Catalog> {
   const userIds = [...new Map(docs.map((d) => [d.userId.toHexString(), d.userId])).values()];
   const [people, files] = await Promise.all([
     users
-      .find({ _id: { $in: userIds }, creatorSlug: { $type: "string" } }, { projection: { name: 1, creatorSlug: 1, firstPublishedAt: 1 } })
+      .find({ _id: { $in: userIds }, creatorSlug: { $type: "string" } }, { projection: { name: 1, creatorSlug: 1, firstPublishedAt: 1, bio: 1, city: 1 } })
       .toArray(),
     filesOf(docs.map((d) => d._id)),
   ]);
@@ -125,8 +130,8 @@ async function load(): Promise<Catalog> {
     byUser.set(u._id.toHexString(), {
       slug: u.creatorSlug!,
       name: u.name,
-      city: "",
-      bio: "",
+      city: u.city ?? "",
+      bio: u.bio ?? "",
       joined: u.firstPublishedAt?.toISOString(),
     });
   }
@@ -159,3 +164,11 @@ export const getCatalog = cache(async (): Promise<Catalog> => {
     return EMPTY_CATALOG;
   }
 });
+
+/** O endereço atual de um jogo publicado que já morou em `slug`, ou null. */
+export async function movedSlug(slug: string): Promise<string | null> {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 64) return null;
+  const { projects } = await db();
+  const p = await projects.findOne({ previousSlugs: slug, status: "publicado" }, { projection: { publicSlug: 1 } });
+  return p?.publicSlug && p.publicSlug !== slug ? p.publicSlug : null;
+}

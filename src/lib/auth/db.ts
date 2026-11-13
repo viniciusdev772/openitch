@@ -46,6 +46,9 @@ export interface UserDoc {
   creatorSlug?: string;
   /** Quando a conta publicou pela primeira vez. */
   firstPublishedAt?: Date;
+  /** Perfil público de criador (opcional). */
+  bio?: string;
+  city?: string;
 }
 
 export interface SessionDoc {
@@ -133,6 +136,19 @@ export interface ProjectDoc {
   number?: number;
   /** Primeira publicação. */
   publishedAt?: Date;
+  /** Endereços públicos anteriores: redirecionam para o atual. */
+  previousSlugs?: string[];
+  /** Imagem de capa enviada (no bucket jogável, leitura pública), no lugar da capa provisória. */
+  coverImage?: { bucket: string; key: string; url: string } | null;
+  /** Capa assinada para envio e ainda não confirmada (apagada no próximo envio ou na exclusão). */
+  pendingCover?: { key: string; type: string; at: Date } | null;
+  /* Detalhes da página do jogo (opcionais). */
+  session?: string;
+  languages?: string[];
+  controls?: string[];
+  accessibility?: string[];
+  contentNotes?: string[];
+  credits?: { role: string; name: string }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -307,6 +323,7 @@ async function ensureIndexes(db: Db): Promise<void> {
         db.collection("follows").createIndex({ userId: 1, creator: 1 }, { unique: true }),
         db.collection("projects").createIndex({ userId: 1, updatedAt: -1 }),
         db.collection("projects").createIndex({ status: 1, publishedAt: -1 }),
+        db.collection("projects").createIndex({ previousSlugs: 1 }),
         db.collection("projects").createIndex(
           { publicSlug: 1 },
           { unique: true, partialFilterExpression: { publicSlug: { $type: "string" } } },

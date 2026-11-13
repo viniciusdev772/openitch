@@ -20,6 +20,8 @@ import { requestInfo } from "./request";
 import { deleteUploadsOfUser } from "@/lib/uploads/server";
 import { deleteBuildsOfUser } from "@/lib/builds/cleanup";
 import { revalidatePublic } from "@/lib/catalog/revalidate";
+import { stripInvisible } from "@/lib/projects/limits";
+import { deleteCoverObjects } from "@/lib/projects/cover-store";
 import {
   clearMfaChallenge,
   createMfaChallenge,
@@ -624,6 +626,9 @@ async function deleteAccountInner(_prev: FormState, form: FormData): Promise<For
     await deleteUploadsOfUser(user._id);
     await deleteBuildsOfUser(user._id);
     const { users, sessions, mfa, events, saves, follows, projects } = await db();
+    for (const p of await projects.find({ userId: user._id }, { projection: { coverImage: 1, pendingCover: 1 } }).toArray()) {
+      await deleteCoverObjects(p);
+    }
     await sessions.deleteMany({ userId: user._id });
     await mfa.deleteMany({ userId: user._id });
     await events.deleteMany({ userId: user._id });
@@ -638,6 +643,37 @@ async function deleteAccountInner(_prev: FormState, form: FormData): Promise<For
   });
   if (done) redirect("/?conta=excluida");
   return result;
+}
+
+const PROFILE = { city: 60, bio: 280 } as const;
+
+/** Limpa uma linha (cidade) ou um parágrafo curto (apresentação) do perfil público. */
+const cleanText = (raw: string, keepBreaks: boolean) =>
+  stripInvisible(raw)
+    .replace(keepBreaks ? /[^\S\n]+/g : /\s+/g, " ")
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+
+async function updateProfileInner(_prev: FormState, form: FormData): Promise<FormState> {
+  const { user } = await requireSession();
+  const city = cleanText(str(form, "cidade", PROFILE.city * 4), false);
+  const bio = cleanText(str(form, "bio", PROFILE.bio * 2), true);
+  const fields: Record<string, string> = {};
+  if ([...city].length > PROFILE.city) fields.cidade = `Use até ${PROFILE.city} caracteres.`;
+  if ([...bio].length > PROFILE.bio) fields.bio = `Use até ${PROFILE.bio} caracteres.`;
+  if (Object.keys(fields).length) return { fields, values: { cidade: city, bio } };
+  return guard(async (): Promise<FormState> => {
+    const { users } = await db();
+    await users.updateOne({ _id: user._id }, { $set: { city, bio, updatedAt: new Date() } });
+    revalidatePath("/conta");
+    if (user.creatorSlug) revalidatePublic();
+    return { ok: "Perfil salvo.", values: { cidade: city, bio } };
+  });
+}
+
+/** Cidade e apresentação da página de criador. */
+export async function updateProfile(prev: FormState, form: FormData): Promise<FormState> {
+  return guard(() => updateProfileInner(prev, form));
 }
 
 /** Falha do banco ao conferir a sessão vira mensagem, não página de erro. */

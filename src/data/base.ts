@@ -99,6 +99,8 @@ export interface Game {
   cover: CoverStyle;
   /** Cover palette: [ground, figure, accent] as CSS vars */
   palette: [string, string, string];
+  /** An uploaded cover image (public URL), drawn instead of the cover style when present. */
+  coverImage?: string;
   downloads: Download[];
   /** The creator's display name, resolved when the catalogue is loaded (optional). */
   creatorName?: string;

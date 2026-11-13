@@ -66,7 +66,7 @@ export function DraftList({
     <section className="acc-section pj-list-section" aria-labelledby="rascunhos">
       <div className="acc-head">
         <h2 id="rascunhos" ref={headRef} tabIndex={-1}>
-          Rascunhos
+          Jogos
         </h2>
         <span className="acc-count">
           <span aria-hidden>
@@ -74,7 +74,7 @@ export function DraftList({
             <small>/{max}</small>
           </span>
           <span className="visually-hidden">
-            {rows.length} de {max} rascunhos
+            {rows.length} de {max} jogos
           </span>
         </span>
       </div>

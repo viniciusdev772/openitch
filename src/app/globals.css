@@ -791,11 +791,13 @@ p {
   overflow: hidden;
   background: var(--g, var(--ultra-deep));
 }
-.screening-art svg {
+.screening-art svg,
+.screening-art img {
   max-height: 100%;
   transition: transform 320ms var(--ease-out);
 }
-.screening-art:hover svg {
+.screening-art:hover svg,
+.screening-art:hover img {
   transform: scale(1.02);
 }
 .screening-foot h2 a {
@@ -807,7 +809,8 @@ p {
   text-underline-offset: 4px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .screening-art svg {
+  .screening-art svg,
+  .screening-art img {
     transition: none;
   }
 }
@@ -1752,9 +1755,11 @@ p {
   place-items: center;
   height: min(62vh, 620px);
 }
-.stage-art svg {
+.stage-art svg,
+.stage-art img {
   height: 100% !important;
   width: auto !important;
+  max-width: 100%;
 }
 .stage-launch {
   display: flex;
