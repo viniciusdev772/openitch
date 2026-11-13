@@ -2,7 +2,7 @@
 
 import { useId, useState, type ReactNode } from "react";
 import { Download } from "lucide-react";
-import type { Price } from "@/data/catalog";
+import type { Price } from "@/data/base";
 
 interface DL {
   file: string;

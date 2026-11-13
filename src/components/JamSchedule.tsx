@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { JAMS, SAMPLE_WINDOW, formatDay, jamState, pickNow, trackById } from "@/data/catalog";
+import { SAMPLE_WINDOW, formatDay, jamState, pickNow, trackById } from "@/data/base";
+import { JAMS } from "@/data/jams";
 
 const RANGE_START = SAMPLE_WINDOW.start;
 const RANGE_END = SAMPLE_WINDOW.end;

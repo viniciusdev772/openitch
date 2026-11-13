@@ -2,6 +2,7 @@ import "@/styles/estante.css";
 import "@/styles/jogo.css";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { tagHref } from "@/components/etiquetas/slug";
 import { notFound } from "next/navigation";
 import { ArrowRight, Check, TriangleAlert } from "lucide-react";
 import {
@@ -167,7 +168,7 @@ export default async function GamePage({ params }: Props) {
             <dd>
               <span className="tags">
                 {game.tags.map((t) => (
-                  <Link key={t} href={`/jogos?q=${encodeURIComponent(t)}`}>
+                  <Link key={t} href={tagHref(t) ?? `/jogos?q=${encodeURIComponent(t)}`}>
                     {t}
                   </Link>
                 ))}

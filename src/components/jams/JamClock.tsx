@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { formatDay, formatTime } from "@/data/catalog";
+import { formatDay, formatTime } from "@/data/base";
 import { jamState, splitDuration, type JamState } from "./clock";
 import { useJamNow } from "./useJamNow";
 

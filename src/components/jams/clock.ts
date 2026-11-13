@@ -1,10 +1,10 @@
-import { dayKey, type Jam } from "@/data/catalog";
+import { dayKey, type Jam } from "@/data/base";
 
 /**
  * The programme clock (pickNow, jamState and the sample window) lives in
- * @/data/catalog; it is re-exported here so jam components keep one import.
+ * @/data/base; it is re-exported here so jam components keep one import.
  */
-export { pickNow, jamState, type JamState } from "@/data/catalog";
+export { pickNow, jamState, type JamState } from "@/data/base";
 
 const HOUR = 3600000;
 const DAY = 24 * HOUR;
