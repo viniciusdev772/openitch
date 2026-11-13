@@ -1,30 +1,43 @@
 import "server-only";
 import type { ObjectId } from "mongodb";
 import { db } from "@/lib/auth/db";
-import { purgePrefix, s3Config, storageConfigured } from "@/lib/storage/s3";
+import { storageConfigured } from "@/lib/storage/s3";
+import { purge } from "./server";
 
 /*
- * STUB da frente "upload": a frente "jogavel" é dona deste arquivo e entrega
- * a versão completa. Aqui só o mínimo para a exclusão de rascunho e de conta
- * já apagarem builds: registros `builds` e objetos `b/<buildId>/` do bucket
- * jogável. Na hora do merge, fica a versão da frente "jogavel" (com estas
- * mesmas assinaturas).
+ * Limpeza dos builds de navegador quando o rascunho ou a conta somem.
+ * Chamadas pela exclusão de rascunho (src/lib/projects/actions.ts) e pela
+ * exclusão de conta (deleteAccountInner em src/lib/auth/actions.ts).
+ *
+ * Apagam os objetos sob b/<publicId>/ no bucket jogável (e qualquer envio
+ * em partes aberto) e depois os registros. Lançam erro se o armazenamento
+ * falhar, para quem chama decidir se continua; os registros de builds cujos
+ * objetos não puderam ser apagados ficam, para uma nova tentativa.
  */
 
-async function purgeBuilds(filter: { userId: ObjectId; projectId?: ObjectId }) {
+async function purgeAll(filter: { userId: ObjectId; projectId?: ObjectId }): Promise<number> {
   const { builds } = await db();
-  const list = await builds.find(filter, { projection: { _id: 1, bucket: 1 } }).toArray();
-  if (storageConfigured()) {
-    const { buckets } = s3Config();
-    for (const b of list) await purgePrefix(b.bucket || buckets.play, `b/${b._id.toHexString()}/`);
+  const docs = await builds.find(filter, { projection: { _id: 1, bucket: 1, prefix: 1 } }).toArray();
+  if (docs.length === 0) return 0;
+  if (!storageConfigured()) throw new Error("Armazenamento não configurado: não dá para apagar os builds.");
+  let failed: unknown = null;
+  for (const b of docs) {
+    try {
+      await purge(b);
+    } catch (err) {
+      failed = err;
+    }
   }
-  await builds.deleteMany(filter);
+  if (failed) throw failed;
+  return docs.length;
 }
 
-export async function deleteBuildsOfProject(userId: ObjectId, projectId: ObjectId): Promise<void> {
-  await purgeBuilds({ userId, projectId });
+/** Apaga todos os builds de navegador de um rascunho do usuário. Devolve quantos. */
+export function deleteBuildsOfProject(userId: ObjectId, projectId: ObjectId): Promise<number> {
+  return purgeAll({ userId, projectId });
 }
 
-export async function deleteBuildsOfUser(userId: ObjectId): Promise<void> {
-  await purgeBuilds({ userId });
+/** Apaga todos os builds de navegador da conta. Devolve quantos. */
+export function deleteBuildsOfUser(userId: ObjectId): Promise<number> {
+  return purgeAll({ userId });
 }
