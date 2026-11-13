@@ -47,6 +47,8 @@ export function JamSchedule() {
             <span
               key={t}
               className={`tick${i === mid ? " tick--mid" : ""}${i === ticks.length - 1 ? " tick--last" : ""}`}
+              // A pílula "agora" cobre a data que estiver a menos de ~60px dela.
+              data-under-now={Math.abs(pct(t) - pct(now)) * laneW < 6000 || undefined}
               style={{ left: `${pct(t)}%` }}
             >
               {formatDay(new Date(t).toISOString())}
