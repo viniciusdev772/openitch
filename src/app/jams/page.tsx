@@ -3,10 +3,10 @@ import Link from "next/link";
 import { GAMES, JAMS, formatDay, trackById } from "@/data/catalog";
 import { JamSchedule } from "@/components/JamSchedule";
 import { trackStyle } from "@/components/bits";
+import { SAMPLE_NOW } from "@/components/jams/clock";
+import "@/styles/jams-criadores.css";
 
 export const metadata: Metadata = { title: "Jams" };
-
-const SAMPLE_NOW = new Date("2026-11-12T15:00:00-03:00").getTime();
 
 export default function JamsPage() {
   return (
@@ -42,7 +42,9 @@ export default function JamsPage() {
                     {formatDay(j.start)} → {formatDay(j.end)}
                   </span>
                 </div>
-                <h3>{j.title}</h3>
+                <h3>
+                  <Link href={`/jams/${j.slug}`}>{j.title}</Link>
+                </h3>
                 <p className="theme">Tema: {j.theme}</p>
                 <p>{j.summary}</p>
                 {entries.length > 0 && (
@@ -68,7 +70,9 @@ export default function JamsPage() {
           <ol>
             {JAMS.filter((j) => SAMPLE_NOW > new Date(j.end).getTime()).map((j) => (
               <li key={j.slug} id={j.slug}>
-                <strong>{j.title}</strong>
+                <strong>
+                  <Link href={`/jams/${j.slug}`}>{j.title}</Link>
+                </strong>
                 <span>Tema: {j.theme}</span>
                 <span>
                   {GAMES.filter((g) => g.jam === j.slug).map((g) => (

@@ -69,13 +69,17 @@ export function JamSchedule() {
         return (
           <div className="schedule-row" role="row" key={j.slug}>
             <div className="who" role="cell">
-              <Link href={`/jams#${j.slug}`}>{j.title}</Link>
+              <Link href={`/jams/${j.slug}`}>{j.title}</Link>
               <small>
                 {state === "live" ? "rolando agora" : state === "past" ? "encerrada" : "em breve"} · tema “{j.theme}”
               </small>
             </div>
             <div className="lane" role="cell">
-              <span
+              {/* Pointer shortcut to the jam page; keyboard and screen readers use the title link in this row. */}
+              <Link
+                href={`/jams/${j.slug}`}
+                tabIndex={-1}
+                aria-hidden
                 className="schedule-bar"
                 data-state={state}
                 data-narrow={narrow}
@@ -90,7 +94,7 @@ export function JamSchedule() {
                 }
               >
                 {!narrow && <b>{label}</b>}
-              </span>
+              </Link>
               {narrow && (
                 <span
                   className="schedule-label"
