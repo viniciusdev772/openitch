@@ -123,6 +123,67 @@ export interface ProjectDoc {
   updatedAt: Date;
 }
 
+/* ------------------------------------------------------------------ */
+/* Arquivos no MinIO (ver src/lib/storage)                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Um arquivo enviado para baixar (build de Windows, macOS, Linux, Android) ou
+ * o zip original de um build de navegador. Os bytes vão do navegador direto
+ * para o MinIO (multipart com URLs pré-assinadas); aqui fica só o registro.
+ */
+export interface UploadDoc {
+  _id: ObjectId;
+  userId: ObjectId;
+  projectId: ObjectId;
+  /** download: arquivo para baixar; web-source: zip de um build de navegador. */
+  kind: "download" | "web-source";
+  platform: Platform;
+  filename: string;
+  size: number;
+  contentType: string;
+  bucket: string;
+  key: string;
+  /** UploadId do multipart enquanto o envio está aberto. */
+  multipartId: string | null;
+  partSize: number;
+  status: "enviando" | "pronto" | "cancelado";
+  /** Soma de verificação informada pelo navegador ao terminar (opcional). */
+  sha256: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt: Date | null;
+}
+
+export type WebEngine = "unity" | "godot" | "unreal-html5" | "construct" | "gamemaker" | "defold" | "pico8" | "html5";
+
+/**
+ * Um build de navegador extraído no bucket jogável, sob `prefix`
+ * (ex.: "b/<buildId>/"), servido direto do MinIO num iframe isolado.
+ */
+export interface BuildDoc {
+  _id: ObjectId;
+  userId: ObjectId;
+  projectId: ObjectId;
+  /** Upload do zip original, se o zip também foi guardado. */
+  sourceUploadId: ObjectId | null;
+  bucket: string;
+  prefix: string;
+  /** Caminho do HTML de entrada relativo ao prefixo (ex.: "index.html"). */
+  entry: string;
+  engine: WebEngine;
+  /** Precisa de isolamento entre origens (SharedArrayBuffer: Godot com threads, Unity com threads). */
+  needsIsolation: boolean;
+  fileCount: number;
+  totalSize: number;
+  status: "enviando" | "pronto" | "falhou";
+  /** Tamanho da tela sugerido (px), se o build informa. */
+  width: number | null;
+  height: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export type SecurityEventType =
   | "conta_criada"
   | "entrada"
@@ -189,6 +250,10 @@ async function ensureIndexes(db: Db): Promise<void> {
         db.collection("saves").createIndex({ userId: 1, game: 1 }, { unique: true }),
         db.collection("follows").createIndex({ userId: 1, creator: 1 }, { unique: true }),
         db.collection("projects").createIndex({ userId: 1, updatedAt: -1 }),
+        db.collection("uploads").createIndex({ projectId: 1, createdAt: -1 }),
+        db.collection("uploads").createIndex({ userId: 1, status: 1 }),
+        db.collection("builds").createIndex({ projectId: 1, createdAt: -1 }),
+        db.collection("builds").createIndex({ userId: 1, status: 1 }),
       ]);
     })().catch((err) => {
       cache.indexes = undefined;
@@ -211,5 +276,7 @@ export async function db() {
     saves: database.collection<SaveDoc>("saves"),
     follows: database.collection<FollowDoc>("follows"),
     projects: database.collection<ProjectDoc>("projects"),
+    uploads: database.collection<UploadDoc>("uploads"),
+    builds: database.collection<BuildDoc>("builds"),
   };
 }
