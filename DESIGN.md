@@ -1,5 +1,5 @@
 ---
-name: openitch
+name: VibeGames
 description: A festival programme book for independent games, printed in blue-black ink on cool newsprint with one spot colour per track.
 colors:
   ultra: "#2b2fe3"
@@ -250,13 +250,13 @@ components:
     padding: "12px 16px"
 ---
 
-# Design System: openitch
+# Design System: VibeGames
 
 ## Overview
 
 **Creative North Star: "The Permanent Programme"**
 
-openitch is printed, not rendered. Every page is a spread from a festival programme book: cool grey newsprint, blue-black ink, and spot colours laid down as solid fields. A track does not wear its colour as a badge; it owns a whole band of the page, a page head, a game stage, a card. Ink draws the structure with 2px programme rules and a 6px double rule that opens each section. Everything else sits flat on the paper.
+VibeGames is printed, not rendered. Every page is a spread from a festival programme book: cool grey newsprint, blue-black ink, and spot colours laid down as solid fields. A track does not wear its colour as a badge; it owns a whole band of the page, a page head, a game stage, a card. Ink draws the structure with 2px programme rules and a 6px double rule that opens each section. Everything else sits flat on the paper.
 
 The voice is condensed and loud at the top and plain and readable below. Anybody, pulled narrow, carries the wordmark, section titles, entry titles and every number the programme prints: entry numbers (Nº 0142), times, prices, counts, scores. Schibsted Grotesk carries reading text and every control. Density is a printed schedule's: ruled rows, tabular figures, legend codes for platforms (N W M L A), and entries billed at different sizes rather than repeated as equal tiles.
 

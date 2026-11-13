@@ -12,7 +12,7 @@ import { EmptyProgramme } from "@/components/EmptyProgramme";
 export const metadata: Metadata = {
   title: "Coleções",
   description:
-    "Blocos temáticos do programa: jogos escolhidos por quem publica no openitch, cada um com a nota de por que está ali.",
+    "Blocos temáticos do programa: jogos escolhidos por quem publica na VibeGames, cada um com a nota de por que está ali.",
 };
 
 export default function ColecoesPage() {

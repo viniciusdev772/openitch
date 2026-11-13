@@ -6,7 +6,7 @@ import { ThumbIndex } from "@/components/ThumbIndex";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: { default: "openitch · programa permanente de jogos independentes", template: "%s · openitch" },
+  title: { default: "VibeGames · programa permanente de jogos independentes", template: "%s · VibeGames" },
   description:
     "Publique seu jogo independente, defina o preço (ou nenhum) e deixe as pessoas jogarem direto no navegador.",
 };

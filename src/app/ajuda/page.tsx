@@ -11,7 +11,7 @@ import { Question } from "@/components/leitura/Question";
 export const metadata: Metadata = {
   title: "Ajuda",
   description:
-    "Respostas curtas sobre jogar, publicar, preços, plataformas, jams e a segurança da sua conta no openitch.",
+    "Respostas curtas sobre jogar, publicar, preços, plataformas, jams e a segurança da sua conta na VibeGames.",
 };
 
 const PRICE_EXAMPLES: { model: string; price: Price; what: string }[] = [
@@ -208,7 +208,7 @@ const CHAPTERS: Chapter[] = [
       },
       {
         id: "precos-taxa",
-        q: "Quanto o openitch fica de cada venda?",
+        q: "Quanto a VibeGames fica de cada venda?",
         a: (
           <p>
             Ainda não está decidido. Não existe taxa da plataforma nem divisão de receita definida, e nenhum provedor de
@@ -524,7 +524,7 @@ export default function AjudaPage() {
           <nav className="guide-next" aria-label="Para onde seguir">
             <h2>Não achou a resposta?</h2>
             <p className="guide-intro">
-              <Link href="/sobre">Como funciona o openitch</Link> explica o que já existe e o que ainda falta, parte por parte.
+              <Link href="/sobre">Como funciona a VibeGames</Link> explica o que já existe e o que ainda falta, parte por parte.
             </p>
           </nav>
         </div>

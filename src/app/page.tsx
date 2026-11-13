@@ -33,7 +33,7 @@ export default function Home() {
         <div className="wrap">
           <div style={{ display: "flex", flexDirection: "column" }}>
             <h1 id="capa-titulo" className="cover-title">
-              open<em>itch</em>
+              vibe<em>games</em>
             </h1>
             <p className="cover-hook">
               Um festival de jogos independentes que nunca fecha. Publique o seu hoje, pelo preço que quiser, ou de graça.

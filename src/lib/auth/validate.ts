@@ -45,7 +45,7 @@ const COMMON = new Set(
   111111 000000 123123 abc123 password1 iloveyou admin admin123 welcome letmein monkey dragon
   qwertyuiop asdfghjkl zxcvbnm 1q2w3e4r 1q2w3e4r5t qwerty123 football futebol flamengo corinthians
   palmeiras saopaulo gremio vasco brasil brasil123 mudar123 mudar@123 trocar123 teste123 teste
-  sucesso princesa amor amorzinho batman superman pokemon minecraft openitch itchio gamer`
+  sucesso princesa amor amorzinho batman superman pokemon minecraft openitch vibegames itchio gamer`
     .split(/\s+/)
     .filter(Boolean),
 );
@@ -76,7 +76,7 @@ export async function passwordWasLeaked(password: string): Promise<boolean> {
   const suffix = sha1.slice(5);
   try {
     const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
-      headers: { "Add-Padding": "true", "User-Agent": "openitch-auth" },
+      headers: { "Add-Padding": "true", "User-Agent": "vibegames-auth" },
       signal: AbortSignal.timeout(2500),
       cache: "no-store",
     });

@@ -50,8 +50,8 @@ export function Masthead() {
     <>
       <header className="masthead" data-open={open || undefined}>
         <div className="wrap">
-          <Link href="/" className="wordmark" aria-label="openitch, página inicial">
-            <b>openitch</b>
+          <Link href="/" className="wordmark" aria-label="VibeGames, página inicial">
+            <b>vibegames</b>
             <span>programa permanente de jogos independentes</span>
           </Link>
           <nav className="mainnav" aria-label="Principal">

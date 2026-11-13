@@ -79,14 +79,14 @@ export default async function DuasEtapasPage() {
                       className="totp-qr"
                       viewBox={`0 0 ${qr.dim} ${qr.dim}`}
                       role="img"
-                      aria-label="Código QR para adicionar o openitch ao app autenticador"
+                      aria-label="Código QR para adicionar a VibeGames ao app autenticador"
                       shapeRendering="crispEdges"
                     >
                       <rect width={qr.dim} height={qr.dim} />
                       <path d={qr.path} />
                     </svg>
                     <div className="totp-key">
-                      <p>Sem câmera? Digite esta chave no app, como conta “openitch”:</p>
+                      <p>Sem câmera? Digite esta chave no app, como conta “VibeGames”:</p>
                       <code>{key}</code>
                       <a href={uri} className="btn btn--ghost btn--sm">
                         Abrir no app deste aparelho
@@ -105,7 +105,7 @@ export default async function DuasEtapasPage() {
               </span>
               <div>
                 <h2>Confirme com um código</h2>
-                <p>Digite os 6 dígitos que o app mostra para o openitch. Assim sabemos que o celular e a conta estão em sintonia.</p>
+                <p>Digite os 6 dígitos que o app mostra para a VibeGames. Assim sabemos que o celular e a conta estão em sintonia.</p>
                 {pending ? <ConfirmTotp /> : null}
               </div>
             </li>

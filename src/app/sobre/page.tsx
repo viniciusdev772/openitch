@@ -6,9 +6,9 @@ import { GuideHead, GuideSection } from "@/components/leitura/Guide";
 import { Contents } from "@/components/leitura/Contents";
 
 export const metadata: Metadata = {
-  title: "Como funciona o openitch",
+  title: "Como funciona a VibeGames",
   description:
-    "O que é o openitch, para quem joga, para quem faz jogos e para quem organiza jams, os princípios do programa e o que já funciona hoje.",
+    "O que é a VibeGames, para quem joga, para quem faz jogos e para quem organiza jams, os princípios do programa e o que já funciona hoje.",
 };
 
 const SECTIONS = [
@@ -123,7 +123,7 @@ const STATUS: { part: string; state: State; note: React.ReactNode }[] = [
 export default function SobrePage() {
   return (
     <>
-      <GuideHead title="Como funciona o openitch" current="sobre">
+      <GuideHead title="Como funciona a VibeGames" current="sobre">
         <p>
           Um lugar aberto para publicar e jogar jogos independentes. Esta página conta o que ele faz hoje, para quem ele
           é e o que ainda falta.
@@ -139,7 +139,7 @@ export default function SobrePage() {
           <GuideSection id="o-que-e" title="O que é">
             <div className="guide-prose">
               <p>
-                O openitch é uma vitrine e uma casa de publicação para jogos independentes. Quem faz um jogo cria uma
+                A VibeGames é uma vitrine e uma casa de publicação para jogos independentes. Quem faz um jogo cria uma
                 página, escolhe o preço (ou nenhum) e o jogo entra no programa. Quem joga encontra, abre e joga, muitas
                 vezes direto no navegador.
               </p>
@@ -193,7 +193,7 @@ export default function SobrePage() {
           <GuideSection id="para-quem-organiza" title="Para quem organiza jams">
             <div className="guide-prose">
               <p>
-                Uma jam é uma maratona com tema e prazo. No openitch ela tem um título, um tema, uma janela de datas e
+                Uma jam é uma maratona com tema e prazo. Na VibeGames ela tem um título, um tema, uma janela de datas e
                 uma lista de entradas. Na <Link href="/jams">agenda de jams</Link>, cada uma é uma barra na linha do
                 tempo, e uma linha marca o que está acontecendo agora.
               </p>
@@ -240,10 +240,10 @@ export default function SobrePage() {
           <GuideSection
             id="estado"
             title="O que já existe e o que ainda não"
-            intro="O estado de cada parte do openitch nesta edição. Nada aqui é promessa de data."
+            intro="O estado de cada parte da VibeGames nesta edição. Nada aqui é promessa de data."
           >
             <table className="state-table">
-              <caption className="visually-hidden">Estado de cada parte do openitch</caption>
+              <caption className="visually-hidden">Estado de cada parte da VibeGames</caption>
               <thead>
                 <tr>
                   <th scope="col">Parte</th>

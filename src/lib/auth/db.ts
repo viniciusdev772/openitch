@@ -161,7 +161,7 @@ const cache: Cache = (g.__openitchMongo ??= {});
 function connect(): Promise<MongoClient> {
   if (!cache.client) {
     const client = new MongoClient(mongoUri(), {
-      appName: "openitch",
+      appName: "vibegames",
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 8000,
       connectTimeoutMS: 8000,

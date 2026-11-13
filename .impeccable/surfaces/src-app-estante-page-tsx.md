@@ -5,7 +5,7 @@ primary_target: "src/app/estante/page.tsx"
 related_targets: ["src/components/library/Shelf.tsx","src/components/library/LibraryButton.tsx"]
 ---
 
-# Surface brief: openitch estante (jogos guardados, criadores seguidos, novidades)
+# Surface brief: VibeGames estante (jogos guardados, criadores seguidos, novidades)
 
 ## Scope and mode
 - Operate. Visitor success: a signed-in player finds what they saved for later in seconds, sees what is new from the creators they follow, and can undo either without leaving the page.

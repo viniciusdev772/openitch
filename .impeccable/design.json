@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-11-12T16:48:26+00:00",
-  "title": "Design System: openitch",
+  "title": "Design System: VibeGames",
   "extensions": {
     "colorMeta": {
       "ultra": {
@@ -481,7 +481,7 @@
   ],
   "narrative": {
     "northStar": "The Permanent Programme",
-    "overview": "openitch is printed, not rendered. Every page is a spread from a festival programme book: cool grey newsprint, blue-black ink, and spot colours laid down as solid fields. A track does not wear its colour as a badge; it owns a whole band of the page, a page head, a game stage, a card. Ink draws the structure with 2px programme rules and a 6px double rule that opens each section. Everything else sits flat on the paper.\n\nThe voice is condensed and loud at the top and plain and readable below. Anybody, pulled narrow, carries the wordmark, section titles, entry titles and every number the programme prints: entry numbers (Nº 0142), times, prices, counts, scores. Schibsted Grotesk carries reading text and every control. Density is a printed schedule's: ruled rows, tabular figures, legend codes for platforms (N W M L A), and entries billed at different sizes rather than repeated as equal tiles.\n\nThe page has one wayfinding device of its own, the thumb index: coloured tabs on the page edge, one per track, like the cut tabs of a printed guide. Motion is small and physical (a tab slides out, a card lifts a few pixels, a field recolours). Light is kept for one meaning only: something is live right now.",
+    "overview": "VibeGames is printed, not rendered. Every page is a spread from a festival programme book: cool grey newsprint, blue-black ink, and spot colours laid down as solid fields. A track does not wear its colour as a badge; it owns a whole band of the page, a page head, a game stage, a card. Ink draws the structure with 2px programme rules and a 6px double rule that opens each section. Everything else sits flat on the paper.\n\nThe voice is condensed and loud at the top and plain and readable below. Anybody, pulled narrow, carries the wordmark, section titles, entry titles and every number the programme prints: entry numbers (Nº 0142), times, prices, counts, scores. Schibsted Grotesk carries reading text and every control. Density is a printed schedule's: ruled rows, tabular figures, legend codes for platforms (N W M L A), and entries billed at different sizes rather than repeated as equal tiles.\n\nThe page has one wayfinding device of its own, the thumb index: coloured tabs on the page edge, one per track, like the cut tabs of a printed guide. Motion is small and physical (a tab slides out, a card lifts a few pixels, a field recolours). Light is kept for one meaning only: something is live right now.",
     "keyCharacteristics": [
       "Cool newsprint paper (never warm cream) with blue-black ink; the page is flat.",
       "Five spot colours, one per track, used as full fields with ink on top (paper on ultramarine only).",

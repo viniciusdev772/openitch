@@ -24,7 +24,7 @@ An open storefront and publishing home for independent games: upload a build, ge
 
 ## Positioning
 
-Open by default *(inferred from the name "openitch")*: creators set price and revenue share themselves, browser-playable builds run on the page, and discovery favours new and odd work over sales rank. Treat any specific revenue split, fee, or licensing claim as undecided until the owner states it.
+Open by default *(inherited from the project's first name, "openitch")*: creators set price and revenue share themselves, browser-playable builds run on the page, and discovery favours new and odd work over sales rank. Treat any specific revenue split, fee, or licensing claim as undecided until the owner states it.
 
 ## Operating Context
 
@@ -41,7 +41,7 @@ Open by default *(inferred from the name "openitch")*: creators set price and re
 
 ## Brand Commitments
 
-- Product name: **openitch** (repository name; written in lowercase). No logo exists yet.
+- Product name: **VibeGames** (renamed from openitch by the owner). The wordmark is set lowercase, "vibe" in the field colour and "games" in lime on ultramarine and ink. No logo exists yet. Internal identifiers (database name, auth key salt, cookie and event names, repository) keep "openitch" so existing accounts keep working.
 - Must stay visually and verbally distinct from existing storefronts; no borrowed logos, layouts, or trade dress.
 
 ## Evidence on Hand
