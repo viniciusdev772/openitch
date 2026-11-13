@@ -11,6 +11,8 @@ import {
   trackById,
 } from "@/data/catalog";
 import { Cover } from "./Cover";
+import { tagHref } from "./etiquetas/slug";
+import "@/styles/etiquetas.css";
 
 const ALL: Platform[] = ["web", "windows", "macos", "linux", "android"];
 
@@ -47,18 +49,26 @@ export function Entry({
   variant = "card",
   showTrack = false,
   link = true,
+  showTags = false,
 }: {
   game: Game;
   variant?: "card" | "lead" | "row" | "wide";
   showTrack?: boolean;
   link?: boolean;
+  /** Print the game's tags, each linking to its tag page (cards show three). */
+  showTags?: boolean;
 }) {
   const creator = creatorBySlug(game.creator) ?? { name: game.creator };
   const playsHere = game.platforms.includes("web");
   const cls = variant === "lead" ? "entry entry--lead" : variant === "row" ? "entry entry--row" : variant === "wide" ? "entry entry--wide" : "entry";
-  const Tag = (link ? Link : "div") as React.ElementType;
+  const tags = showTags && variant !== "row" ? (variant === "card" ? game.tags.slice(0, 3) : game.tags) : [];
+  // With tags to link, the card cannot be one big link (links do not nest):
+  // the title carries the link and stretches over the card, the tags sit above it.
+  const split = link && tags.length > 0;
+  const Tag = (link && !split ? Link : "div") as React.ElementType;
+  const href = `/jogo/${game.slug}`;
   return (
-    <Tag {...(link ? { href: `/jogo/${game.slug}` } : {})} className={cls}>
+    <Tag {...(link && !split ? { href } : {})} className={split ? `${cls} entry--split` : cls}>
       <div className="entry-art">
         <Cover game={game} label="" />
         {playsHere && variant !== "row" && (
@@ -72,8 +82,24 @@ export function Entry({
           <span className="num">{entryNumber(game.number)}</span>
           {showTrack ? <TrackChip id={game.track} /> : <PlatformCodes platforms={game.platforms} compact />}
         </div>
-        <h3>{game.title}</h3>
+        <h3>
+          {split ? (
+            <Link className="entry-link" href={href}>
+              {game.title}
+            </Link>
+          ) : (
+            game.title
+          )}
+        </h3>
         {variant !== "row" && <p className="tagline">{game.tagline}</p>}
+        {tags.length > 0 && (
+          <ul className="tags entry-tags" aria-label="Etiquetas">
+            {tags.map((t) => {
+              const to = link ? tagHref(t) : null;
+              return <li key={t}>{to ? <Link href={to}>{t}</Link> : <span>{t}</span>}</li>;
+            })}
+          </ul>
+        )}
         {variant === "row" && <p className="tagline">{creator?.name}</p>}
         {variant !== "row" && (
           <div className="foot">
