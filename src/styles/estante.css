@@ -1,0 +1,425 @@
+/* ------------------------------------------------------------------ */
+/* Estante: Guardar / Seguir e a página /estante                       */
+/* Reaproveita .btn, .acc-*, .chip-track, .codes e .price-tag do global */
+/* ------------------------------------------------------------------ */
+
+/* Botão de alternância ---------------------------------------------- */
+.lib-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.lib-btn {
+  white-space: nowrap;
+}
+/* Ligado: o ícone ganha a marca lime, como o código de plataforma escolhido. */
+.lib-btn svg {
+  box-sizing: content-box;
+  padding: 3px;
+  margin-left: -6px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  transition:
+    background-color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out);
+}
+.lib-btn.btn--sm svg {
+  margin-left: -4px;
+}
+.lib-btn[aria-pressed="true"] svg {
+  background: var(--lime);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.lib-btn[data-pending] {
+  cursor: progress;
+}
+.lib-btn[data-error] {
+  border-color: var(--alert);
+}
+.lib-toggle .lib-error {
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1.4;
+  color: var(--alert);
+  max-width: 36ch;
+}
+.lib-toggle .lib-note {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ink-mute);
+  max-width: 36ch;
+}
+
+/* Onde o botão mora */
+.creator-card .lib-toggle,
+.creator-head-side .lib-toggle,
+.shelf-act .lib-toggle {
+  align-items: flex-start;
+}
+.creator-card .lib-toggle {
+  margin-top: var(--s-2);
+}
+.creator-head-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-4);
+}
+
+/* Cópia inerte do botão, dentro do texto que ensina */
+.lib-replica {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 var(--s-3);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.lib-replica svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Página ------------------------------------------------------------ */
+.shelf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+  padding-top: var(--s-6);
+  padding-bottom: var(--s-9);
+}
+.shelf-split {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--s-8);
+  align-items: start;
+}
+
+/* Listas pautadas */
+.shelf-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.shelf-list li {
+  position: relative;
+  display: grid;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-3);
+  margin: 0 calc(var(--s-3) * -1);
+  border-bottom: var(--hair);
+  border-radius: 10px;
+  transition:
+    background-color 200ms var(--ease-out),
+    color 200ms var(--ease-out);
+}
+.shelf-list--games li,
+.shelf-cols {
+  grid-template-columns: 72px minmax(0, 1fr) 140px 122px 72px 64px 136px;
+}
+.shelf-list--news li {
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+}
+.shelf-list--people li {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.shelf-list--games .shelf-meta {
+  display: contents;
+}
+.shelf-list--news .shelf-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-4);
+}
+
+/* A linha inteira abre o jogo; o botão fica por cima. */
+.shelf-title a {
+  text-decoration: none;
+}
+.shelf-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+}
+.shelf-title a:focus-visible {
+  outline: none;
+}
+.shelf-list li:has(.shelf-title a:focus-visible) {
+  outline: 3px solid var(--ultra);
+  outline-offset: 2px;
+}
+.shelf-act {
+  position: relative;
+  z-index: 1;
+  justify-self: end;
+}
+.shelf-list--games li:hover,
+.shelf-list--news li:hover {
+  background: var(--c);
+  color: var(--on);
+}
+.shelf-list--people li:hover {
+  background: var(--paper-deep);
+}
+.shelf-list li:hover small,
+.shelf-list li:hover .shelf-date {
+  color: inherit;
+}
+
+.shelf-cols {
+  display: grid;
+  gap: var(--s-4);
+  padding: 0 var(--s-3) var(--s-2);
+  margin: 0 calc(var(--s-3) * -1);
+  border-bottom: var(--rule);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ink-mute);
+}
+
+.shelf-no {
+  font-family: var(--display);
+  font-stretch: 60%;
+  font-weight: 900;
+  font-size: 2rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.shelf-no--date {
+  display: flex;
+  flex-direction: column;
+  font-stretch: 70%;
+  font-weight: 800;
+  font-size: 1.75rem;
+}
+.shelf-no--date small {
+  font-family: var(--text);
+  font-stretch: 100%;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-mute);
+  line-height: 1.3;
+}
+.shelf-list li:hover .shelf-no--date small {
+  color: inherit;
+}
+.shelf-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.shelf-title h3 {
+  font-stretch: 66%;
+  font-weight: 800;
+  font-size: 1.375rem;
+  line-height: 0.95;
+}
+.shelf-title small {
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shelf-title .num {
+  font-weight: 700;
+}
+.shelf-date {
+  font-family: var(--display);
+  font-stretch: 70%;
+  font-weight: 800;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--ink-soft);
+}
+.shelf-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Tirado da estante: continua na lista, riscado, com o botão para pôr de volta. */
+.shelf-list li[data-off] .shelf-no,
+.shelf-list li[data-off] .shelf-title,
+.shelf-list li[data-off] .shelf-meta > *,
+.shelf-list li[data-off] .shelf-title small {
+  color: var(--ink-mute);
+}
+.shelf-list li[data-off] .shelf-title h3 {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+.shelf-list li[data-off] .chip-track i {
+  opacity: 0.4;
+}
+.shelf-list li[data-off]:hover {
+  background: var(--paper-deep);
+  color: var(--ink);
+}
+
+.shelf-more {
+  font-size: 0.875rem;
+  color: var(--ink-mute);
+}
+
+/* Vazios que ensinam */
+.shelf-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border: 2px dashed var(--ink);
+  border-radius: 16px;
+}
+.shelf-empty > p {
+  color: var(--ink-soft);
+  max-width: 60ch;
+  line-height: 1.7;
+}
+.shelf-empty > p strong {
+  color: var(--ink);
+}
+.shelf-empty .shelf-list {
+  align-self: stretch;
+  border-top: var(--rule);
+}
+.shelf-empty .shelf-list li {
+  margin: 0;
+}
+
+.shelf--first {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--s-8);
+  align-items: start;
+}
+.shelf-start {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-5);
+  padding: var(--s-7) var(--s-6);
+  border: 2px dashed var(--ink);
+  border-radius: 16px;
+}
+.shelf-start-icon {
+  width: 48px;
+  height: 48px;
+  stroke-width: 1.75;
+}
+.shelf-start h2 {
+  font-stretch: 55%;
+  font-weight: 900;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+.shelf-start-lead {
+  font-size: 1.0625rem;
+  color: var(--ink-soft);
+  max-width: 52ch;
+}
+.shelf-how {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-self: stretch;
+  border-top: var(--rule);
+}
+.shelf-how li {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: center;
+  padding: var(--s-4) 0;
+  border-bottom: var(--hair);
+}
+.shelf-how li .lib-replica {
+  justify-self: start;
+}
+.shelf-how p {
+  color: var(--ink-soft);
+  max-width: 54ch;
+}
+.shelf-how p strong {
+  color: var(--ink);
+}
+.shelf-start-go {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+
+@media (max-width: 1180px) {
+  .shelf-list--games li,
+  .shelf-cols {
+    grid-template-columns: 64px minmax(0, 1fr) 128px 122px 64px 56px 128px;
+    gap: var(--s-3);
+  }
+}
+
+@media (max-width: 960px) {
+  .shelf-split,
+  .shelf--first {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .shelf-cols {
+    display: none;
+  }
+  .shelf-list--games li,
+  .shelf-list--news li {
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    gap: var(--s-2) var(--s-3);
+    align-items: start;
+  }
+  .shelf-list--games .shelf-meta,
+  .shelf-list--news .shelf-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--s-2) var(--s-3);
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+  .shelf-no {
+    font-size: 1.5rem;
+  }
+  .shelf-no--date {
+    font-size: 1.5rem;
+  }
+  .shelf-list--news li {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+  .shelf-title small {
+    white-space: normal;
+  }
+  .shelf-start {
+    padding: var(--s-6) var(--s-4);
+  }
+  .shelf-how li {
+    grid-template-columns: 1fr;
+    gap: var(--s-2);
+  }
+}

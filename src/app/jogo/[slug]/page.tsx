@@ -14,6 +14,7 @@ import {
 import { Cover } from "@/components/Cover";
 import { OrbitaGame } from "@/components/OrbitaGame";
 import { Entry, PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
+import { LibraryButton } from "@/components/library/LibraryButton";
 import { BuyCard } from "./BuyCard";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -136,6 +137,7 @@ export default async function GamePage({ params }: Props) {
             title={game.title}
             downloads={game.downloads.map((d) => ({ ...d, code: PLATFORMS[d.platform].code, name: PLATFORMS[d.platform].name }))}
             playable={playable}
+            save={<LibraryButton kind="save" slug={game.slug} />}
           />
           <div className="creator-card">
             <Link className="name" href={`/criador/${creator.slug}`}>
@@ -144,6 +146,7 @@ export default async function GamePage({ params }: Props) {
             <p>
               {creator.city}. {creator.bio}
             </p>
+            <LibraryButton kind="follow" slug={creator.slug} name={creator.name} small />
           </div>
         </aside>
       </div>
