@@ -19,7 +19,11 @@ export type CoverStyle =
   | "scrap"
   | "bus"
   | "golem"
-  | "tide";
+  | "tide"
+  | "shelves"
+  | "canoe"
+  | "pendulum"
+  | "drum";
 
 export type Price =
   | { kind: "free" }
@@ -42,6 +46,27 @@ export interface Creator {
   name: string;
   city: string;
   bio: string;
+  /** People behind a studio, duo or collective (optional) */
+  members?: string[];
+  /** Outside links. Sample data uses reserved .example domains only. */
+  links?: CreatorLink[];
+}
+
+export interface CreatorLink {
+  label: string;
+  href: string;
+}
+
+export interface DevlogPost {
+  /** ISO timestamp */
+  date: string;
+  title: string;
+  body: string;
+}
+
+export interface Credit {
+  role: string;
+  name: string;
 }
 
 export interface Download {
@@ -72,6 +97,15 @@ export interface Game {
   playable?: "orbita";
   downloads: Download[];
   jam?: string;
+  /** How to play, one control per line (optional) */
+  controls?: string[];
+  /** Accessibility features the creator states (optional) */
+  accessibility?: string[];
+  /** Content notes shown before play (optional) */
+  contentNotes?: string[];
+  credits?: Credit[];
+  /** Update posts, newest last (optional) */
+  devlog?: DevlogPost[];
 }
 
 export interface Jam {
@@ -84,6 +118,18 @@ export interface Jam {
   entries: number;
   track: TrackId;
   summary: string;
+  /** Creator slug of the host, when the host has a page (optional) */
+  hostSlug?: string;
+  rules?: string[];
+  /** What the community vote looks at (optional) */
+  criteria?: string[];
+  /** Non-cash rewards the host offers (optional) */
+  prizes?: string[];
+  /**
+   * When entries go live. "at-close": all at once when the clock runs out
+   * (the default). "on-submit": each entry is published as it arrives.
+   */
+  release?: "at-close" | "on-submit";
 }
 
 export const TRACKS: Track[] = [
@@ -138,14 +184,89 @@ export const PLATFORMS: Record<Platform, { code: string; name: string }> = {
 };
 
 export const CREATORS: Creator[] = [
-  { slug: "estudio-mare", name: "Estúdio Maré", city: "Recife", bio: "Duas pessoas, um barco emprestado e jogos de um botão só." },
-  { slug: "ana-torquato", name: "Ana Torquato", city: "Belo Horizonte", bio: "Escreve ficção interativa sobre lugares que estão sumindo." },
-  { slug: "coletivo-fuba", name: "Coletivo Fubá", city: "São Paulo", bio: "Coletivo de seis pessoas que faz jogos em fins de semana longos." },
+  {
+    slug: "estudio-mare",
+    name: "Estúdio Maré",
+    city: "Recife",
+    bio: "Duas pessoas, um barco emprestado e jogos de um botão só.",
+    members: ["Joana Albuquerque", "Rafael Siqueira"],
+    links: [{ label: "Site do estúdio", href: "https://estudiomare.example" }],
+  },
+  {
+    slug: "ana-torquato",
+    name: "Ana Torquato",
+    city: "Belo Horizonte",
+    bio: "Escreve ficção interativa sobre lugares que estão sumindo.",
+    links: [{ label: "Newsletter", href: "https://anatorquato.example/cartas" }],
+  },
+  {
+    slug: "coletivo-fuba",
+    name: "Coletivo Fubá",
+    city: "São Paulo",
+    bio: "Coletivo de seis pessoas que faz jogos em fins de semana longos.",
+    members: ["Bia Kato", "Diego Moura", "Helena Prado", "Ícaro Lins", "Marta Reis", "Tomás Vieira"],
+  },
   { slug: "bruno-iwata", name: "Bruno Iwata", city: "Curitiba", bio: "Programador de dia, autor de quebra-cabeças à noite." },
   { slug: "pixelcaju", name: "pixelcaju", city: "Fortaleza", bio: "Pixel art, trilha própria e um gosto por coisas pequenas." },
-  { slug: "lucia-ramos", name: "Lúcia & Ramos", city: "Porto Alegre", bio: "Dupla de ilustração e código. Gostam de neblina e de silêncio." },
+  {
+    slug: "lucia-ramos",
+    name: "Lúcia & Ramos",
+    city: "Porto Alegre",
+    bio: "Dupla de ilustração e código. Gostam de neblina e de silêncio.",
+    members: ["Lúcia Fontoura", "Ramos Wenzel"],
+  },
   { slug: "quintal-games", name: "Quintal Games", city: "Belém", bio: "Jogos de quintal: plantar, pescar, esperar a chuva." },
   { slug: "teo-okafor", name: "Teo Okafor", city: "Salvador", bio: "Faz instrumentos que também são jogos, e vice-versa." },
+  {
+    slug: "nanda-oliveira",
+    name: "Nanda Oliveira",
+    city: "Manaus",
+    bio: "Escreve jogos de texto no ônibus entre a faculdade e o estágio. Tudo em Twine.",
+    links: [{ label: "Caderno de rascunhos", href: "https://nandaoliveira.example" }],
+  },
+  {
+    slug: "oficina-pirao",
+    name: "Oficina Pirão",
+    city: "Florianópolis",
+    bio: "Trio de design gráfico. Fazem quebra-cabeças que também funcionam impressos.",
+    members: ["Carol Brüggemann", "Lauro Xavier", "Pietra Sousa"],
+    links: [
+      { label: "Site", href: "https://oficinapirao.example" },
+      { label: "Folhas para imprimir", href: "https://oficinapirao.example/folhas" },
+    ],
+  },
+  {
+    slug: "davi-bezerra",
+    name: "Davi Bezerra",
+    city: "Campina Grande",
+    bio: "Professor de física no ensino médio. Os jogos começam como exercícios de sala.",
+    links: [{ label: "Notas de aula", href: "https://davibezerra.example/aulas" }],
+  },
+  {
+    slug: "gaia-ferraz",
+    name: "Gaia Ferraz",
+    city: "Goiânia",
+    bio: "Pesquisa acessibilidade em jogos. Todo projeto dela sai com modo de um interruptor.",
+    links: [
+      { label: "Site", href: "https://gaiaferraz.example" },
+      { label: "Código-fonte", href: "https://codigo.example/gaiaferraz" },
+    ],
+  },
+  {
+    slug: "clube-lanterna",
+    name: "Clube Lanterna",
+    city: "Vitória",
+    bio: "Clube de jogos de uma escola técnica. Cada turma termina um jogo por semestre.",
+    members: ["Turma de Informática 3B", "Prof.ª Selma Loureiro (orientação)"],
+  },
+  {
+    slug: "boi-de-bits",
+    name: "Boi de Bits",
+    city: "São Luís",
+    bio: "Dupla de percussão e código. A trilha de cada jogo é gravada na sala de casa.",
+    members: ["Raíssa Pinheiro", "Caio Serra"],
+    links: [{ label: "Gravações", href: "https://boidebits.example/sons" }],
+  },
 ];
 
 export const GAMES: Game[] = [
@@ -171,6 +292,20 @@ export const GAMES: Game[] = [
     palette: ["--ultra", "--lime", "--paper"],
     playable: "orbita",
     downloads: [],
+    controls: ["Clique, toque ou espaço: troca de órbita"],
+    accessibility: ["Um único botão", "Nenhuma informação depende de som"],
+    devlog: [
+      {
+        date: "2026-10-30T21:10:00-03:00",
+        title: "Duas órbitas em vez de três",
+        body: "A versão de três órbitas pedia dois botões. Cortamos a do meio e o jogo voltou a caber num toque.",
+      },
+      {
+        date: "2026-11-12T14:32:00-03:00",
+        title: "No ar",
+        body: "A build inteira tem 26 KB e roda direto na página. Se a sua partida passar de 40 estrelas, conte para a gente.",
+      },
+    ],
   },
   {
     slug: "faroleiro",
@@ -196,6 +331,19 @@ export const GAMES: Game[] = [
       { platform: "windows", file: "faroleiro-win-1.0.zip", size: "212 MB" },
       { platform: "macos", file: "faroleiro-mac-1.0.dmg", size: "220 MB" },
       { platform: "linux", file: "faroleiro-linux-1.0.tar.gz", size: "208 MB" },
+    ],
+    contentNotes: ["Isolamento", "Luto (mencionado nas cartas)"],
+    devlog: [
+      {
+        date: "2026-10-20T10:00:00-03:00",
+        title: "O mecanismo do farol",
+        body: "Passei uma semana desenhando as engrenagens a partir de fotos de um farol desativado. Cada peça agora pode emperrar de um jeito diferente.",
+      },
+      {
+        date: "2026-11-12T11:05:00-03:00",
+        title: "Versão 1.0",
+        body: "Três finais, cerca de duas horas. O preço mínimo é R$ 5; quem não puder pagar pode me escrever.",
+      },
     ],
   },
   {
@@ -242,6 +390,25 @@ export const GAMES: Game[] = [
       { platform: "windows", file: "cidade-submersa-win.zip", size: "1,4 GB" },
       { platform: "macos", file: "cidade-submersa-mac.dmg", size: "1,5 GB" },
     ],
+    contentNotes: ["Espaços fechados debaixo d'água", "Falta de ar como mecânica"],
+    credits: [
+      { role: "Direção e roteiro", name: "Helena Prado" },
+      { role: "Programação", name: "Diego Moura e Tomás Vieira" },
+      { role: "Arte 3D", name: "Bia Kato e Ícaro Lins" },
+      { role: "Som", name: "Marta Reis" },
+    ],
+    devlog: [
+      {
+        date: "2026-11-11T19:20:00-03:00",
+        title: "A cidade abre hoje",
+        body: "Quatro anos de fins de semana longos. Começamos com a igreja e a praça; o resto da cidade veio de fotos que moradores mandaram.",
+      },
+      {
+        date: "2026-11-12T08:02:00-03:00",
+        title: "Correção 1.0.1",
+        body: "O medidor de ar zerava ao abrir o diário em algumas placas de vídeo. Corrigido. Se ainda acontecer, mande o modelo da sua placa.",
+      },
+    ],
   },
   {
     slug: "neblina-1987",
@@ -263,6 +430,7 @@ export const GAMES: Game[] = [
     cover: "fog",
     palette: ["--ink", "--magenta", "--paper"],
     downloads: [{ platform: "windows", file: "neblina1987.zip", size: "340 MB" }],
+    contentNotes: ["Terror", "Sustos repentinos", "Luzes piscando (pode ser desligado)"],
   },
   {
     slug: "carta-para-ninguem",
@@ -351,6 +519,19 @@ export const GAMES: Game[] = [
       { platform: "macos", file: "tecela-mac.zip", size: "102 MB" },
       { platform: "linux", file: "tecela-linux.tar.gz", size: "94 MB" },
     ],
+    accessibility: ["Paleta para daltonismo", "Sem limite de tempo", "Desfazer ilimitado"],
+    devlog: [
+      {
+        date: "2026-11-08T18:30:00-03:00",
+        title: "Sessenta fases",
+        body: "Comecei com doze, todas feitas num tear de papelão em cima da mesa. As outras 48 nasceram de erros nessas doze.",
+      },
+      {
+        date: "2026-11-10T21:00:00-03:00",
+        title: "Desfazer ilimitado e tradução japonesa",
+        body: "Quem pediu desfazer ilimitado tinha razão. A tradução para o japonês foi feita pela minha tia, revisada por dois amigos.",
+      },
+    ],
   },
   {
     slug: "quarto-404",
@@ -373,6 +554,8 @@ export const GAMES: Game[] = [
     palette: ["--tangerine", "--ultra", "--paper"],
     downloads: [],
     jam: "mini-jam-silencio",
+    controls: ["Mouse ou toque: examinar e usar objetos"],
+    accessibility: ["Nenhuma informação depende de som"],
   },
   {
     slug: "barco-de-papel",
@@ -394,6 +577,7 @@ export const GAMES: Game[] = [
     cover: "boat",
     palette: ["--ultra", "--paper", "--tangerine"],
     downloads: [{ platform: "windows", file: "barco-de-papel.zip", size: "64 MB" }],
+    controls: ["Setas ou A/D: inclina o barco", "Espaço: pula a tampinha"],
   },
   {
     slug: "ferro-velho-orquestra",
@@ -439,6 +623,11 @@ export const GAMES: Game[] = [
       { platform: "windows", file: "ultimos-onibus-win.zip", size: "410 MB" },
       { platform: "macos", file: "ultimos-onibus-mac.dmg", size: "418 MB" },
     ],
+    contentNotes: ["Violência urbana mencionada", "Uso de álcool"],
+    credits: [
+      { role: "Ilustração", name: "Lúcia Fontoura" },
+      { role: "Código e roteiro", name: "Ramos Wenzel" },
+    ],
   },
   {
     slug: "golem-de-bolso",
@@ -462,6 +651,19 @@ export const GAMES: Game[] = [
     downloads: [
       { platform: "windows", file: "golem-de-bolso-win.zip", size: "150 MB" },
       { platform: "linux", file: "golem-de-bolso-linux.tar.gz", size: "148 MB" },
+    ],
+    controls: ["WASD: anda", "Mouse: mira", "Clique: golpe", "E: absorve o material do chão"],
+    devlog: [
+      {
+        date: "2026-11-04T17:00:00-03:00",
+        title: "Quatro materiais, por enquanto",
+        body: "Barro, cobre, vidro e musgo. O próximo é sal, e ele derrete o musgo.",
+      },
+      {
+        date: "2026-11-10T09:15:00-03:00",
+        title: "Atualização 1.2: sal",
+        body: "Sal chegou. Ele protege contra o musgo e racha com a água. Também ajustei o golpe de vidro, que estava fácil demais.",
+      },
     ],
   },
   {
@@ -506,6 +708,480 @@ export const GAMES: Game[] = [
     palette: ["--lime", "--ultra", "--magenta"],
     downloads: [],
   },
+  {
+    slug: "biblioteca-22h",
+    number: 17,
+    title: "Biblioteca 22h",
+    tagline: "Devolva os livros às estantes sem acordar a bibliotecária.",
+    description: [
+      "Feito em 48 horas para a Mini Jam Silêncio. Cada passo no assoalho solta um anel que se espalha pela tela; se um anel encostar na mesa da bibliotecária, a sala recomeça.",
+      "São 24 salas de uma tela só. Tapete abafa, escada range, e o carrinho de livros anda rápido mas faz o anel maior de todos. Não há som nenhum: o barulho é todo desenhado.",
+    ],
+    creator: "oficina-pirao",
+    track: "puzzle",
+    tags: ["furtividade", "jam", "sem som", "curto"],
+    platforms: ["web"],
+    price: { kind: "free" },
+    published: "2026-11-08T23:59:00-03:00",
+    updated: "2026-11-08T23:59:00-03:00",
+    session: "cerca de 25 min",
+    languages: ["sem texto"],
+    cover: "shelves",
+    palette: ["--teal", "--ink", "--paper"],
+    downloads: [],
+    jam: "mini-jam-silencio",
+    controls: ["Setas ou WASD: anda", "Espaço: pega e solta o livro", "R: recomeça a sala"],
+    accessibility: ["Nenhuma informação depende de som", "Sem limite de tempo"],
+  },
+  {
+    slug: "leitura-labial",
+    number: 18,
+    title: "Leitura Labial",
+    tagline: "Uma boca, seis formatos e uma palavra para adivinhar.",
+    description: [
+      "Feito para a Mini Jam Silêncio. Uma boca desenhada em seis formatos diz uma palavra sem som, devagar e quantas vezes você quiser. Você monta a resposta numa grade de letras.",
+      "As palavras vêm de uma feira de rua: pastel, caldo de cana, troco, freguesa. Quando você erra, o jogo mostra quais formatos de boca você confundiu.",
+    ],
+    creator: "nanda-oliveira",
+    track: "puzzle",
+    tags: ["palavras", "jam", "sem som"],
+    platforms: ["web"],
+    price: { kind: "pwyw", minimum: 0 },
+    published: "2026-11-08T23:59:00-03:00",
+    updated: "2026-11-08T23:59:00-03:00",
+    session: "cerca de 15 min",
+    languages: ["Português"],
+    cover: "letters",
+    palette: ["--magenta", "--paper", "--ink"],
+    downloads: [],
+    jam: "mini-jam-silencio",
+  },
+  {
+    slug: "canoa",
+    number: 19,
+    title: "Canoa",
+    tagline: "Atravesse o igapó na cheia, remando com um único botão.",
+    description: [
+      "Entrada da Jam Acessível. A canoa segue sozinha pela floresta alagada; um toque troca o lado do remo e a proa vira. Entre os troncos há atalhos, redes de pesca esticadas e um boto que às vezes ajuda.",
+      "O jogo inteiro funciona com um interruptor, a barra de espaço ou um toque na tela. A correnteza vai de 50% a 150% da velocidade, e nada no percurso pune quem demora.",
+    ],
+    creator: "gaia-ferraz",
+    track: "acao",
+    tags: ["um botão", "acessível", "rio", "jam"],
+    platforms: ["web", "android"],
+    price: { kind: "free" },
+    published: "2026-11-05T10:20:00-03:00",
+    updated: "2026-11-11T16:45:00-03:00",
+    session: "cerca de 30 min",
+    languages: ["Português", "English", "Español"],
+    cover: "canoe",
+    palette: ["--ultra", "--lime", "--paper"],
+    downloads: [{ platform: "android", file: "canoa-1.1.apk", size: "41 MB" }],
+    jam: "jam-acessivel",
+    controls: ["Toque, espaço ou interruptor: troca o lado do remo", "Segurar: rema mais forte"],
+    accessibility: [
+      "Jogável com um único interruptor",
+      "Correnteza ajustável de 50% a 150%",
+      "Legendas para todos os sons",
+      "Modo de alto contraste",
+    ],
+    devlog: [
+      {
+        date: "2026-11-02T15:00:00-03:00",
+        title: "Por que um botão e não dois",
+        body: "A primeira versão tinha esquerda e direita. Testando com um interruptor de pressão, ficou claro que trocar o lado do remo já basta para virar a canoa.",
+      },
+      {
+        date: "2026-11-05T10:20:00-03:00",
+        title: "Entrada enviada",
+        body: "Três trechos de rio, do igarapé estreito até o lago aberto. O boto aparece quando você fica parado mais de dez segundos.",
+      },
+      {
+        date: "2026-11-11T16:45:00-03:00",
+        title: "Versão 1.1: correnteza ajustável",
+        body: "A velocidade agora vai de 50% a 150% no menu. Também troquei o verde das redes, que sumia no modo de alto contraste.",
+      },
+    ],
+  },
+  {
+    slug: "jangada",
+    number: 20,
+    title: "Jangada",
+    tagline: "Saia antes do sol e volte com o vento, tudo com um dedo.",
+    description: [
+      "Entrada do Estúdio Maré para a Jam Acessível. Segure para abrir a vela, solte para recolher. O vento muda a cada onda, e a jangada sobe e desce no mesmo ritmo da água.",
+      "São três viagens de pesca, do Pina até a linha dos recifes e de volta. Dá para jogar com o polegar, com o mouse ou com qualquer tecla do teclado.",
+    ],
+    creator: "estudio-mare",
+    track: "navegador",
+    tags: ["um botão", "mar", "acessível", "jam"],
+    platforms: ["web"],
+    price: { kind: "pwyw", minimum: 2 },
+    published: "2026-11-13T09:40:00-03:00",
+    updated: "2026-11-13T09:40:00-03:00",
+    session: "cerca de 12 min",
+    languages: ["Português", "English"],
+    cover: "boat",
+    palette: ["--lime", "--ink", "--tangerine"],
+    downloads: [],
+    jam: "jam-acessivel",
+    controls: ["Segurar qualquer tecla, clique ou toque: abre a vela", "Soltar: recolhe"],
+    accessibility: ["Jogável com uma mão", "Qualquer tecla serve", "Sem limite de tempo nas viagens"],
+  },
+  {
+    slug: "toada",
+    number: 21,
+    title: "Toada",
+    tagline: "Um dedo, um tambor e uma toada que acelera a cada volta.",
+    description: [
+      "Entrada da Jam Acessível. Tudo se toca com uma tecla só: toque curto é batida seca, toque longo é batida aberta. A toada foi gravada em casa, em São Luís, e acelera um pouco a cada volta completa.",
+      "Não existe fim de jogo. Quando você perde o compasso, o tambor espera e recomeça a frase junto com você.",
+    ],
+    creator: "boi-de-bits",
+    track: "experimental",
+    tags: ["ritmo", "música", "uma mão", "jam"],
+    platforms: ["web", "windows", "macos", "android"],
+    price: { kind: "pwyw", minimum: 3 },
+    published: "2026-11-11T20:05:00-03:00",
+    updated: "2026-11-11T20:05:00-03:00",
+    session: "cerca de 20 min",
+    languages: ["Português"],
+    cover: "drum",
+    palette: ["--tangerine", "--ink", "--paper"],
+    downloads: [
+      { platform: "windows", file: "toada-win.zip", size: "182 MB" },
+      { platform: "macos", file: "toada-mac.zip", size: "186 MB" },
+      { platform: "android", file: "toada-1.0.apk", size: "164 MB" },
+    ],
+    jam: "jam-acessivel",
+    controls: ["Uma tecla, clique ou toque", "Toque curto: batida seca", "Toque longo: batida aberta"],
+    accessibility: ["Jogável com um dedo", "Pulso visual na tela para cada batida", "Sem fim de jogo"],
+    credits: [
+      { role: "Percussão e gravação", name: "Raíssa Pinheiro" },
+      { role: "Programação", name: "Caio Serra" },
+    ],
+    devlog: [
+      {
+        date: "2026-11-11T20:05:00-03:00",
+        title: "Gravado na sala",
+        body: "Quarenta minutos de tambor gravados num domingo à tarde, com o ventilador desligado. Cada volta da toada usa um trecho diferente da gravação.",
+      },
+    ],
+  },
+  {
+    slug: "querida-vizinha",
+    number: 22,
+    title: "Querida Vizinha",
+    tagline: "Bilhetes colados na porta do 302, um por dia, durante um mês.",
+    description: [
+      "Entrada da Jam de Texto Corrido. Alguém do 302 começa a deixar bilhetes na sua porta: primeiro sobre o barulho da máquina de lavar, depois sobre o gato, depois sobre outras coisas.",
+      "Você responde escolhendo o que escrever e o que deixar de fora. São 4.800 palavras, e cada resposta muda o tom do bilhete seguinte.",
+    ],
+    creator: "nanda-oliveira",
+    track: "narrativo",
+    tags: ["ficção interativa", "cartas", "vizinhança", "jam"],
+    platforms: ["web"],
+    price: { kind: "pwyw", minimum: 0 },
+    published: "2026-11-13T07:50:00-03:00",
+    updated: "2026-11-13T07:50:00-03:00",
+    session: "cerca de 20 min",
+    languages: ["Português"],
+    cover: "envelope",
+    palette: ["--lime", "--ink", "--paper"],
+    downloads: [],
+    jam: "jam-de-texto",
+    accessibility: ["Compatível com leitor de tela", "Texto ajustável até 200%"],
+  },
+  {
+    slug: "carta-ao-eu-de-2036",
+    number: 23,
+    title: "Carta ao Eu de 2036",
+    tagline: "Uma turma do terceiro ano escreve para quem vai abrir a cápsula.",
+    description: [
+      "Entrada do Clube Lanterna para a Jam de Texto Corrido. Você é uma aluna escolhendo o que pôr numa carta que só será aberta daqui a dez anos, entre a pressão do vestibular e o fim da turma.",
+      "Escrito por doze alunos do clube, em Ink. Cada pessoa escreveu um dia da última semana de aula, e a carta final junta trechos de todos.",
+    ],
+    creator: "clube-lanterna",
+    track: "narrativo",
+    tags: ["ficção interativa", "escola", "cartas", "jam"],
+    platforms: ["web", "windows"],
+    price: { kind: "free" },
+    published: "2026-11-12T17:30:00-03:00",
+    updated: "2026-11-12T17:30:00-03:00",
+    session: "cerca de 35 min",
+    languages: ["Português"],
+    cover: "envelope",
+    palette: ["--ultra", "--paper", "--magenta"],
+    downloads: [{ platform: "windows", file: "carta-2036-win.zip", size: "74 MB" }],
+    jam: "jam-de-texto",
+    credits: [
+      { role: "Texto", name: "Turma de Informática 3B" },
+      { role: "Orientação", name: "Prof.ª Selma Loureiro" },
+    ],
+  },
+  {
+    slug: "goteira",
+    number: 24,
+    title: "Goteira",
+    tagline: "Três baldes, um telhado furado e a chuva que não para.",
+    description: [
+      "Feito no fim de semana da Jam Fliperama, com o tema Três vidas. Cada balde que transborda é uma vida a menos, e a chuva aperta a cada hora no relógio da cozinha.",
+      "Arcade de uma tela em pixel art, com o som de chuva gravado da varanda. As partidas duram de dois a oito minutos.",
+    ],
+    creator: "pixelcaju",
+    track: "acao",
+    tags: ["arcade", "chuva", "pixel art", "jam"],
+    platforms: ["web", "windows", "linux"],
+    price: { kind: "free" },
+    published: "2026-11-02T23:59:00-03:00",
+    updated: "2026-11-06T11:10:00-03:00",
+    session: "partidas de 5 min",
+    languages: ["Português", "English"],
+    cover: "rain",
+    palette: ["--paper", "--ultra", "--tangerine"],
+    downloads: [
+      { platform: "windows", file: "goteira-win.zip", size: "38 MB" },
+      { platform: "linux", file: "goteira-linux.tar.gz", size: "36 MB" },
+    ],
+    jam: "jam-fliperama",
+    controls: ["Setas: anda com o balde", "Espaço: esvazia o balde na janela"],
+  },
+  {
+    slug: "balanco",
+    number: 25,
+    title: "Balanço",
+    tagline: "Dê impulso na hora certa e encoste o pé na copa da mangueira.",
+    description: [
+      "Entrada da Jam Fliperama. Um balanço de pracinha, um botão para dar impulso e física de pêndulo de verdade: impulso no ponto mais alto rende, impulso fora de hora freia.",
+      "Três quedas e acabou. Feito por um professor de física no feriado de Finados; o modo professor mostra o gráfico de energia enquanto você balança.",
+    ],
+    creator: "davi-bezerra",
+    track: "navegador",
+    tags: ["física", "arcade", "um botão", "jam"],
+    platforms: ["web"],
+    price: { kind: "free" },
+    published: "2026-11-02T23:59:00-03:00",
+    updated: "2026-11-02T23:59:00-03:00",
+    session: "partidas de 3 min",
+    languages: ["Português"],
+    cover: "pendulum",
+    palette: ["--lime", "--ink", "--ultra"],
+    downloads: [],
+    jam: "jam-fliperama",
+    controls: ["Espaço, clique ou toque: impulso", "P: liga o modo professor"],
+  },
+  {
+    slug: "estilingue-lunar",
+    number: 26,
+    title: "Estilingue Lunar",
+    tagline: "Lance a sonda e deixe a gravidade fazer a curva.",
+    description: [
+      "Quebra-cabeças de órbita no navegador. Você escolhe só a força e o ângulo do lançamento; depois, as luas puxam a sonda, e cabe a você prever o caminho.",
+      "Trinta fases, da primeira órbita à estilingada dupla. Cada fase termina com uma nota curta sobre a física por trás dela, escrita para alunos do ensino médio.",
+    ],
+    creator: "davi-bezerra",
+    track: "navegador",
+    tags: ["física", "espaço", "educativo", "lógica"],
+    platforms: ["web"],
+    price: { kind: "free" },
+    published: "2026-11-13T11:15:00-03:00",
+    updated: "2026-11-13T11:15:00-03:00",
+    session: "cerca de 1 h",
+    languages: ["Português", "English"],
+    cover: "orbit",
+    palette: ["--ink", "--teal", "--paper"],
+    downloads: [],
+    controls: ["Arrastar: força e ângulo", "Soltar: lança", "Z: desfaz o último lançamento"],
+    accessibility: ["Sem limite de tempo", "Trajetória prevista pode ficar sempre visível"],
+    devlog: [
+      {
+        date: "2026-10-18T20:00:00-03:00",
+        title: "Começou como lista de exercícios",
+        body: "A turma do segundo ano não acreditava que uma sonda pode ganhar velocidade passando perto de uma lua. Fiz a primeira fase para mostrar.",
+      },
+      {
+        date: "2026-11-13T11:15:00-03:00",
+        title: "Trinta fases no ar",
+        body: "Grátis e sem cadastro, para dar para usar em sala. Professores podem pedir as notas de aula pelo link do meu perfil.",
+      },
+    ],
+  },
+  {
+    slug: "renda-de-bilro",
+    number: 27,
+    title: "Renda de Bilro",
+    tagline: "Cruze os bilros e veja a renda crescer na almofada.",
+    description: [
+      "Um brinquedo de padrões feito a partir da renda de bilro da Lagoa da Conceição. Cada par de bilros cruza ou torce, os alfinetes seguram o ponto, e o desenho aparece devagar sobre o papelão furado.",
+      "Não há fase nem pontuação. Dá para seguir um dos 18 piques tradicionais incluídos ou começar do zero e salvar o que fez como imagem.",
+    ],
+    creator: "oficina-pirao",
+    track: "experimental",
+    tags: ["artesanato", "padrões", "brinquedo"],
+    platforms: ["web", "windows", "macos"],
+    price: { kind: "pwyw", minimum: 4 },
+    published: "2026-10-29T16:00:00-03:00",
+    updated: "2026-11-07T10:30:00-03:00",
+    session: "quanto quiser",
+    languages: ["Português", "English"],
+    cover: "weave",
+    palette: ["--magenta", "--paper", "--ink"],
+    downloads: [
+      { platform: "windows", file: "renda-de-bilro-win.zip", size: "58 MB" },
+      { platform: "macos", file: "renda-de-bilro-mac.zip", size: "61 MB" },
+    ],
+    devlog: [
+      {
+        date: "2026-10-29T16:00:00-03:00",
+        title: "Dezoito piques",
+        body: "Os piques vieram de cartões antigos que digitalizamos com o scanner da gráfica. Cada um traz o nome que tinha escrito a lápis no verso.",
+      },
+      {
+        date: "2026-11-07T10:30:00-03:00",
+        title: "Salvar como imagem",
+        body: "Agora dá para salvar a renda em PNG, no tamanho que quiser. Também corrigimos a torção, que girava para o lado errado em pares ímpares.",
+      },
+    ],
+  },
+  {
+    slug: "bicicletaria",
+    number: 28,
+    title: "Bicicletaria",
+    tagline: "Monte uma bicicleta com o que sobrou na oficina e encare a ladeira.",
+    description: [
+      "Uma caixa de areia de física: quadros tortos, rodas de carrinho de mão, correia de máquina de costura. Você monta, empurra a bicicleta morro abaixo e vê o que acontece.",
+      "Feito pelo Clube Lanterna no primeiro semestre. A ladeira do jogo é a da rua da escola, medida com trena e com o acelerômetro de um celular.",
+    ],
+    creator: "clube-lanterna",
+    track: "experimental",
+    tags: ["física", "sandbox", "brinquedo", "escola"],
+    platforms: ["windows", "linux"],
+    price: { kind: "free" },
+    published: "2026-10-24T14:00:00-03:00",
+    updated: "2026-10-24T14:00:00-03:00",
+    session: "quanto quiser",
+    languages: ["Português"],
+    cover: "scrap",
+    palette: ["--paper", "--ultra", "--tangerine"],
+    downloads: [
+      { platform: "windows", file: "bicicletaria-win.zip", size: "122 MB" },
+      { platform: "linux", file: "bicicletaria-linux.tar.gz", size: "119 MB" },
+    ],
+  },
+  {
+    slug: "andada",
+    number: 29,
+    title: "Andada",
+    tagline: "Ajude os caranguejos a atravessar a estrada no mês da andada.",
+    description: [
+      "No começo do ano, em noites de lua cheia e nova, os caranguejos-uçá saem do mangue todos juntos, e muitos atravessam a estrada. Você controla o trânsito: segura os carros, abre caminho, desvia as motos.",
+      "Arcade de uma tela, com três luas da temporada como capítulos. Feito em São Luís, com a percussão gravada pela própria dupla.",
+    ],
+    creator: "boi-de-bits",
+    track: "acao",
+    tags: ["arcade", "mangue", "bichos"],
+    platforms: ["web", "android"],
+    price: { kind: "fixed", amount: 8 },
+    published: "2026-11-13T06:10:00-03:00",
+    updated: "2026-11-13T06:10:00-03:00",
+    session: "cerca de 40 min",
+    languages: ["Português", "English"],
+    cover: "tide",
+    palette: ["--tangerine", "--paper", "--ink"],
+    downloads: [{ platform: "android", file: "andada-1.0.apk", size: "52 MB" }],
+    controls: ["Toque ou clique num veículo: segura", "Arrastar no mangue: abre caminho"],
+  },
+  {
+    slug: "vasos-da-vo",
+    number: 30,
+    title: "Vasos da Vó",
+    tagline: "Vinte e três plantas, um apartamento vazio e um bilhete em cada vaso.",
+    description: [
+      "Sua avó deixou as plantas para você, e um bilhete preso em cada vaso: quando regar, quem deu a muda, o que aconteceu no ano em que ela floresceu.",
+      "Narrativa curta e tranquila. Cuide das plantas por uma semana de jogo, leia os bilhetes na ordem que quiser e decida quais vão com você na mudança.",
+    ],
+    creator: "gaia-ferraz",
+    track: "narrativo",
+    tags: ["família", "plantas", "aconchegante"],
+    platforms: ["web", "windows", "macos", "linux"],
+    price: { kind: "fixed", amount: 15 },
+    published: "2026-11-09T19:30:00-03:00",
+    updated: "2026-11-09T19:30:00-03:00",
+    session: "cerca de 90 min",
+    languages: ["Português", "English"],
+    cover: "garden",
+    palette: ["--tangerine", "--lime", "--ink"],
+    downloads: [
+      { platform: "windows", file: "vasos-da-vo-win.zip", size: "284 MB" },
+      { platform: "macos", file: "vasos-da-vo-mac.dmg", size: "291 MB" },
+      { platform: "linux", file: "vasos-da-vo-linux.tar.gz", size: "279 MB" },
+    ],
+    accessibility: ["Texto ajustável até 200%", "Fonte para dislexia opcional", "Sem limite de tempo", "Jogável só com o mouse"],
+    contentNotes: ["Luto", "Morte de familiar (fora de cena)"],
+  },
+  {
+    slug: "facho",
+    number: 31,
+    title: "Facho",
+    tagline: "Gire os espelhos e leve a luz do farol até cada barco.",
+    description: [
+      "Quarenta e oito fases sobre uma grade de espelhos, prismas e vidraças coloridas. A luz sai do farol, bate, se divide, muda de cor, e cada barco só segue viagem quando recebe a cor certa.",
+      "As fases finais pedem que a luz passe duas vezes pelo mesmo espelho. Há dicas em três níveis, e nenhuma entrega a solução de uma vez.",
+    ],
+    creator: "bruno-iwata",
+    track: "puzzle",
+    tags: ["lógica", "luz", "mar"],
+    platforms: ["web", "windows", "macos", "linux"],
+    price: { kind: "pwyw", minimum: 6 },
+    published: "2026-10-27T18:45:00-03:00",
+    updated: "2026-11-04T22:10:00-03:00",
+    session: "cerca de 4 h",
+    languages: ["Português", "English", "日本語"],
+    cover: "beam",
+    palette: ["--teal", "--paper", "--ink"],
+    downloads: [
+      { platform: "windows", file: "facho-win.zip", size: "71 MB" },
+      { platform: "macos", file: "facho-mac.zip", size: "74 MB" },
+      { platform: "linux", file: "facho-linux.tar.gz", size: "69 MB" },
+    ],
+    controls: ["Clique: gira o espelho 45°", "Clique direito: gira para o outro lado", "H: pede uma dica"],
+    accessibility: ["Cores com padrão de listras para daltonismo", "Desfazer ilimitado"],
+    devlog: [
+      {
+        date: "2026-10-27T18:45:00-03:00",
+        title: "Do papel quadriculado para a tela",
+        body: "As 48 fases foram resolvidas primeiro no papel, com régua e lápis de cor. Três delas têm duas soluções, e foi de propósito.",
+      },
+      {
+        date: "2026-11-04T22:10:00-03:00",
+        title: "Listras para daltonismo",
+        body: "Cada cor de luz agora tem um padrão de listras próprio. Obrigado a quem escreveu explicando que o verde e o laranja pareciam a mesma cor.",
+      },
+    ],
+  },
+  {
+    slug: "bonecao",
+    number: 32,
+    title: "Bonecão",
+    tagline: "Um passo por toque: leve o boneco gigante ladeira acima sem cair.",
+    description: [
+      "Você é a pessoa dentro de um boneco gigante de carnaval, subindo as ladeiras de Olinda. Cada toque é um passo; o corpo de pano balança, a cabeça pesa, e a multidão empurra.",
+      "Partidas de um minuto e meio, cinco ladeiras e um botão só, como tudo do estúdio.",
+    ],
+    creator: "estudio-mare",
+    track: "navegador",
+    tags: ["um botão", "carnaval", "física", "curto"],
+    platforms: ["web"],
+    price: { kind: "free" },
+    published: "2026-11-10T09:00:00-03:00",
+    updated: "2026-11-10T09:00:00-03:00",
+    session: "1 min e meio por partida",
+    languages: ["sem texto"],
+    cover: "golem",
+    palette: ["--magenta", "--ultra", "--lime"],
+    downloads: [],
+    controls: ["Clique, toque ou espaço: um passo"],
+  },
 ];
 
 export const JAMS: Jam[] = [
@@ -514,55 +1190,160 @@ export const JAMS: Jam[] = [
     title: "Mini Jam Silêncio",
     theme: "Silêncio",
     host: "Coletivo Fubá",
+    hostSlug: "coletivo-fuba",
     start: "2026-11-06T19:00:00-03:00",
     end: "2026-11-08T23:59:00-03:00",
     entries: 41,
     track: "puzzle",
     summary: "48 horas, nenhum som permitido. O jogo precisa funcionar no mudo.",
+    rules: [
+      "Nenhum som: o jogo precisa funcionar inteiro no mudo",
+      "48 horas, sozinho ou em dupla",
+      "Roda no navegador, sem instalar nada",
+    ],
+    criteria: ["Uso do tema", "Clareza sem som", "Vontade de jogar de novo"],
+    release: "at-close",
   },
   {
     slug: "jam-do-feriado",
     title: "Jam do Feriado",
     theme: "Ponte",
     host: "Estúdio Maré",
+    hostSlug: "estudio-mare",
     start: "2026-11-13T18:00:00-03:00",
     end: "2026-11-16T23:59:00-03:00",
     entries: 0,
     track: "acao",
     summary: "Quatro dias de feriado prolongado. Tema anunciado na abertura: Ponte.",
+    rules: [
+      "Equipes de até quatro pessoas",
+      "Qualquer engine, qualquer plataforma",
+      "Arte e som de terceiros só com licença livre, creditados na página",
+    ],
+    criteria: ["Uso do tema", "Diversão", "Acabamento"],
+    release: "at-close",
   },
   {
     slug: "jam-acessivel",
     title: "Jam Acessível",
     theme: "Jogue com uma mão",
     host: "Quintal Games",
+    hostSlug: "quintal-games",
     start: "2026-11-01T00:00:00-03:00",
     end: "2026-11-30T23:59:00-03:00",
-    entries: 23,
+    entries: 26,
     track: "experimental",
     summary: "Um mês para fazer um jogo inteiro jogável com uma mão só.",
+    rules: [
+      "O jogo inteiro precisa ser jogável com uma mão, em teclado, mouse, toque ou interruptor",
+      "Descreva os controles na página do jogo",
+      "Cada entrada vai ao ar assim que é enviada; a votação abre em 1º de dezembro",
+    ],
+    criteria: ["Jogável com uma mão do começo ao fim", "Opções de ajuste (velocidade, contraste, legendas)", "Diversão"],
+    prizes: [
+      "Sem prêmio em dinheiro. As entradas mais votadas recebem uma sessão de teste com jogadores convidados pela organização.",
+    ],
+    release: "on-submit",
   },
   {
     slug: "jam-de-texto",
     title: "Jam de Texto Corrido",
     theme: "Uma carta",
     host: "Ana Torquato",
+    hostSlug: "ana-torquato",
     start: "2026-11-10T00:00:00-03:00",
     end: "2026-11-20T23:59:00-03:00",
-    entries: 12,
+    entries: 14,
     track: "narrativo",
     summary: "Ficção interativa com até 5 mil palavras. Ferramentas livres.",
+    rules: [
+      "Até 5 mil palavras no total",
+      "Ferramentas livres: Twine, Ink, um editor de texto ou papel escaneado",
+      "Uma carta precisa estar no centro da história",
+      "Cada entrada vai ao ar assim que é enviada; a leitura em voz alta das escolhidas é no dia 22",
+    ],
+    criteria: ["Escrita", "Escolhas que importam", "Uso do tema"],
+    release: "on-submit",
   },
   {
     slug: "jam-navegador",
     title: "Jam 13 KB",
     theme: "Cabe no bolso",
     host: "Bruno Iwata",
+    hostSlug: "bruno-iwata",
     start: "2026-11-22T00:00:00-03:00",
     end: "2026-12-06T23:59:00-03:00",
     entries: 0,
     track: "navegador",
     summary: "O jogo inteiro, zipado, precisa ter menos de 13 KB e rodar no navegador.",
+    rules: [
+      "O .zip final tem no máximo 13.312 bytes",
+      "Nada carregado de fora: fontes, imagens e bibliotecas entram na conta",
+      "Roda num navegador atual, sem extensão",
+    ],
+    criteria: ["Engenhosidade", "Diversão", "Uso do tema"],
+    release: "at-close",
+  },
+  {
+    slug: "jam-fliperama",
+    title: "Jam Fliperama",
+    theme: "Três vidas",
+    host: "Clube Lanterna",
+    hostSlug: "clube-lanterna",
+    start: "2026-11-01T10:00:00-03:00",
+    end: "2026-11-02T23:59:00-03:00",
+    entries: 34,
+    track: "acao",
+    summary: "O feriado de Finados com cara de fliperama: uma tela, três vidas e nenhum continue.",
+    rules: [
+      "Uma tela só, sem rolagem",
+      "O jogador começa com três vidas e não ganha outras",
+      "Equipes de até quatro pessoas",
+      "Arte e som feitos durante a jam",
+    ],
+    criteria: ["Vontade de jogar de novo", "Uso do tema", "Dá para entender sem tutorial?"],
+    prizes: [
+      "Sem prêmio em dinheiro. As três entradas mais votadas rodam no gabinete de fliperama do laboratório da escola até o fim do ano letivo.",
+    ],
+    release: "at-close",
+  },
+  {
+    slug: "jam-barulho-de-rua",
+    title: "Jam Barulho de Rua",
+    theme: "O som da sua rua",
+    host: "Boi de Bits",
+    hostSlug: "boi-de-bits",
+    start: "2026-11-09T00:00:00-03:00",
+    end: "2026-11-19T23:59:00-03:00",
+    entries: 19,
+    track: "navegador",
+    summary: "Onze dias para fazer um jogo de navegador só com sons gravados na rua onde você mora.",
+    rules: [
+      "Todo som do jogo precisa ter sido gravado na sua rua; celular serve",
+      "Roda no navegador, sem instalar nada",
+      "Cada som importante precisa de legenda ou sinal visual",
+    ],
+    criteria: ["Uso do som gravado", "Uso do tema", "Joga bem também sem som"],
+    release: "at-close",
+  },
+  {
+    slug: "jam-de-papel",
+    title: "Jam de Papel",
+    theme: "Dobre aqui",
+    host: "Oficina Pirão",
+    hostSlug: "oficina-pirao",
+    start: "2026-11-27T19:00:00-03:00",
+    end: "2026-11-29T23:59:00-03:00",
+    entries: 0,
+    track: "puzzle",
+    summary: "Um fim de semana para fazer um quebra-cabeça que também funcione impresso numa folha A4.",
+    rules: [
+      "Entregue o jogo digital e um PDF de uma folha A4 que dê para jogar sem tela",
+      "A folha pode ser dobrada, recortada ou furada, mas não colada",
+      "48 horas, equipes de até três pessoas",
+    ],
+    criteria: ["A versão impressa funciona sozinha?", "Uso do tema", "Clareza das regras"],
+    release: "at-close",
   },
 ];
 
@@ -571,6 +1352,54 @@ export const creatorBySlug = (slug: string) => CREATORS.find((c) => c.slug === s
 export const gameBySlug = (slug: string) => GAMES.find((g) => g.slug === slug);
 export const gamesByNewest = () =>
   [...GAMES].sort((a, b) => +new Date(b.published) - +new Date(a.published));
+
+/**
+ * The sample programme's "now". Pages that need a fixed present (lineup
+ * "hoje", jam states) can share this instead of hard-coding their own.
+ */
+export const SAMPLE_NOW = "2026-11-13T15:00:00-03:00";
+
+const byNewest = (a: Game, b: Game) => +new Date(b.published) - +new Date(a.published);
+
+export const gamesByCreator = (slug: string) => GAMES.filter((g) => g.creator === slug).sort(byNewest);
+export const jamBySlug = (slug: string) => JAMS.find((j) => j.slug === slug);
+export const gamesByJam = (slug: string) => GAMES.filter((g) => g.jam === slug).sort(byNewest);
+
+const tagKey = (t: string) => t.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
+
+/** Games carrying a tag, matched without case or accents. */
+export const gamesByTag = (tag: string) => {
+  const k = tagKey(tag);
+  return GAMES.filter((g) => g.tags.some((t) => tagKey(t) === k)).sort(byNewest);
+};
+
+/** Every tag in the catalogue, once, in pt-BR alphabetical order. */
+export const allTags = () =>
+  [...new Set(GAMES.flatMap((g) => g.tags))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+/** Tags with how many games carry each, most used first. */
+export const tagCounts = () => {
+  const counts = new Map<string, number>();
+  for (const g of GAMES) for (const t of g.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+  return [...counts]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "pt-BR"));
+};
+
+/** The host's creator page, when the host has one. */
+export const jamHost = (jam: Jam) =>
+  jam.hostSlug ? creatorBySlug(jam.hostSlug) : CREATORS.find((c) => c.name === jam.host);
+
+export type JamState = "past" | "live" | "next";
+export function jamState(jam: Jam, now: string | number = SAMPLE_NOW): JamState {
+  const t = typeof now === "number" ? now : +new Date(now);
+  if (t > +new Date(jam.end)) return "past";
+  if (t >= +new Date(jam.start)) return "live";
+  return "next";
+}
+
+/** Jams a creator hosts. */
+export const jamsByHost = (slug: string) => JAMS.filter((j) => jamHost(j)?.slug === slug);
 
 export function formatPrice(price: Price): string {
   switch (price.kind) {

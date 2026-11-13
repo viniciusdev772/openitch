@@ -298,7 +298,7 @@ function Art({ game }: { game: Game }) {
           <rect width={W} height={H} fill={g} />
           {strips}
           <rect x={0} y={232} width={W} height={88} fill={g} />
-          <Title text={game.title} x={24} y={302} fill={v("--ink")} size={64} />
+          <Title text={game.title} x={24} y={302} fill={v("--ink")} size={64} max={16} />
         </>
       );
     }
@@ -426,6 +426,160 @@ function Art({ game }: { game: Game }) {
           <Title text={game.title} x={24} y={300} fill={a} size={50} max={20} />
         </>
       );
+    case "shelves": {
+      // A bookcase with one empty slot, and the rings a footstep makes on the floor.
+      const books: React.ReactNode[] = [];
+      [100, 190].forEach((py, si) => {
+        let x = 36;
+        let k = 0;
+        while (x < 360) {
+          const w = 13 + Math.floor(r() * 13);
+          const h = 46 + Math.floor(r() * 24);
+          if (x + w > 362) break;
+          if (si === 1 && k === 4) {
+            books.push(
+              <rect key="gap" x={x} y={py - 62} width={w + 8} height={62} rx={2} fill="none" stroke={a} strokeWidth={2} strokeDasharray="5 4" />,
+            );
+            x += w + 12;
+            k++;
+            continue;
+          }
+          const tone = r();
+          const fill = tone < 0.5 ? f : tone < 0.75 ? a : g;
+          books.push(<rect key={`b${si}-${k}`} x={x} y={py - h} width={w} height={h} rx={2} fill={fill} stroke={f} strokeWidth={2} />);
+          if (h > 54) {
+            books.push(<rect key={`s${si}-${k}`} x={x + 3} y={py - h + 9} width={w - 6} height={4} fill={fill === f ? a : f} />);
+          }
+          x += w + 2;
+          k++;
+        }
+      });
+      return (
+        <>
+          <rect width={W} height={H} fill={g} />
+          <rect x={22} y={14} width={356} height={10} fill={f} />
+          <rect x={22} y={14} width={10} height={186} fill={f} />
+          <rect x={368} y={14} width={10} height={186} fill={f} />
+          {books}
+          <rect x={22} y={100} width={356} height={10} fill={f} />
+          <rect x={22} y={190} width={356} height={10} fill={f} />
+          {[22, 46, 70].map((rx, i) => (
+            <ellipse key={rx} cx={304} cy={262} rx={rx} ry={rx * 0.34} fill="none" stroke={a} strokeWidth={2.5} opacity={1 - i * 0.3} />
+          ))}
+          <ellipse cx={304} cy={262} rx={9} ry={4} fill={f} />
+          <Title text={game.title} x={24} y={300} fill={f} size={46} max={10} />
+        </>
+      );
+    }
+    case "canoe": {
+      // Flooded forest: trunks, their broken reflections, one canoe crossing.
+      const WL = 150;
+      const trees = [
+        [34, 14, 46, 34],
+        [94, 10, 70, 26],
+        [152, 16, 30, 40],
+        [262, 12, 58, 30],
+        [320, 16, 22, 38],
+        [376, 10, 66, 28],
+      ];
+      return (
+        <>
+          <rect width={W} height={H} fill={g} />
+          {trees.map(([x, w, top, cr], i) => (
+            <g key={i}>
+              <circle cx={x} cy={top} r={cr} fill={f} />
+              <rect x={x - w / 2} y={top} width={w} height={WL - top} fill={f} />
+              <rect x={x - w / 2} y={WL} width={w} height={(WL - top) * 0.55} fill={f} opacity={0.35} />
+            </g>
+          ))}
+          {[164, 180, 198].map((y, i) => (
+            <path key={y} d={`M0 ${y} H${W}`} stroke={g} strokeWidth={3 + i} />
+          ))}
+          <path d={`M0 ${WL} H${W}`} stroke={a} strokeWidth={2.5} />
+          <path d="M96 206 Q 200 240 304 206 Q 200 224 96 206 Z" fill={a} />
+          <circle cx={214} cy={182} r={9} fill={a} />
+          <path d="M205 212 L209 194 H221 L225 212 Z" fill={a} />
+          <path d="M194 178 L242 238" stroke={a} strokeWidth={4} strokeLinecap="round" />
+          <ellipse cx={244} cy={242} rx={6} ry={12} transform="rotate(-38 244 242)" fill={a} />
+          {[
+            [62, 228, 40],
+            [300, 232, 48],
+            [266, 254, 28],
+          ].map(([x, y, w], i) => (
+            <path key={i} d={`M${x} ${y} h${w}`} stroke={a} strokeWidth={2.5} strokeLinecap="round" opacity={0.5} />
+          ))}
+          <Title text={game.title} x={24} y={300} fill={a} size={54} max={14} />
+        </>
+      );
+    }
+    case "pendulum": {
+      // A playground swing caught at three points of its arc.
+      const px = 200;
+      const py = 46;
+      const L = 166;
+      const arc = (deg: number) => {
+        const t = (deg * Math.PI) / 180;
+        return `${px + L * Math.sin(t)} ${py + L * Math.cos(t)}`;
+      };
+      const swing = (deg: number, op: number) => (
+        <g key={deg} opacity={op} transform={`rotate(${-deg} ${px} ${py})`}>
+          <path d={`M${px - 18} ${py} V${py + L} M${px + 18} ${py} V${py + L}`} stroke={f} strokeWidth={3} />
+          <rect x={px - 26} y={py + L - 2} width={52} height={8} rx={2} fill={f} />
+          <rect x={px - 8} y={py + L - 34} width={16} height={32} rx={3} fill={f} />
+          <circle cx={px} cy={py + L - 46} r={11} fill={f} />
+          <path d={`M${px + 4} ${py + L + 4} L${px + 34} ${py + L - 6}`} stroke={f} strokeWidth={7} strokeLinecap="round" />
+        </g>
+      );
+      return (
+        <>
+          <rect width={W} height={H} fill={g} />
+          <circle cx={384} cy={128} r={58} fill={a} />
+          <circle cx={346} cy={84} r={36} fill={a} />
+          <path d={`M${arc(-52)} A ${L} ${L} 0 0 0 ${arc(52)}`} fill="none" stroke={a} strokeWidth={2.5} strokeDasharray="6 9" />
+          <path d="M62 44 L26 262 M62 44 L98 262 M338 44 L302 262 M338 44 L374 262" stroke={f} strokeWidth={8} strokeLinecap="round" />
+          <rect x={40} y={36} width={320} height={12} rx={3} fill={f} />
+          {swing(-34, 0.2)}
+          {swing(-10, 0.4)}
+          {swing(30, 1)}
+          <rect y={262} width={W} height={H - 262} fill={f} />
+          <Title text={game.title} x={24} y={304} fill={g} size={44} max={20} />
+        </>
+      );
+    }
+    case "drum": {
+      // A frame drum seen from above, mid-beat, with the rhythm written underneath.
+      const cx = 236;
+      const cy = 136;
+      const pegs = Array.from({ length: 14 }).map((_, i) => {
+        const t = (i / 14) * Math.PI * 2;
+        const x = cx + 104 * Math.cos(t);
+        const y = cy + 104 * Math.sin(t);
+        return <rect key={i} x={x - 5} y={y - 5} width={10} height={10} rx={2} fill={g} transform={`rotate(${(t * 180) / Math.PI} ${x} ${y})`} />;
+      });
+      let rx = 196;
+      const beats = [0, 0, 1, 0, 1, 0].map((long, i) => {
+        const w = long ? 38 : 14;
+        const el = <rect key={i} x={rx} y={280} width={w} height={14} rx={7} fill={f} />;
+        rx += w + 8;
+        return el;
+      });
+      return (
+        <>
+          <rect width={W} height={H} fill={g} />
+          <circle cx={36} cy={44} r={70} fill={f} />
+          <circle cx={36} cy={44} r={56} fill={a} />
+          <circle cx={cx} cy={cy} r={116} fill={f} />
+          {pegs}
+          <circle cx={cx} cy={cy} r={92} fill={a} />
+          {[30, 46, 62].map((rr, i) => (
+            <circle key={rr} cx={cx - 20} cy={cy - 16} r={rr} fill="none" stroke={f} strokeWidth={3} opacity={0.7 - i * 0.22} />
+          ))}
+          <circle cx={cx - 20} cy={cy - 16} r={15} fill={f} />
+          {beats}
+          <Title text={game.title} x={24} y={300} fill={f} size={56} max={12} />
+        </>
+      );
+    }
   }
 }
 
