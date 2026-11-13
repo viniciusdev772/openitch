@@ -2,14 +2,16 @@ import "server-only";
 import { MongoClient, type Db, type ObjectId } from "mongodb";
 
 /**
- * Conexão com o MongoDB.
- *
- * A URI fica fixa no código por decisão do dono do projeto. MONGODB_URI, se
- * existir no ambiente, tem prioridade (útil para testes locais).
+ * Conexão com o MongoDB. A URI vem só do ambiente (MONGODB_URI), cadastrada
+ * na Vercel como variável sensível; nunca fica no código.
  */
-const MONGODB_URI_FIXA = "mongodb://mongo:vpsqj4du1pc39b2ox9il@194.238.25.13:90/?tls=false";
-const MONGODB_URI = process.env.MONGODB_URI || MONGODB_URI_FIXA;
 const DB_NAME = "openitch";
+
+function mongoUri(): string {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error("MONGODB_URI não definida. Configure a variável de ambiente (veja .env.example).");
+  return uri;
+}
 
 /* ------------------------------------------------------------------ */
 /* Formato dos documentos (só tipos do TypeScript; o banco não tem     */
@@ -110,7 +112,7 @@ const cache: Cache = (g.__openitchMongo ??= {});
 
 function connect(): Promise<MongoClient> {
   if (!cache.client) {
-    const client = new MongoClient(MONGODB_URI, {
+    const client = new MongoClient(mongoUri(), {
       appName: "openitch",
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 8000,

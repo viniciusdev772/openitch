@@ -6,6 +6,8 @@ Programa permanente de jogos independentes: um lugar aberto para publicar jogos,
 
 ## Rodar
 
+Copie `.env.example` para `.env.local` e preencha `MONGODB_URI` (e `AUTH_SECRET`, se o banco não for local). Na Vercel as duas variáveis já estão cadastradas.
+
 ```bash
 npm install
 npm run dev      # http://localhost:3000
