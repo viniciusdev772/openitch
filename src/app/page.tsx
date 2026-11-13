@@ -250,7 +250,7 @@ export default function Home() {
           <div className="section-head">
             <h2 id="agenda">Agenda de jams</h2>
             <div className="aside">
-              <p>Maratonas com tema e prazo. As entradas caem direto no programa quando o relógio zera.</p>
+              <p>Maratonas com tema e prazo. As entradas caem no programa quando o relógio zera, ou na hora do envio, conforme a jam.</p>
               <Link href="/jams" className="btn btn--ghost btn--sm">
                 Todas as jams
               </Link>
