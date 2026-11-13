@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CREATORS, GAMES, creatorBySlug } from "@/data/catalog";
 import { Entry } from "@/components/bits";
+import { LibraryButton } from "@/components/library/LibraryButton";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -25,9 +26,12 @@ export default async function CreatorPage({ params }: Props) {
       <header className="page-head">
         <div className="wrap">
           <h1>{creator.name}</h1>
-          <p>
-            {creator.city}. {creator.bio}
-          </p>
+          <div className="creator-head-side">
+            <p>
+              {creator.city}. {creator.bio}
+            </p>
+            <LibraryButton kind="follow" slug={creator.slug} />
+          </div>
         </div>
       </header>
       <section className="wrap" style={{ paddingTop: 48, paddingBottom: 96 }} aria-label="Jogos">
