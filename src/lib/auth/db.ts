@@ -155,7 +155,15 @@ export interface UploadDoc {
   completedAt: Date | null;
 }
 
-export type WebEngine = "unity" | "godot" | "unreal-html5" | "construct" | "gamemaker" | "defold" | "pico8" | "html5";
+export type WebEngine = "unity" | "godot" | "unreal-html5" | "construct" | "gamemaker" | "defold" | "pico8" | "bevy" | "ruffle" | "html5";
+
+/** Um arquivo declarado de um build de navegador (caminho relativo e tamanho exato). */
+export interface BuildFileDoc {
+  p: string;
+  s: number;
+  /** Content-Encoding detectado num .unityweb (o nome não diz qual é). */
+  e?: "br" | "gzip";
+}
 
 /**
  * Um build de navegador extraído no bucket jogável, sob `prefix`
@@ -182,6 +190,16 @@ export interface BuildDoc {
   height: number | null;
   createdAt: Date;
   updatedAt: Date;
+  /* Campos da frente "jogável" (src/lib/builds). */
+  /** Identificador público aleatório de 128 bits (hex): a pasta é b/<publicId>/ e a página /jogar/<publicId>. */
+  publicId?: string;
+  /** Lista declarada antes do envio; o servidor só assina estes caminhos, com estes tamanhos. */
+  files?: BuildFileDoc[];
+  /** Envios multipart abertos (arquivos grandes), por caminho. */
+  multipart?: { p: string; id: string }[];
+  /** Versão aproximada do motor (ex.: "4.3+"). */
+  engineVersion?: string | null;
+  completedAt?: Date | null;
 }
 
 export type SecurityEventType =

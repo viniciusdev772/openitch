@@ -21,7 +21,21 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["mongodb"],
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      /*
+       * Prévia de um build que usa threads (SharedArrayBuffer): a página que
+       * embute o jogo também precisa de COEP para o iframe ficar isolado
+       * (crossOriginIsolated). Só com ?isolado=1, que a própria página pede
+       * depois que o service worker do build está ativo (src/lib/builds/coi.ts);
+       * sem ele, o iframe do MinIO (que não manda CORP) seria bloqueado.
+       */
+      {
+        source: "/jogar/:id",
+        has: [{ type: "query", key: "isolado", value: "1" }],
+        headers: [{ key: "Cross-Origin-Embedder-Policy", value: "require-corp" }],
+      },
+    ];
   },
 };
 
