@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import {
   GAMES,
+  SAMPLE_NOW,
   TRACKS,
   creatorBySlug,
   entryNumber,
@@ -100,7 +101,7 @@ export default function Home() {
           </div>
           <ol className="lineup">
             {lineup.map((g) => {
-              const isToday = g.published.startsWith("2026-11-12");
+              const isToday = g.published.startsWith(SAMPLE_NOW.slice(0, 10));
               return (
                 <li key={g.slug}>
                   <Link href={`/jogo/${g.slug}`} style={trackStyle(g.track)}>

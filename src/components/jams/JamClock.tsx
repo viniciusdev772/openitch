@@ -102,11 +102,13 @@ export function JamEntriesEmpty({
   start,
   end,
   submitted,
+  release = "at-close",
 }: {
   slug: string;
   start: string;
   end: string;
   submitted: number;
+  release?: "at-close" | "on-submit";
 }) {
   const { now } = useJamNow();
   const state = jamState({ start, end }, now ?? SAMPLE_NOW);
@@ -114,9 +116,11 @@ export function JamEntriesEmpty({
     state === "next" ? "A jam ainda não abriu" : state === "live" ? "As entradas chegam no prazo" : "Nenhuma entrada nesta amostra";
   const text =
     state === "next"
-      ? `Abre em ${when(start)}. Quando o prazo zerar, os jogos enviados entram aqui todos de uma vez.`
+      ? release === "on-submit"
+        ? `Abre em ${when(start)}. Cada jogo entra aqui assim que for enviado.`
+        : `Abre em ${when(start)}. Quando o prazo zerar, os jogos enviados entram aqui todos de uma vez.`
       : state === "live"
-        ? `${submitted > 0 ? `${submitted} ${submitted === 1 ? "jogo enviado" : "jogos enviados"} até agora. ` : ""}Eles entram no programa juntos quando o prazo zerar, em ${when(end)}.`
+        ? `${submitted > 0 ? `${submitted} ${submitted === 1 ? "jogo enviado" : "jogos enviados"} até agora. ` : ""}${release === "on-submit" ? "Cada jogo entra no programa assim que é enviado." : `Eles entram no programa juntos quando o prazo zerar, em ${when(end)}.`}`
         : "Os jogos desta jam não fazem parte desta edição de demonstração.";
   return (
     <div className="empty jam-empty">

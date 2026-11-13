@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GAMES, JAMS, formatDay, trackById } from "@/data/catalog";
 import { JamSchedule } from "@/components/JamSchedule";
-import { trackStyle } from "@/components/bits";
+import { Joined, trackStyle } from "@/components/bits";
 import { pickNow } from "@/components/jams/clock";
 import "@/styles/jams-criadores.css";
 
@@ -18,7 +18,7 @@ export default function JamsPage() {
       <header className="page-head on-field" style={trackStyle("experimental")}>
         <div className="wrap">
           <h1>Jams</h1>
-          <p>Maratonas com tema e relógio. Quando o prazo zera, as entradas entram no programa de uma vez, na mesma hora.</p>
+          <p>Maratonas com tema e relógio. Na maioria, as entradas entram no programa juntas quando o prazo zera; algumas publicam cada jogo assim que ele chega.</p>
         </div>
       </header>
       <section className="wrap" style={{ paddingTop: 48, paddingBottom: 128 }}>
@@ -54,11 +54,13 @@ export default function JamsPage() {
                 {entries.length > 0 && (
                   <p>
                     Inclui{" "}
-                    {entries.map((g) => (
-                      <Link key={g.slug} href={`/jogo/${g.slug}`}>
-                        {g.title}
-                      </Link>
-                    ))}
+                    <Joined>
+                      {entries.map((g) => (
+                        <Link key={g.slug} href={`/jogo/${g.slug}`}>
+                          {g.title}
+                        </Link>
+                      ))}
+                    </Joined>
                   </p>
                 )}
                 <div className="foot">
@@ -79,11 +81,13 @@ export default function JamsPage() {
                 </strong>
                 <span>Tema: {j.theme}</span>
                 <span>
-                  {GAMES.filter((g) => g.jam === j.slug).map((g) => (
-                    <Link key={g.slug} href={`/jogo/${g.slug}`}>
-                      {g.title}
-                    </Link>
-                  ))}{" "}
+                  <Joined>
+                    {GAMES.filter((g) => g.jam === j.slug).map((g) => (
+                      <Link key={g.slug} href={`/jogo/${g.slug}`}>
+                        {g.title}
+                      </Link>
+                    ))}
+                  </Joined>{" "}
                   e mais {j.entries - GAMES.filter((g) => g.jam === j.slug).length} entradas
                 </span>
                 <span>

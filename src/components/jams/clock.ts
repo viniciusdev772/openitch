@@ -1,11 +1,11 @@
-import type { Jam } from "@/data/catalog";
+import { SAMPLE_NOW as SAMPLE_ISO, type Jam } from "@/data/catalog";
 
 /**
  * The demo programme runs on a sample clock. The sample week is fixed so the
  * pages stay meaningful outside it; inside the sample window the real clock wins,
  * the same rule the jam schedule uses.
  */
-export const SAMPLE_NOW = new Date("2026-11-12T15:00:00-03:00").getTime();
+export const SAMPLE_NOW = new Date(SAMPLE_ISO).getTime();
 const WINDOW_START = new Date("2026-11-01T00:00:00-03:00").getTime();
 const WINDOW_END = new Date("2026-12-07T00:00:00-03:00").getTime();
 

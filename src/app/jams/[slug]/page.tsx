@@ -16,7 +16,7 @@ import {
 import { Cover } from "@/components/Cover";
 import { PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 import { JamClock, JamEntriesEmpty } from "@/components/jams/JamClock";
-import { SAMPLE_NOW, jamState } from "@/components/jams/clock";
+import { jamState, pickNow } from "@/components/jams/clock";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -51,6 +51,9 @@ function derivedCriteria(j: Jam): Item[] {
   ];
 }
 
+// O estado (encerrada, ao vivo, em breve) segue o relógio: refaz a cada 5 minutos.
+export const revalidate = 300;
+
 export function generateStaticParams() {
   return JAMS.map((j) => ({ slug: j.slug }));
 }
@@ -67,7 +70,7 @@ export default async function JamPage({ params }: Props) {
   if (!jam) notFound();
 
   const track = trackById(jam.track);
-  const past = jamState(jam, SAMPLE_NOW) === "past";
+  const past = jamState(jam, pickNow()) === "past";
   const host = CREATORS.find((c) => c.name === jam.host);
   const entries = GAMES.filter((g) => g.jam === jam.slug).sort(
     (a, b) => +new Date(a.published) - +new Date(b.published),
@@ -220,7 +223,7 @@ export default async function JamPage({ params }: Props) {
               )}
           </div>
         ) : (
-          <JamEntriesEmpty slug={jam.slug} start={jam.start} end={jam.end} submitted={jam.entries} />
+          <JamEntriesEmpty slug={jam.slug} start={jam.start} end={jam.end} submitted={jam.entries} release={jam.release} />
         )}
       </section>
     </>

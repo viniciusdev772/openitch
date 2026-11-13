@@ -279,8 +279,9 @@ const CHAPTERS: Chapter[] = [
         q: "O que é uma jam?",
         a: (
           <p>
-            Uma maratona para fazer um jogo com um tema, num prazo. Quando o prazo acaba, as entradas entram no programa
-            juntas.
+            Uma maratona para fazer um jogo com um tema, num prazo. Na maioria das jams, as entradas entram no programa
+            juntas quando o prazo acaba; algumas publicam cada jogo assim que ele é enviado, e a página da jam diz qual é o
+            caso.
           </p>
         ),
       },

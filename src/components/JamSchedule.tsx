@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { JAMS, formatDay, trackById } from "@/data/catalog";
+import { JAMS, SAMPLE_NOW as SAMPLE_ISO, formatDay, trackById } from "@/data/catalog";
 
 const RANGE_START = new Date("2026-11-01T00:00:00-03:00").getTime();
 const RANGE_END = new Date("2026-12-07T00:00:00-03:00").getTime();
 const DAY = 86400000;
-const FALLBACK_NOW = new Date("2026-11-12T15:00:00-03:00").getTime();
+const FALLBACK_NOW = new Date(SAMPLE_ISO).getTime();
 
 const pct = (t: number) => ((Math.min(Math.max(t, RANGE_START), RANGE_END) - RANGE_START) / (RANGE_END - RANGE_START)) * 100;
 
@@ -59,7 +59,7 @@ export function JamSchedule() {
           </span>
         </div>
       </div>
-      {JAMS.map((j) => {
+      {[...JAMS].sort((a, b) => +new Date(a.start) - +new Date(b.start)).map((j) => {
         const s = new Date(j.start).getTime();
         const e = new Date(j.end).getTime();
         const state = now > e ? "past" : now >= s ? "live" : "next";

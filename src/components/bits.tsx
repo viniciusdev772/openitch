@@ -85,3 +85,18 @@ export function Entry({
     </Tag>
   );
 }
+
+/** Junta nós como numa frase: "A", "A e B", "A, B e C". */
+export function Joined({ children }: { children: React.ReactNode[] }) {
+  const items = children.filter(Boolean);
+  return (
+    <>
+      {items.map((c, i) => (
+        <span key={i}>
+          {c}
+          {i < items.length - 2 ? ", " : i === items.length - 2 ? " e " : ""}
+        </span>
+      ))}
+    </>
+  );
+}
