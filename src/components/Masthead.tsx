@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search } from "lucide-react";
+import { AuthLink } from "./AuthLink";
 
 const NAV = [
   { href: "/", label: "Programa" },
@@ -41,6 +42,7 @@ export function Masthead() {
             <Link href="/jogos#busca" aria-label="Buscar jogos" className="hide-sm">
               <Search aria-hidden size={18} />
             </Link>
+            <AuthLink />
             <Link href="/publicar" className="btn btn--sm" aria-current={isActive("/publicar") ? "page" : undefined}>
               Publicar
             </Link>
