@@ -1,4 +1,5 @@
-import type { CoverStyle, Platform, TrackId } from "@/data/catalog";
+import type { CoverStyle, Platform, TrackId } from "@/data/base";
+import { slugify } from "@/lib/slug";
 
 /**
  * Limites dos rascunhos, compartilhados entre o formulário (maxLength,
@@ -93,16 +94,50 @@ export function centsToText(cents: number): string {
   return c === 0 ? String(r) : `${r},${String(c).padStart(2, "0")}`;
 }
 
+/** Reais com milhar e centavos, sem depender do Intl (mesmo texto no servidor e no navegador): 100000 vira "1.000,00". */
+function centsToMoney(cents: number): string {
+  const r = String(Math.floor(cents / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${r},${String(cents % 100).padStart(2, "0")}`;
+}
+
+/** O teto de preço como o formulário e as mensagens escrevem: "R$ 1.000,00". */
+export const MAX_PRICE_TEXT = `R$ ${centsToMoney(LIMITS.priceCents)}`;
+
+export type PriceCheck = { ok: true; cents: number } | { ok: false; error: string };
+
+/**
+ * Confere o valor de um modelo de preço, com as mesmas mensagens no formulário
+ * e no servidor (que é quem decide). Grátis não tem valor; no "pague o que
+ * quiser", campo vazio vale zero.
+ */
+export function checkPrice(kind: PriceKind, amount: string): PriceCheck {
+  if (kind === "free") return { ok: true, cents: 0 };
+  const trimmed = amount.trim();
+  const cents = trimmed === "" && kind === "pwyw" ? 0 : parseCents(trimmed);
+  if (cents === null) return { ok: false, error: "Escreva o valor só com números e vírgula, como 12,50." };
+  if (cents > LIMITS.priceCents) return { ok: false, error: `O valor máximo é ${MAX_PRICE_TEXT}.` };
+  if (kind === "fixed" && cents === 0) {
+    return { ok: false, error: "Preço fixo precisa ser maior que zero. Para zero, escolha Grátis." };
+  }
+  return { ok: true, cents };
+}
+
 /** Endereço sugerido: minúsculas sem acento, palavras unidas por hífen. */
-export function suggestSlug(title: string): string {
-  return title
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, LIMITS.slug)
-    .replace(/-+$/g, "");
+export const suggestSlug = (title: string): string => slugify(title, LIMITS.slug);
+
+/**
+ * Tira o que não se vê: caracteres de controle (menos os de espaço, que cada
+ * campo trata) e de formato (\p{Cf}: marcas de direção, hífen discreto, espaço
+ * de largura zero). O ZWJ (U+200D) fica entre dois caracteres, porque une
+ * emojis compostos; solto, nas pontas ou repetido, sai. O U+FE0F (seletor de
+ * emoji) não é Cf e passa intacto.
+ */
+export function stripInvisible(raw: string): string {
+  return raw
+    .normalize("NFKC")
+    .replace(/[\p{Cc}\p{Cf}]/gu, (c) => (c === "‍" || /\s/.test(c) ? c : ""))
+    .replace(/‍{2,}/g, "‍")
+    .replace(/(?<=^|\s)‍|‍(?=\s|$)/g, "");
 }
 
 /** Separa, limpa e tira repetidas (sem diferenciar maiúsculas). */
@@ -110,7 +145,7 @@ export function splitTags(raw: string): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const part of raw.split(",")) {
-    const t = part.normalize("NFKC").replace(/[\p{Cc}\p{Cf}]/gu, "").replace(/\s+/g, " ").trim();
+    const t = stripInvisible(part).replace(/\s+/g, " ").trim();
     if (!t) continue;
     const key = t.toLocaleLowerCase("pt-BR");
     if (seen.has(key)) continue;

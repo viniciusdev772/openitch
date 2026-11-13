@@ -267,3 +267,16 @@ export function formatDay(iso: string) {
 export function formatDate(iso: string) {
   return new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", year: "numeric", timeZone: TZ }).format(new Date(iso));
 }
+
+// Formatters for lists that print many dates (one Intl object each, built once).
+const DAY_2 = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", timeZone: TZ });
+const MONTH_SHORT = new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone: TZ });
+
+/** Day and short month apart, for a date printed as a column: ["13", "nov"] (no "de", no dot). */
+export function dayParts(t: string | number | Date): [day: string, month: string] {
+  const d = new Date(t);
+  return [DAY_2.format(d), MONTH_SHORT.format(d).replace(".", "")];
+}
+
+/** "13 nov": day and short month in one line, without "de" and without the dot. */
+export const shortDay = (t: string | number | Date) => dayParts(t).join(" ");

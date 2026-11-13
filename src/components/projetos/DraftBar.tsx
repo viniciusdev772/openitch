@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Check, LoaderCircle } from "lucide-react";
+import { dayKey, formatTime, shortDay } from "@/data/base";
 import type { SaveResult } from "@/lib/projects/limits";
 
 type ErrorCode = Extract<SaveResult, { ok: false }>["code"];
@@ -12,19 +13,13 @@ export type SaveStatus =
   | { kind: "saved" }
   | { kind: "error"; code: ErrorCode; message: string; fields?: string[] };
 
-const TZ = "America/Sao_Paulo";
-const TIME = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ });
-const DAY = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", timeZone: TZ });
-const dayKey = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d);
-
 /** "às 14:32" hoje; "em 12 nov às 14:32" antes disso. Números no tipo do programa. */
 function When({ iso }: { iso: string }) {
-  const d = new Date(iso);
-  const today = dayKey(d) === dayKey(new Date());
+  const today = dayKey(iso) === dayKey(new Date());
   return (
     <time dateTime={iso}>
-      {today ? "às " : `em ${DAY.format(d).replace(".", "")} às `}
-      <span className="num">{TIME.format(d)}</span>
+      {today ? "às " : `em ${shortDay(iso)} às `}
+      <span className="num">{formatTime(iso)}</span>
     </time>
   );
 }
@@ -69,10 +64,10 @@ export function DraftBar({
           <strong>Salvar pede uma conta.</strong> Entre e o que você escreveu vem junto, pronto para virar rascunho.
         </p>
         <div className="pj-bar-act">
-          <Link href={`/entrar?de=${back}`} className="btn" onClick={onLeave}>
+          <Link href={`/entrar?de=${back}`} className="btn" onClick={onLeave} data-keeps-draft>
             Entrar para salvar
           </Link>
-          <Link href={`/criar-conta?de=${back}`} className="bo-link" onClick={onLeave}>
+          <Link href={`/criar-conta?de=${back}`} className="bo-link" onClick={onLeave} data-keeps-draft>
             Criar conta
           </Link>
         </div>
@@ -144,7 +139,7 @@ export function DraftBar({
             </button>
           ) : null}
           {status.code === "sessao" ? (
-            <Link href={`/entrar?de=${back}`} className="btn btn--sm" onClick={onLeave}>
+            <Link href={`/entrar?de=${back}`} className="btn btn--sm" onClick={onLeave} data-keeps-draft>
               Entrar de novo
             </Link>
           ) : null}

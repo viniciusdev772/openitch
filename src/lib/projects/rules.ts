@@ -1,6 +1,7 @@
 import "server-only";
 import type { ObjectId } from "mongodb";
-import { JAMS, PLATFORMS, TRACKS, type CoverStyle, type Platform, type TrackId } from "@/data/catalog";
+import { PLATFORMS, TRACKS, type CoverStyle, type Platform, type TrackId } from "@/data/base";
+import { JAMS } from "@/data/jams";
 import { db, type ProjectDoc, type ProjectPrice } from "@/lib/auth/db";
 import { toObjectId } from "@/lib/auth/session";
 import { str } from "@/lib/auth/validate";
@@ -8,8 +9,9 @@ import {
   DRAFT_COVERS,
   LIMITS,
   centsToText,
-  parseCents,
+  checkPrice,
   splitTags,
+  stripInvisible,
   suggestSlug,
   type DraftRow,
   type PriceKind,
@@ -30,24 +32,20 @@ const JAM_SLUGS = new Set<string>(JAMS.map((j) => j.slug));
 const PRICE_KINDS = new Set<string>(["free", "fixed", "pwyw"]);
 
 const len = (s: string) => [...s].length;
-const MAX_PRICE_TEXT = (LIMITS.priceCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 
-/** Uma linha: sem caracteres de controle, espaços juntos. */
+// Os três campos de texto (oneLine, paragraphs e splitTags) limpam do mesmo
+// jeito, com stripInvisible; só o tratamento dos espaços muda.
+
+/** Uma linha: sem invisíveis, qualquer espaço (inclusive quebra de linha) vira um só. */
 function oneLine(raw: string): string {
-  return raw
-    .normalize("NFKC")
-    .replace(/[\p{Cc}\p{Cf}]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return stripInvisible(raw).replace(/\s+/g, " ").trim();
 }
 
 /** Texto com parágrafos: mantém quebras de linha, no máximo uma linha em branco seguida. */
 function paragraphs(raw: string): string {
-  return raw
-    .normalize("NFKC")
+  return stripInvisible(raw)
     .replace(/\r\n?/g, "\n")
     .replace(/[^\S\n]+/g, " ")
-    .replace(/[\p{Cc}\p{Cf}]/gu, (c) => (c === "\n" ? c : ""))
     .replace(/ *\n */g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -102,15 +100,10 @@ export function parseDraft(form: FormData): Parsed {
   }
 
   let price: ProjectPrice = { kind: "free" };
-  if (priceKind !== "free") {
-    const trimmed = amount.trim();
-    const cents = trimmed === "" && priceKind === "pwyw" ? 0 : parseCents(trimmed);
-    if (cents === null) fields.amount = "Escreva o valor só com números e vírgula, como 12,50.";
-    else if (cents > LIMITS.priceCents) fields.amount = `O valor máximo é R$ ${MAX_PRICE_TEXT}.`;
-    else if (priceKind === "fixed" && cents === 0) {
-      fields.amount = "Preço fixo precisa ser maior que zero. Para zero, escolha Grátis.";
-    } else price = priceKind === "fixed" ? { kind: "fixed", cents } : { kind: "pwyw", minimumCents: cents };
-  }
+  const priceCheck = checkPrice(priceKind as PriceKind, amount);
+  if (!priceCheck.ok) fields.amount = priceCheck.error;
+  else if (priceKind === "fixed") price = { kind: "fixed", cents: priceCheck.cents };
+  else if (priceKind === "pwyw") price = { kind: "pwyw", minimumCents: priceCheck.cents };
 
   if (Object.keys(fields).length) {
     const n = Object.keys(fields).length;

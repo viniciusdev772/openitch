@@ -1,22 +1,31 @@
 import "@/styles/projetos.css";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { JAMS } from "@/data/catalog";
+import { JAMS } from "@/data/jams";
 import { jamState, pickNow } from "@/components/jams/clock";
 import { BoxHead } from "@/components/auth/BoxOffice";
 import { DraftList, type OpenJam } from "@/components/projetos/DraftList";
 import { getSession } from "@/lib/auth/session";
 import { listDrafts } from "@/lib/projects/rules";
-import { LIMITS } from "@/lib/projects/limits";
+import { LIMITS, type DraftRow } from "@/lib/projects/limits";
 
 export const metadata: Metadata = { title: "Seus rascunhos", robots: { index: false } };
 
 export default async function ProjetosPage() {
-  const session = await getSession();
-  if (!session) redirect("/entrar?de=/conta/projetos");
-  const drafts = await listDrafts(session.user._id);
+  // null: o banco não respondeu. A página abre do mesmo jeito, dizendo isso e oferecendo tentar de novo.
+  let drafts: DraftRow[] | null = null;
+  let signedIn = true;
+  try {
+    const session = await getSession();
+    if (session) drafts = await listDrafts(session.user._id);
+    else signedIn = false;
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("[conta/projetos]", err);
+  }
+  if (!signedIn) redirect("/entrar?de=/conta/projetos");
 
   const now = pickNow();
   const jamTitles = Object.fromEntries(JAMS.map((j) => [j.slug, j.title]));
@@ -30,7 +39,7 @@ export default async function ProjetosPage() {
       <BoxHead title="Seus rascunhos">
         <p>
           Os jogos que você começou em Publicar, do mais recente para o mais antigo. Só você vê esta página.
-          {drafts.length > 0 ? (
+          {drafts && drafts.length > 0 ? (
             <>
               {" "}
               Cabem <span className="num">{LIMITS.drafts}</span> rascunhos por conta.
@@ -43,7 +52,21 @@ export default async function ProjetosPage() {
           <ArrowLeft aria-hidden size={18} />
           Sua conta
         </Link>
-        <DraftList drafts={drafts} jamTitles={jamTitles} openJams={openJams} max={LIMITS.drafts} />
+        {drafts ? (
+          <DraftList drafts={drafts} jamTitles={jamTitles} openJams={openJams} max={LIMITS.drafts} />
+        ) : (
+          <div className="bo-sheet">
+            <p className="bo-alert" role="alert">
+              Não conseguimos carregar seus rascunhos agora. Nenhum foi apagado: eles continuam salvos na sua conta.
+            </p>
+            <div className="bo-row bo-row--end">
+              {/* Um link comum, não <Link>: recarrega a página inteira e pergunta ao servidor de novo. */}
+              <a href="/conta/projetos" className="btn">
+                Tentar de novo
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

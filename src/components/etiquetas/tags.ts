@@ -1,8 +1,10 @@
 // The tag index, built from the sample catalogue. Tags are grouped by slug, so
-// two spellings that differ only in case or accents ("Física", "física") are
-// one entry, shown with the spelling most games use.
+// spellings that differ only in case, accents or punctuation ("Física",
+// "física"; "pixel art", "pixel-art") are one entry, shown with the spelling
+// most games use. Games are joined by that same slug, so the count, the tag
+// page, the catalogue's ?etiqueta= filter and related tags always agree.
 
-import { TRACKS, type Game, type TrackId, gamesByTag, tagCounts } from "@/data/catalog";
+import { GAMES, TRACKS, type Game, type TrackId, tagCounts } from "@/data/catalog";
 import { fold, tagSlug } from "./slug";
 
 export type TagTrack = { id: TrackId; count: number };
@@ -25,6 +27,8 @@ export const billing = (count: number): Bill => (count >= 7 ? 4 : count >= 4 ? 3
 
 let cache: TagInfo[] | null = null;
 
+const byNewest = (a: Game, b: Game) => +new Date(b.published) - +new Date(a.published);
+
 /** Every tag once, alphabetical in pt-BR. */
 export function tagIndex(): TagInfo[] {
   if (cache) return cache;
@@ -34,8 +38,18 @@ export function tagIndex(): TagInfo[] {
     const slug = tagSlug(tag);
     if (slug && !bySlug.has(slug)) bySlug.set(slug, tag);
   }
+  // Each game once per slug, even when it carries two spellings of one tag.
+  const gamesBySlug = new Map<string, Game[]>();
+  for (const g of [...GAMES].sort(byNewest)) {
+    for (const slug of new Set(g.tags.map(tagSlug))) {
+      if (!slug) continue;
+      const list = gamesBySlug.get(slug);
+      if (list) list.push(g);
+      else gamesBySlug.set(slug, [g]);
+    }
+  }
   cache = [...bySlug].map(([slug, tag]) => {
-    const games = gamesByTag(tag);
+    const games = gamesBySlug.get(slug)!;
     const tally = new Map<TrackId, number>();
     for (const g of games) tally.set(g.track, (tally.get(g.track) ?? 0) + 1);
     const tracks = TRACKS.filter((t) => tally.has(t.id)).map((t) => ({ id: t.id, count: tally.get(t.id)! }));

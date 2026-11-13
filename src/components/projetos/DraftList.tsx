@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowRight, LoaderCircle } from "lucide-react";
-import { formatDay, type TrackId } from "@/data/catalog";
-import { TrackChip, trackStyle } from "@/components/bits";
+import { dayParts, formatDay, formatTime, type TrackId } from "@/data/base";
+import { TrackChip, trackStyle } from "@/components/bits-base";
 import { deleteDraft } from "@/lib/projects/actions";
 import type { DeleteResult, DraftRow } from "@/lib/projects/limits";
 
@@ -17,10 +17,6 @@ export interface OpenJam {
   track: TrackId;
 }
 
-const TZ = "America/Sao_Paulo";
-const DAY = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", timeZone: TZ });
-const MONTH = new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone: TZ });
-const TIME = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ });
 const pad = (n: number) => String(n).padStart(2, "0");
 
 const STEPS: [string, string][] = [
@@ -121,7 +117,7 @@ function Row({ draft, jamTitle, onDeleted }: { draft: DraftRow; jamTitle?: strin
   const keepRef = useRef<HTMLButtonElement>(null);
   const askRef = useRef<HTMLButtonElement>(null);
   const wasConfirming = useRef(false);
-  const at = new Date(draft.updatedAt);
+  const [day, month] = dayParts(draft.updatedAt);
   const href = `/publicar?projeto=${draft.id}`;
 
   useEffect(() => {
@@ -155,9 +151,9 @@ function Row({ draft, jamTitle, onDeleted }: { draft: DraftRow; jamTitle?: strin
   return (
     <li style={trackStyle(draft.track)} data-confirm={confirming || undefined}>
       <time className="pj-when" dateTime={draft.updatedAt}>
-        <b>{DAY.format(at)}</b>
+        <b>{day}</b>
         <small>
-          {MONTH.format(at).replace(".", "")} · <span className="num">{TIME.format(at)}</span>
+          {month} · <span className="num">{formatTime(draft.updatedAt)}</span>
         </small>
       </time>
       <span className="pj-title">

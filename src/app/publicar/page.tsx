@@ -1,5 +1,4 @@
 import "@/styles/projetos.css";
-import { randomUUID } from "node:crypto";
 import type { Metadata } from "next";
 import { redirect, unstable_rethrow } from "next/navigation";
 import { JAMS, jamBySlug } from "@/data/catalog";
@@ -7,7 +6,7 @@ import { jamState, pickNow } from "@/components/jams/clock";
 import { getSession } from "@/lib/auth/session";
 import { readDraft } from "@/lib/projects/rules";
 import type { SavedDraft } from "@/lib/projects/limits";
-import { PublishForm, type Account, type JamOption } from "./PublishForm";
+import { PublishFormHost, type Account, type JamOption } from "./PublishForm";
 
 export const metadata: Metadata = { title: "Publicar um jogo" };
 
@@ -39,6 +38,7 @@ export default async function PublishPage({ searchParams }: { searchParams: SP }
   // Abrir um rascunho pede conta: entra e volta direto para ele.
   if (account === "visitante" && projeto) redirect(`/entrar?de=${encodeURIComponent(`/publicar?projeto=${projeto}`)}`);
 
+  const missing = account === "dentro" && asked && !draft;
   const now = pickNow();
   const selected = draft?.jam || jam;
   const jams: JamOption[] = JAMS.map((j) => ({ slug: j.slug, title: j.title, start: j.start, end: j.end, state: jamState(j, now) }))
@@ -57,14 +57,16 @@ export default async function PublishPage({ searchParams }: { searchParams: SP }
           </p>
         </div>
       </header>
-      <PublishForm
-        // Chave nova a cada render do servidor: abrir outro rascunho (ou um novo) nunca herda o estado do anterior.
-        key={randomUUID()}
+      <PublishFormHost
+        // A chave é o que o formulário está editando: abrir outro rascunho, um novo, outra jam (ou um id que não
+        // existe) recomeça o formulário; um novo render do servidor do mesmo endereço mantém o que está escrito.
+        // O caso do rascunho que o próprio formulário acabou de criar fica com PublishFormHost.
+        formKey={draft ? `rascunho:${draft.id}` : `novo:${jam}${missing ? ":faltando" : ""}`}
         account={account}
         initial={draft}
         jam={jam}
         jams={jams}
-        missing={account === "dentro" && asked && !draft}
+        missing={missing}
       />
     </>
   );

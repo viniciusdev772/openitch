@@ -3,17 +3,12 @@
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { BookmarkCheck } from "lucide-react";
+import { dayParts, shortDay } from "@/data/base";
 import { ButtonReplica } from "./ButtonReplica";
 import { LibraryToggle } from "./LibraryToggle";
 import type { ShelfData, ShelfGame, ShelfPerson, ShelfTrack } from "./shelf-types";
 
 const NEWS_LIMIT = 12;
-const TZ = "America/Sao_Paulo";
-const DAY = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", timeZone: TZ });
-const MONTH = new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone: TZ });
-/** "13" e "nov", sem o "de" e sem o ponto da abreviação. */
-const dayParts = (iso: string) => [DAY.format(new Date(iso)), MONTH.format(new Date(iso)).replace(".", "")] as const;
-const shortDay = (iso: string) => dayParts(iso).join(" ");
 const pad = (n: number) => String(n).padStart(2, "0");
 
 const trackVars = (t: ShelfTrack) => ({ "--c": `var(${t.color})`, "--on": `var(${t.on})` }) as React.CSSProperties;

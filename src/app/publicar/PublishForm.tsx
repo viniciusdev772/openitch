@@ -2,14 +2,17 @@
 
 import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { CloudOff } from "lucide-react";
-import { PLATFORMS, TRACKS, formatDay, type Game, type Platform, type TrackId } from "@/data/catalog";
-import { Entry, trackStyle } from "@/components/bits";
+import { PLATFORMS, TRACKS, formatDay, type Game, type Platform, type TrackId } from "@/data/base";
+import { Entry, trackStyle } from "@/components/bits-base";
 import { DraftBar, type SaveStatus } from "@/components/projetos/DraftBar";
 import { saveDraft } from "@/lib/projects/actions";
 import {
   DRAFT_COVERS,
   LIMITS,
+  MAX_PRICE_TEXT,
+  checkPrice,
   parseCents,
   splitTags,
   suggestSlug,
@@ -73,18 +76,73 @@ const pick = (d: SavedDraft): DraftFields => ({
 
 const count = (s: string) => [...s].length;
 
-export function PublishForm({
-  account,
-  initial,
-  jam,
-  jams,
-  missing,
-}: {
+const PRICE_KINDS: PriceKind[] = ["free", "fixed", "pwyw"];
+const AMOUNT_MAX = 9;
+const LEAVE_WARNING = "Este rascunho tem alterações não salvas. Sair da página mesmo assim? O que não foi salvo se perde.";
+
+/**
+ * O que voltou do sessionStorage, conferido campo a campo com as mesmas
+ * listas e limites do formulário. Um campo que não passa fica com o valor de
+ * `base`; o resto volta. null quando nem é um objeto.
+ */
+function fromStash(raw: unknown, base: DraftFields, jamSlugs: Set<string>): DraftFields | null {
+  if (!raw || typeof raw !== "object") return null;
+  const s = raw as Record<string, unknown>;
+  const text = (v: unknown, max: number, fallback: string) => (typeof v === "string" ? [...v].slice(0, max).join("") : fallback);
+  return {
+    title: text(s.title, LIMITS.title, base.title),
+    tagline: text(s.tagline, LIMITS.tagline, base.tagline),
+    description: text(s.description, LIMITS.description, base.description),
+    track: TRACKS.some((t) => t.id === s.track) ? (s.track as TrackId) : base.track,
+    tags: text(s.tags, LIMITS.tagsRaw, base.tags),
+    platforms: Array.isArray(s.platforms) ? ALL_PLATFORMS.filter((p) => (s.platforms as unknown[]).includes(p)) : base.platforms,
+    priceKind: PRICE_KINDS.includes(s.priceKind as PriceKind) ? (s.priceKind as PriceKind) : base.priceKind,
+    // O mesmo filtro do campo: só algarismos, vírgula e ponto, até 9 caracteres.
+    amount: typeof s.amount === "string" && s.amount.length <= AMOUNT_MAX && /^[\d,.]*$/.test(s.amount) ? s.amount : base.amount,
+    cover: DRAFT_COVERS.some((c) => c.style === s.cover) ? (s.cover as DraftFields["cover"]) : base.cover,
+    jam: typeof s.jam === "string" && (s.jam === "" || jamSlugs.has(s.jam)) ? s.jam : base.jam,
+  };
+}
+
+interface FormProps {
   account: Account;
   initial: SavedDraft | null;
   jam: string;
   jams: JamOption[];
   missing: boolean;
+}
+
+/**
+ * Dá ao formulário a sua chave. O servidor manda a chave do que o endereço
+ * abre ("rascunho:<id>" ou "novo:<jam>"): mudar de chave recomeça o
+ * formulário, e um novo render do servidor do mesmo endereço não muda nada.
+ *
+ * Exceção: o rascunho que o próprio formulário criou. Ao salvar pela primeira
+ * vez, o endereço passa a ?projeto=<id> sem passar pelo servidor; enquanto o
+ * endereço apontar para esse id, é o mesmo formulário (mesma chave), mesmo que
+ * o servidor o renderize de novo como "rascunho:<id>". Quando o endereço sai
+ * dele (o Publicar do cabeçalho, por exemplo, volta a "novo:"), o formulário
+ * recomeça, ainda que a chave do servidor seja igual à de antes.
+ */
+export function PublishFormHost({ formKey, ...props }: FormProps & { formKey: string }) {
+  const urlId = useSearchParams().get("projeto");
+  const [own, setOwn] = useState<{ id: string; key: string; shown: boolean } | null>(null);
+  // O endereço só acompanha o replaceState um instante depois; até lá, a chave fica.
+  if (own && !own.shown && urlId === own.id) setOwn({ ...own, shown: true });
+  const key = !own || !own.shown || urlId === own.id ? (own?.key ?? formKey) : formKey === own.key ? `${formKey}|${own.id}` : formKey;
+  return <PublishForm key={key} {...props} onCreated={(id) => setOwn({ id, key, shown: false })} />;
+}
+
+function PublishForm({
+  account,
+  initial,
+  jam,
+  jams,
+  missing,
+  onCreated,
+}: FormProps & {
+  /** O primeiro salvamento de um rascunho novo (ou "salvar como novo") criou este id. */
+  onCreated: (id: string) => void;
 }) {
   const id = useId();
   const [f, setF] = useState<DraftFields>(() => (initial ? pick(initial) : blank(jam)));
@@ -106,30 +164,58 @@ export function PublishForm({
     try {
       const raw = sessionStorage.getItem(STASH);
       if (!raw) return;
-      const s = JSON.parse(raw) as { at: number; id: string | null; fields: DraftFields };
+      const s = JSON.parse(raw) as { at?: unknown; id?: unknown; fields?: unknown } | null;
       if (typeof s?.at !== "number" || Date.now() - s.at > STASH_TTL) {
         sessionStorage.removeItem(STASH);
         return;
       }
       if ((s.id ?? null) !== (initial?.id ?? null)) return;
       sessionStorage.removeItem(STASH);
-      const ok = TRACKS.some((t) => t.id === s.fields.track) && DRAFT_COVERS.some((c) => c.style === s.fields.cover);
-      if (!ok) return;
-      setF({ ...blank(jam), ...s.fields, platforms: (s.fields.platforms ?? []).filter((p) => ALL_PLATFORMS.includes(p)) });
+      const fields = fromStash(s.fields, initial ? pick(initial) : blank(jam), new Set(jams.map((j) => j.slug)));
+      if (!fields) return;
+      setF(fields);
       setRestored(true);
     } catch {
-      /* armazenamento bloqueado: segue sem recuperar */
+      /* armazenamento bloqueado ou conteúdo ilegível: segue sem recuperar */
     }
+    // Só ao abrir este rascunho (ou rascunho novo): um novo render do servidor não volta a restaurar.
   }, [initial?.id, jam]);
 
-  /* Sair da página com alterações não salvas pede confirmação. */
+  /*
+   * Sair da página com alterações não salvas pede confirmação: fechar,
+   * recarregar ou ir para outro site (beforeunload), e também seguir um link
+   * interno, que o Next abre sem recarregar. O clique é visto na captura, antes
+   * do <Link>; recusado, ele não chega ao roteador. Links que guardam o texto
+   * antes de sair (entrar de novo) e cliques que abrem outra aba passam direto.
+   */
   useEffect(() => {
     if (account !== "dentro" || !dirty) return;
+    // Saída já confirmada num link: enquanto a próxima página carrega, não pergunta de novo.
+    let leaving = false;
     const warn = (e: BeforeUnloadEvent) => {
+      if (!leaving) e.preventDefault();
+    };
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = e.target instanceof Element ? e.target.closest("a[href]") : null;
+      if (!(a instanceof HTMLAnchorElement) || a.hasAttribute("data-keeps-draft") || a.hasAttribute("download")) return;
+      if (a.target && a.target !== "_self") return;
+      const to = new URL(a.href, window.location.href);
+      if (to.origin !== window.location.origin) return; // outro site: o beforeunload pergunta
+      if (to.pathname === window.location.pathname && to.search === window.location.search) return; // só a âncora muda
+      if (window.confirm(LEAVE_WARNING)) {
+        leaving = true;
+        return;
+      }
       e.preventDefault();
+      e.stopPropagation();
     };
     window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
+    window.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("beforeunload", warn);
+      window.removeEventListener("click", onClick, true);
+    };
   }, [account, dirty]);
 
   const stash = () => {
@@ -177,16 +263,9 @@ export function PublishForm({
     [f, cents, cover],
   );
 
-  const priceProblem =
-    f.priceKind === "free"
-      ? null
-      : parseCents(f.amount.trim() === "" && f.priceKind === "pwyw" ? "0" : f.amount) === null
-        ? "Escreva o valor só com números e vírgula, como 12,50."
-        : cents > LIMITS.priceCents
-          ? "O valor máximo é R$ 1.000,00."
-          : f.priceKind === "fixed" && cents === 0
-            ? "Preço fixo precisa ser maior que zero. Para zero, escolha Grátis."
-            : null;
+  // A mesma conferência do servidor (checkPrice), com as mesmas mensagens.
+  const priceCheck = checkPrice(f.priceKind, f.amount);
+  const priceProblem = priceCheck.ok ? null : priceCheck.error;
 
   const done = {
     1: count(f.title.trim()) >= 2 && count(f.tagline.trim()) >= 5,
@@ -248,7 +327,10 @@ export function PublishForm({
           /* nada */
         }
         // O endereço passa a apontar para o rascunho: recarregar reabre ele.
-        if (!target) window.history.replaceState(null, "", `/publicar?projeto=${res.id}`);
+        if (!target) {
+          onCreated(res.id);
+          window.history.replaceState(null, "", `/publicar?projeto=${res.id}`);
+        }
         return;
       }
       if (res.code === "sessao") stash();
@@ -313,7 +395,7 @@ export function PublishForm({
               <strong>Você pode testar tudo sem conta.</strong> Para salvar como rascunho e voltar depois, entre na sua
               conta. O que já estiver escrito vem junto.
             </p>
-            <Link href={`/entrar?de=${encodeURIComponent(nextPath)}`} className="btn btn--sm" onClick={stash}>
+            <Link href={`/entrar?de=${encodeURIComponent(nextPath)}`} className="btn btn--sm" onClick={stash} data-keeps-draft>
               Entrar para salvar
             </Link>
           </div>
@@ -561,7 +643,7 @@ export function PublishForm({
                     </div>
                     {amountError ? <p className="field-error" id={`${id}-p-err`}>{amountError}</p> : null}
                     <p className="field-hint" id={`${id}-p-hint`}>
-                      Em reais, até <span className="num">R$ 1.000,00</span>. Use vírgula para os centavos.
+                      Em reais, até <span className="num">{MAX_PRICE_TEXT}</span>. Use vírgula para os centavos.
                     </p>
                   </div>
                 )}
@@ -615,7 +697,7 @@ export function PublishForm({
             <span>{t.name}</span>
           </div>
           <div className={`preview-sheet${t.on === "--paper" ? " on-field" : ""}`} style={trackStyle(f.track)}>
-            <Entry game={preview} variant="lead" link={false} />
+            <Entry game={preview} variant="lead" link={false} creatorName="Você" />
           </div>
         </div>
       </aside>
