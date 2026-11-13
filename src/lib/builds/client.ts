@@ -20,7 +20,7 @@ import { injectCoiScript, COI_SCRIPT } from "./coi";
 import { sniffUnityweb } from "./mime";
 import { readZip, entryBlob, entryHead, openEntry, readHead, chunkStream, ZipError, type ZipEntry } from "./zip";
 import { MAX_WEB_BUILD_BYTES, MAX_WEB_BUILD_FILES, formatBytes } from "@/lib/storage/limits";
-import { BUILD_PART_CONCURRENCY, BUILD_PART_SIZE, BUILD_SINGLE_MAX, FILE_CONCURRENCY, MAX_BYTES_IN_FLIGHT, SIGN_BATCH } from "./config";
+import { BUILD_PART_CONCURRENCY, BUILD_PART_SIZE, BUILD_SINGLE_MAX, FILE_CONCURRENCY, MAX_BYTES_IN_FLIGHT, REQUEST_BUDGET_S, SIGN_BATCH } from "./config";
 
 /* ------------------------------------------------------------------ */
 /* Fontes de arquivo                                                   */
@@ -291,10 +291,13 @@ async function api<T>(url: string, init: { method: string; body?: unknown }, sig
 class ByteGate {
   private used = 0;
   private waiters: { n: number; go: () => void }[] = [];
-  constructor(private max: number) {}
+  private max: number;
+  constructor(max: number) {
+    this.max = max;
+  }
   async take(n: number) {
     const need = Math.min(n, this.max);
-    if (this.used + need <= this.max && this.waiters.length === 0) {
+    if ((this.used === 0 || this.used + need <= this.max) && this.waiters.length === 0) {
       this.used += need;
       return need;
     }
@@ -303,7 +306,15 @@ class ByteGate {
   }
   give(n: number) {
     this.used -= n;
-    while (this.waiters.length && this.used + this.waiters[0].n <= this.max) {
+    this.wake();
+  }
+  /** Muda o teto (pela velocidade medida); sempre deixa passar ao menos uma requisição. */
+  setMax(max: number) {
+    this.max = max;
+    this.wake();
+  }
+  private wake() {
+    while (this.waiters.length && (this.used === 0 || this.used + this.waiters[0].n <= this.max)) {
       const w = this.waiters.shift()!;
       this.used += w.n;
       w.go();
@@ -360,7 +371,32 @@ interface Signed {
 
 export class BuildUpload {
   private ctrl = new AbortController();
-  private gate = new ByteGate(MAX_BYTES_IN_FLIGHT);
+  // Começa com duas partes em trânsito; o teto cresce com a velocidade medida.
+  private gate = new ByteGate(2 * BUILD_PART_SIZE);
+  private wire = { bytes: 0, at: 0, mark: 0, rate: 0 };
+
+  /** Bytes que saíram de fato pela rede (não conta partes retomadas). */
+  private metered(count: (n: number) => void) {
+    return (n: number) => {
+      count(n);
+      if (n <= 0) return;
+      const w = this.wire;
+      w.bytes += n;
+      const now = performance.now();
+      if (!w.at) {
+        w.at = now;
+        w.mark = w.bytes;
+        return;
+      }
+      if (now - w.at < 2000) return;
+      const inst = ((w.bytes - w.mark) / (now - w.at)) * 1000;
+      w.rate = w.rate ? w.rate * 0.7 + inst * 0.3 : inst;
+      w.at = now;
+      w.mark = w.bytes;
+      // Quanto pode estar subindo junto para cada requisição terminar em ~REQUEST_BUDGET_S.
+      this.gate.setMax(Math.min(MAX_BYTES_IN_FLIGHT, Math.max(BUILD_PART_SIZE, w.rate * REQUEST_BUDGET_S)));
+    };
+  }
   private state = new Map<string, FileState>();
   private errors = new Map<string, string>();
   private signed = new Map<string, Signed>();
@@ -589,7 +625,7 @@ export class BuildUpload {
       const held = await this.gate.take(f.size);
       try {
         const body = await f.blob();
-        await put(s.url, body, s.headers, this.ctrl.signal, this.counter(f.path));
+        await put(s.url, body, s.headers, this.ctrl.signal, this.metered(this.counter(f.path)));
         this.signed.delete(f.path);
         return;
       } catch (err) {
@@ -610,6 +646,7 @@ export class BuildUpload {
     if (plan.tamanhoParte !== BUILD_PART_SIZE) throw new Error("Tamanho de parte inesperado.");
     const urls = new Map(plan.partes.map((p) => [p.n, p]));
     const count = this.counter(f.path);
+    const wire = this.metered(count);
     // Partes que já tinham subido (retomada) contam como enviadas.
     for (const n of plan.feitas) count(n === plan.total ? f.size - BUILD_PART_SIZE * (plan.total - 1) : BUILD_PART_SIZE);
 
@@ -621,7 +658,7 @@ export class BuildUpload {
         const p = urls.get(n)!;
         for (let attempt = 0; ; attempt++) {
           try {
-            await put(p.url, body, {}, this.ctrl.signal, count);
+            await put(p.url, body, {}, this.ctrl.signal, wire);
             return;
           } catch (err) {
             if (err instanceof Cancelled || attempt >= 3) throw err;

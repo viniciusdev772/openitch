@@ -32,16 +32,20 @@ export function isDownloadPlatform(p: unknown): p is DownloadPlatform {
 }
 
 /**
- * Tamanho das partes do multipart: 16 MiB.
+ * Tamanho das partes do multipart: 5 MiB (o mínimo do S3).
  *
- * Por que não 64 MiB: com 6 partes em paralelo numa
- * conexão doméstica de 20 Mbit/s, cada parte de 64 MiB leva mais de dois
- * minutos; uma queda de rede ou uma página recarregada joga fora até
- * 6 × 64 MiB. Com 16 MiB a perda máxima cai para 96 MiB, o progresso fica
- * mais fino e o SHA-256 de cada parte cabe folgado na memória. 3 GiB dá
- * 192 partes (o S3 aceita até 10.000), assinadas em lotes.
+ * O proxy na frente do MinIO (Traefik do Easypanel) corta qualquer
+ * requisição que passe de 60 s e responde 502 sem CORS. Numa conexão lenta
+ * (upload de celular), uma parte grande nunca termina a tempo: o envio
+ * subia até alguns MB e voltava a zero, para sempre. Com 5 MiB uma parte
+ * cabe em 60 s até a ~0,7 Mbit/s, e o cliente ainda limita quantas sobem
+ * juntas pela velocidade medida (cada uma deve levar no máximo ~20 s).
+ * 3 GiB dá 615 partes (o S3 aceita até 10.000), assinadas em lotes.
  */
-export const UPLOAD_PART_SIZE = 16 * MiB;
+export const UPLOAD_PART_SIZE = 5 * MiB;
+
+/** Tempo-alvo de cada requisição de envio (s), bem abaixo do corte de 60 s do proxy. */
+export const REQUEST_BUDGET_S = 20;
 
 /** URLs pedidas por vez ao servidor. */
 export const SIGN_BATCH = 12;
