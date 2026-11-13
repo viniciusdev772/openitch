@@ -118,9 +118,107 @@ export interface ProjectDoc {
   cover: string;
   /** Slug da jam no catálogo, ou null. */
   jam: string | null;
-  status: "rascunho";
+  /** "excluindo": a exclusão começou (arquivos sendo apagados); não aceita envios novos. */
+  status: "rascunho" | "excluindo";
   createdAt: Date;
   updatedAt: Date;
+}
+
+/* ------------------------------------------------------------------ */
+/* Arquivos no MinIO (ver src/lib/storage)                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Um arquivo enviado para baixar (build de Windows, macOS, Linux, Android) ou
+ * o zip original de um build de navegador. Os bytes vão do navegador direto
+ * para o MinIO (multipart com URLs pré-assinadas); aqui fica só o registro.
+ */
+export interface UploadDoc {
+  _id: ObjectId;
+  userId: ObjectId;
+  projectId: ObjectId;
+  /** download: arquivo para baixar; web-source: zip de um build de navegador. */
+  kind: "download" | "web-source";
+  platform: Platform;
+  filename: string;
+  size: number;
+  contentType: string;
+  bucket: string;
+  key: string;
+  /** UploadId do multipart enquanto o envio está aberto. */
+  multipartId: string | null;
+  partSize: number;
+  status: "enviando" | "pronto" | "cancelado";
+  /** Soma de verificação informada pelo navegador ao terminar (opcional). */
+  sha256: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt: Date | null;
+  /** Data de modificação do arquivo no computador (ms), para reconhecer o mesmo arquivo ao retomar. */
+  lastModified?: number;
+  /** Partes enviadas com SHA-256 conferido pelo MinIO (x-amz-checksum-sha256). */
+  checksum?: boolean;
+  /** Número de partes esperado (multipart) ou 1 (PUT único). */
+  partCount?: number;
+  /** "single": um PUT pré-assinado; "multipart": partes em paralelo. */
+  mode?: "single" | "multipart";
+  /** ETag final do objeto (para conferência). */
+  etag?: string | null;
+  /** Trava curta enquanto o servidor conclui o multipart. */
+  completing?: Date | null;
+}
+
+/** Documento genérico da coleção "meta" (estado interno, sem dados de usuário). */
+export interface MetaDoc {
+  _id: string;
+  [field: string]: unknown;
+}
+
+export type WebEngine = "unity" | "godot" | "unreal-html5" | "construct" | "gamemaker" | "defold" | "pico8" | "bevy" | "ruffle" | "html5";
+
+/** Um arquivo declarado de um build de navegador (caminho relativo e tamanho exato). */
+export interface BuildFileDoc {
+  p: string;
+  s: number;
+  /** Content-Encoding detectado num .unityweb (o nome não diz qual é). */
+  e?: "br" | "gzip";
+}
+
+/**
+ * Um build de navegador extraído no bucket jogável, sob `prefix`
+ * (ex.: "b/<buildId>/"), servido direto do MinIO num iframe isolado.
+ */
+export interface BuildDoc {
+  _id: ObjectId;
+  userId: ObjectId;
+  projectId: ObjectId;
+  /** Upload do zip original, se o zip também foi guardado. */
+  sourceUploadId: ObjectId | null;
+  bucket: string;
+  prefix: string;
+  /** Caminho do HTML de entrada relativo ao prefixo (ex.: "index.html"). */
+  entry: string;
+  engine: WebEngine;
+  /** Precisa de isolamento entre origens (SharedArrayBuffer: Godot com threads, Unity com threads). */
+  needsIsolation: boolean;
+  fileCount: number;
+  totalSize: number;
+  status: "enviando" | "pronto" | "falhou";
+  /** Tamanho da tela sugerido (px), se o build informa. */
+  width: number | null;
+  height: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+  /* Campos da frente "jogável" (src/lib/builds). */
+  /** Identificador público aleatório de 128 bits (hex): a pasta é b/<publicId>/ e a página /jogar/<publicId>. */
+  publicId?: string;
+  /** Lista declarada antes do envio; o servidor só assina estes caminhos, com estes tamanhos. */
+  files?: BuildFileDoc[];
+  /** Envios multipart abertos (arquivos grandes), por caminho. */
+  multipart?: { p: string; id: string }[];
+  /** Versão aproximada do motor (ex.: "4.3+"). */
+  engineVersion?: string | null;
+  completedAt?: Date | null;
 }
 
 export type SecurityEventType =
@@ -161,7 +259,7 @@ const cache: Cache = (g.__openitchMongo ??= {});
 function connect(): Promise<MongoClient> {
   if (!cache.client) {
     const client = new MongoClient(mongoUri(), {
-      appName: "openitch",
+      appName: "vibegames",
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 8000,
       connectTimeoutMS: 8000,
@@ -189,6 +287,10 @@ async function ensureIndexes(db: Db): Promise<void> {
         db.collection("saves").createIndex({ userId: 1, game: 1 }, { unique: true }),
         db.collection("follows").createIndex({ userId: 1, creator: 1 }, { unique: true }),
         db.collection("projects").createIndex({ userId: 1, updatedAt: -1 }),
+        db.collection("uploads").createIndex({ projectId: 1, createdAt: -1 }),
+        db.collection("uploads").createIndex({ userId: 1, status: 1 }),
+        db.collection("builds").createIndex({ projectId: 1, createdAt: -1 }),
+        db.collection("builds").createIndex({ userId: 1, status: 1 }),
       ]);
     })().catch((err) => {
       cache.indexes = undefined;
@@ -211,5 +313,9 @@ export async function db() {
     saves: database.collection<SaveDoc>("saves"),
     follows: database.collection<FollowDoc>("follows"),
     projects: database.collection<ProjectDoc>("projects"),
+    uploads: database.collection<UploadDoc>("uploads"),
+    builds: database.collection<BuildDoc>("builds"),
+    /** Estado interno do sistema (ex.: configuração do armazenamento já aplicada). */
+    meta: database.collection<MetaDoc>("meta"),
   };
 }

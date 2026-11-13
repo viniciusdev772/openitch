@@ -7,7 +7,7 @@ export function Colophon() {
       <div className="wrap">
         <div>
           <p className="big" aria-hidden>
-            open<em>itch</em>
+            vibe<em>games</em>
           </p>
           <p style={{ marginTop: 24, maxWidth: "40ch", fontSize: "1.0625rem" }}>
             Um programa aberto de jogos independentes. Quem faz, publica. Quem joga, escolhe quanto paga.
@@ -54,7 +54,7 @@ export function Colophon() {
           </ul>
         </div>
         <div className="fine">
-          <span>Contas já são reais. Pagamentos e envio de arquivos ainda não estão conectados.</span>
+          <span>Contas, rascunhos e envio de arquivos já funcionam. Publicar no programa e pagamentos ainda não estão ligados.</span>
         </div>
       </div>
     </footer>

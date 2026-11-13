@@ -33,7 +33,7 @@ export default function Home() {
         <div className="wrap">
           <div style={{ display: "flex", flexDirection: "column" }}>
             <h1 id="capa-titulo" className="cover-title">
-              open<em>itch</em>
+              vibe<em>games</em>
             </h1>
             <p className="cover-hook">
               Um festival de jogos independentes que nunca fecha. Publique o seu hoje, pelo preço que quiser, ou de graça.
@@ -214,8 +214,8 @@ export default function Home() {
             <div>
               <h3>Jogos de navegador rodam na página.</h3>
               <p>
-                Um .zip com um index.html na raiz vira a tela do jogo, e para quem joga é um clique. O envio de arquivos
-                ainda não está ligado: por enquanto a página do jogo fica salva como rascunho.
+                Um .zip com um index.html na raiz vira a tela do jogo, e para quem joga é um clique. Unity, Godot,
+                Construct, GameMaker e HTML5 rodam aqui; builds de até 3 GB para desktop e Android ficam para baixar.
               </p>
             </div>
             <div className="pitch-proof">

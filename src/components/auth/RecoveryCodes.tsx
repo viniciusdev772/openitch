@@ -26,12 +26,12 @@ export function RecoveryCodes({
   }, []);
 
   const text = [
-    "openitch · códigos de recuperação",
+    "VibeGames · códigos de recuperação",
     `Conta: ${email}`,
     `Gerados em: ${new Date().toLocaleString("pt-BR")}`,
     "",
     "Cada código funciona uma vez. Use para entrar sem o app autenticador",
-    "ou para criar uma senha nova em openitch.vercel.app/recuperar.",
+    `ou para criar uma senha nova em ${typeof window === "undefined" ? "" : window.location.host}/recuperar.`,
     "",
     ...codes.map((c, i) => `${String(i + 1).padStart(2, "0")}  ${c}`),
     "",
@@ -51,7 +51,7 @@ export function RecoveryCodes({
     const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "openitch-codigos-de-recuperacao.txt";
+    a.download = "vibegames-codigos-de-recuperacao.txt";
     document.body.appendChild(a);
     a.click();
     a.remove();

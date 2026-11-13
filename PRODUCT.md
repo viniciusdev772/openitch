@@ -24,7 +24,7 @@ An open storefront and publishing home for independent games: upload a build, ge
 
 ## Positioning
 
-Open by default *(inferred from the name "openitch")*: creators set price and revenue share themselves, browser-playable builds run on the page, and discovery favours new and odd work over sales rank. Treat any specific revenue split, fee, or licensing claim as undecided until the owner states it.
+Open by default *(inherited from the project's first name, "openitch")*: creators set price and revenue share themselves, browser-playable builds run on the page, and discovery favours new and odd work over sales rank. Treat any specific revenue split, fee, or licensing claim as undecided until the owner states it.
 
 ## Operating Context
 
@@ -34,14 +34,14 @@ Open by default *(inferred from the name "openitch")*: creators set price and re
 
 ## Capabilities and Constraints
 
-- Real today: accounts (own auth on MongoDB, with two-step verification and recovery codes), the shelf (save games, follow creators) and project drafts. Not yet: publishing a draft to the public programme, file storage, payments. Forms must not pretend to complete a payment, upload or publication.
+- Real today: accounts (own auth on MongoDB, with two-step verification and recovery codes), the shelf (save games, follow creators), project drafts, and file storage on MinIO (S3): builds up to 3 GB per file sent straight from the browser in parallel parts, and browser builds (Unity, Godot, Unreal 4 HTML5, Construct, GameMaker, Defold, PICO-8, HTML5) extracted in the browser and served straight from MinIO in an isolated iframe, so Vercel never carries game bytes. Not yet: publishing a draft to the public programme (files and the playable are an owner-only preview), payments. Unreal 5 has no browser export; its builds are downloads. Forms must not pretend to complete a payment or publication.
 - Platform categories: Web (HTML5), Windows, macOS, Linux, Android.
 - Pricing models: free, paid with a fixed price, pay-what-you-want with an optional minimum.
 - Undecided: platform fee or revenue split, payment provider, moderation policy.
 
 ## Brand Commitments
 
-- Product name: **openitch** (repository name; written in lowercase). No logo exists yet.
+- Product name: **VibeGames** (renamed from openitch by the owner). The wordmark is set lowercase, "vibe" in the field colour and "games" in lime on ultramarine and ink. No logo exists yet. Internal identifiers (database name, auth key salt, cookie and event names, repository) keep "openitch" so existing accounts keep working.
 - Must stay visually and verbally distinct from existing storefronts; no borrowed logos, layouts, or trade dress.
 
 ## Evidence on Hand

@@ -22,7 +22,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const STEPS: [string, string][] = [
   ["O jogo", "Título e uma frase. Só o título já basta para salvar."],
   ["Trilha e capa", "A cor da sua seção no programa e uma capa provisória."],
-  ["Plataformas e arquivos", "Onde o jogo roda. O envio de arquivos ainda não existe."],
+  ["Plataformas e arquivos", "Onde o jogo roda, os builds para baixar e a versão de navegador."],
   ["Preço", "Grátis, preço fixo ou pague o que quiser."],
   ["A página", "O que é o jogo, quanto dura e para quem é."],
 ];

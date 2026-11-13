@@ -5,7 +5,7 @@ primary_target: "src/app/entrar/page.tsx"
 related_targets: ["src/app/criar-conta/page.tsx","src/app/recuperar/page.tsx","src/app/entrar/verificar/page.tsx","src/app/conta/page.tsx","src/app/conta/duas-etapas/page.tsx"]
 ---
 
-# Surface brief: openitch box office (entrar, criar conta, recuperar, verificação em duas etapas, conta)
+# Surface brief: VibeGames box office (entrar, criar conta, recuperar, verificação em duas etapas, conta)
 
 ## Scope and mode
 - Operate. Visitor success: gets in (or back in) to their account in one pass, and can see and control exactly where they are signed in and how their account is protected.

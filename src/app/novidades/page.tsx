@@ -8,7 +8,7 @@ import { EmptyProgramme } from "@/components/EmptyProgramme";
 export const metadata: Metadata = {
   title: "Novidades",
   description:
-    "Diário do programa: lançamentos, atualizações, diários de desenvolvimento e notas de jam dos jogos do openitch.",
+    "Diário do programa: lançamentos, atualizações, diários de desenvolvimento e notas de jam dos jogos da VibeGames.",
 };
 
 export default function NovidadesPage() {

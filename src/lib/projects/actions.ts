@@ -9,6 +9,8 @@ import { hit, waitText } from "@/lib/auth/ratelimit";
 import { str } from "@/lib/auth/validate";
 import { LIMITS, WRITES_PER_WINDOW, WRITE_WINDOW_MS, type DeleteResult, type SaveResult } from "./limits";
 import { parseDraft } from "./rules";
+import { deleteUploadsOfProject } from "@/lib/uploads/server";
+import { deleteBuildsOfProject } from "@/lib/builds/cleanup";
 
 /*
  * Rascunhos de jogos. Cada ação é um endpoint público: confere sozinha quem
@@ -102,6 +104,14 @@ export async function deleteDraft(form: FormData): Promise<DeleteResult> {
     }
 
     const { projects } = await db();
+    // Marca primeiro: a partir daqui nenhum envio novo entra neste rascunho (envios e builds
+    // recusam projetos "excluindo"), então nada fica órfão entre apagar os arquivos e o registro.
+    const marked = await projects.updateOne({ _id: id, userId }, { $set: { status: "excluindo", updatedAt: new Date() } });
+    if (marked.matchedCount !== 1) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
+    // Arquivos e builds antes do registro: se o armazenamento falhar, o rascunho fica
+    // (marcado) e a pessoa tenta de novo para terminar.
+    await deleteUploadsOfProject(userId, id);
+    await deleteBuildsOfProject(userId, id);
     const res = await projects.deleteOne({ _id: id, userId });
     if (res.deletedCount !== 1) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
     revalidatePath("/conta/projetos");
@@ -109,6 +119,10 @@ export async function deleteDraft(form: FormData): Promise<DeleteResult> {
   } catch (err) {
     unstable_rethrow(err);
     console.error("[projetos]", err);
-    return { ok: false, code: "servidor", error: "Não conseguimos excluir agora. O rascunho continua salvo; tente de novo em instantes." };
+    return {
+      ok: false,
+      code: "servidor",
+      error: "A exclusão não terminou: parte dos arquivos pode já ter sido apagada. Tente excluir de novo em instantes para concluir.",
+    };
   }
 }

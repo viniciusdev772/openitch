@@ -5,10 +5,10 @@ primary_target: "src/app/sobre/page.tsx"
 related_targets: ["src/app/ajuda/page.tsx","src/app/novidades/page.tsx","src/app/novidades/[slug]/page.tsx"]
 ---
 
-# Surface brief: openitch guia do programa (sobre, ajuda, novidades)
+# Surface brief: VibeGames guia do programa (sobre, ajuda, novidades)
 
 ## Scope and mode
-- Read. Visitor success: understands what openitch is and what it does today, finds the answer to a concrete question in seconds, and reads what changed in the programme.
+- Read. Visitor success: understands what VibeGames is and what it does today, finds the answer to a concrete question in seconds, and reads what changed in the programme.
 - Routes: /sobre (article), /ajuda (guide and FAQ by subject), /novidades (dated feed of devlogs and release notes), /novidades/[slug] (one note in full).
 - Audience: players, creators and jam hosts from PRODUCT.md; first-time visitors arriving from the colophon or menu.
 - Source material: PRODUCT.md (principles, rewritten for the public), src/lib/auth/* (account facts: limits, session lengths, recovery), src/data/catalog.ts (games, creators), src/data/devlogs.ts (synthetic notes).

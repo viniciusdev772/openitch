@@ -78,31 +78,6 @@
 }
 
 /* O passo de arquivos diz, sem rodeio, que o envio não existe. */
-.pj-nofiles {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--s-4);
-  align-items: start;
-  padding: var(--s-4) var(--s-5);
-  border: 2px solid var(--ink);
-  border-radius: 12px;
-  background: var(--paper-deep);
-}
-.pj-nofiles svg {
-  width: 24px;
-  height: 24px;
-  margin-top: 2px;
-}
-.pj-nofiles strong {
-  display: block;
-  font-size: 1.0625rem;
-  margin-bottom: var(--s-1);
-}
-.pj-nofiles p {
-  font-size: 0.9375rem;
-  color: var(--ink-soft);
-  max-width: 56ch;
-}
 
 .pj-end {
   margin-top: var(--s-6);

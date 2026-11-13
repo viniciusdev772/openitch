@@ -5,7 +5,7 @@ primary_target: "src/app/conta/projetos/page.tsx"
 related_targets: ["src/components/projetos/DraftList.tsx"]
 ---
 
-# Surface brief: openitch rascunhos (/conta/projetos) and saving drafts from Publicar
+# Surface brief: VibeGames rascunhos (/conta/projetos) and saving drafts from Publicar
 
 ## Scope and mode
 - Operate. Visitor success: a signed-in creator finds every game they started in Publicar, sees when each was last saved, and reopens or deletes one in a click, without ever wondering whether the work is safe.
