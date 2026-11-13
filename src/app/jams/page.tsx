@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { GAMES, JAMS, formatDay, trackById } from "@/data/catalog";
+import { GAMES, JAMS, formatDay, jamState, pickNow, trackById } from "@/data/catalog";
 import { JamSchedule } from "@/components/JamSchedule";
 import { Joined, trackStyle } from "@/components/bits";
-import { pickNow } from "@/components/jams/clock";
 import "@/styles/jams-criadores.css";
 
 export const metadata: Metadata = { title: "Jams" };
@@ -22,14 +21,12 @@ export default function JamsPage() {
         </div>
       </header>
       <section className="wrap" style={{ paddingTop: 48, paddingBottom: 128 }}>
-        <JamSchedule />
+        <JamSchedule serverNow={NOW} />
         <div className="jam-list">
-          {JAMS.filter((j) => NOW <= new Date(j.end).getTime())
+          {JAMS.filter((j) => jamState(j, NOW) !== "past")
             .sort((a, b) => +new Date(a.start) - +new Date(b.start))
             .map((j) => {
-            const s = new Date(j.start).getTime();
-            const e = new Date(j.end).getTime();
-            const state = NOW > e ? "past" : NOW >= s ? "live" : "next";
+            const state = jamState(j, NOW);
             const tr = trackById(j.track);
             const entries = GAMES.filter((g) => g.jam === j.slug);
             return (
@@ -74,7 +71,7 @@ export default function JamsPage() {
         <section className="jam-past" aria-labelledby="encerradas">
           <h2 id="encerradas">Encerradas</h2>
           <ol>
-            {JAMS.filter((j) => NOW > new Date(j.end).getTime()).map((j) => (
+            {JAMS.filter((j) => jamState(j, NOW) === "past").map((j) => (
               <li key={j.slug} id={j.slug}>
                 <strong>
                   <Link href={`/jams/${j.slug}`}>{j.title}</Link>

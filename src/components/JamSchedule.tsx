@@ -2,27 +2,26 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { JAMS, SAMPLE_NOW as SAMPLE_ISO, formatDay, trackById } from "@/data/catalog";
+import { JAMS, SAMPLE_WINDOW, formatDay, jamState, pickNow, trackById } from "@/data/catalog";
 
-const RANGE_START = new Date("2026-11-01T00:00:00-03:00").getTime();
-const RANGE_END = new Date("2026-12-07T00:00:00-03:00").getTime();
+const RANGE_START = SAMPLE_WINDOW.start;
+const RANGE_END = SAMPLE_WINDOW.end;
 const DAY = 86400000;
-const FALLBACK_NOW = new Date(SAMPLE_ISO).getTime();
 
 const pct = (t: number) => ((Math.min(Math.max(t, RANGE_START), RANGE_END) - RANGE_START) / (RANGE_END - RANGE_START)) * 100;
 
-/** Festival schedule grid with a running "agora" line. Glow means live, nothing else. */
-export function JamSchedule() {
-  const [now, setNow] = useState(FALLBACK_NOW);
+/**
+ * Festival schedule grid with a running "agora" line. Glow means live, nothing
+ * else. `serverNow` is the pickNow() the page rendered with, so the server HTML
+ * matches the page around it; the browser then follows pickNow() each minute.
+ */
+export function JamSchedule({ serverNow }: { serverNow: number }) {
+  const [now, setNow] = useState(serverNow);
   const [laneW, setLaneW] = useState(1000);
   const axisRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const pick = () => {
-      const n = Date.now();
-      // Outside the sample window, keep the sample date so the grid stays meaningful.
-      if (n > RANGE_START && n < RANGE_END) setNow(n);
-    };
+    const pick = () => setNow(pickNow());
     pick();
     const iv = setInterval(pick, 60000);
     const el = axisRef.current;
@@ -62,7 +61,7 @@ export function JamSchedule() {
       {[...JAMS].sort((a, b) => +new Date(a.start) - +new Date(b.start)).map((j) => {
         const s = new Date(j.start).getTime();
         const e = new Date(j.end).getTime();
-        const state = now > e ? "past" : now >= s ? "live" : "next";
+        const state = jamState(j, now);
         const tr = trackById(j.track);
         const w = Math.max(pct(e) - pct(s), 1.5);
         const label = `${formatDay(j.start)} → ${formatDay(j.end)}`;

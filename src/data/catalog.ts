@@ -1354,10 +1354,31 @@ export const gamesByNewest = () =>
   [...GAMES].sort((a, b) => +new Date(b.published) - +new Date(a.published));
 
 /**
- * The sample programme's "now". Pages that need a fixed present (lineup
- * "hoje", jam states) can share this instead of hard-coding their own.
+ * The sample programme's clock, the one source every page shares. The demo
+ * programme covers SAMPLE_WINDOW (Brasília time): inside it the real clock
+ * runs; outside it, SAMPLE_NOW stands in so the pages stay meaningful.
+ * Read "now" through pickNow(), not Date.now() or SAMPLE_NOW directly.
  */
 export const SAMPLE_NOW = "2026-11-13T15:00:00-03:00";
+export const SAMPLE_WINDOW = {
+  start: +new Date("2026-11-01T00:00:00-03:00"),
+  end: +new Date("2026-12-07T00:00:00-03:00"),
+} as const;
+
+/** The programme's "now" in ms: the real clock inside SAMPLE_WINDOW, SAMPLE_NOW outside it. */
+export function pickNow(real: number = Date.now()): number {
+  return real > SAMPLE_WINDOW.start && real < SAMPLE_WINDOW.end ? real : +new Date(SAMPLE_NOW);
+}
+
+/** Calendar date (YYYY-MM-DD) of an instant in Brasília time. */
+export function dayKey(t: string | number | Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(t));
+}
 
 const byNewest = (a: Game, b: Game) => +new Date(b.published) - +new Date(a.published);
 
@@ -1391,7 +1412,8 @@ export const jamHost = (jam: Jam) =>
   jam.hostSlug ? creatorBySlug(jam.hostSlug) : CREATORS.find((c) => c.name === jam.host);
 
 export type JamState = "past" | "live" | "next";
-export function jamState(jam: Jam, now: string | number = SAMPLE_NOW): JamState {
+/** Where a jam stands at `now` (defaults to pickNow()). The closing minute still counts as live. */
+export function jamState(jam: Pick<Jam, "start" | "end">, now: string | number = pickNow()): JamState {
   const t = typeof now === "number" ? now : +new Date(now);
   if (t > +new Date(jam.end)) return "past";
   if (t >= +new Date(jam.start)) return "live";
