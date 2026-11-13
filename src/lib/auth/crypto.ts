@@ -23,20 +23,25 @@ import {
  */
 const DEV_SECRET = "openitch-dev-only-secret-never-use-this-in-production";
 
+function usesLocalDatabase(): boolean {
+  const uri = process.env.MONGODB_URI ?? "";
+  return /^mongodb(\+srv)?:\/\/([^@/]*@)?(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(\/|\?|$)/.test(uri);
+}
+
 let master: Buffer | null = null;
 function masterSecret(): Buffer {
   if (master) return master;
   const raw = process.env.AUTH_SECRET;
   if (raw && raw.length >= 32) {
     master = Buffer.from(raw, "utf8");
-  } else if (process.env.NODE_ENV !== "production" && process.env.MONGODB_URI) {
-    // Só com um banco local (MONGODB_URI): nunca grave no banco de produção
-    // dados derivados de um segredo que a produção não conhece.
+  } else if (process.env.NODE_ENV !== "production" && usesLocalDatabase()) {
+    // Só com um banco nesta máquina: nunca grave no banco de produção dados
+    // derivados de um segredo que a produção não conhece.
     master = Buffer.from(DEV_SECRET, "utf8");
   } else {
     // Falha fechada: sem segredo em produção, nada de autenticação.
     throw new Error(
-      "AUTH_SECRET ausente ou curto demais (mínimo de 32 caracteres). Em desenvolvimento, use o mesmo AUTH_SECRET da produção ou aponte MONGODB_URI para um banco local.",
+      "AUTH_SECRET ausente ou curto demais (mínimo de 32 caracteres). Em desenvolvimento, defina AUTH_SECRET ou aponte MONGODB_URI para um MongoDB local (localhost).",
     );
   }
   return master;
