@@ -3,28 +3,26 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import "@/styles/jams-criadores.css";
 import {
-  CREATORS,
   GAMES,
   JAMS,
   type Jam,
   creatorBySlug,
   formatDay,
   formatTime,
+  jamBySlug,
+  jamHost,
   shortPrice,
   trackById,
 } from "@/data/catalog";
 import { Cover } from "@/components/Cover";
 import { PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 import { JamClock, JamEntriesEmpty } from "@/components/jams/JamClock";
-import { jamState, pickNow } from "@/components/jams/clock";
+import { jamLength, jamState, pickNow } from "@/components/jams/clock";
 
 type Props = { params: Promise<{ slug: string }> };
 
-/** Optional fields another part of the catalogue may add to Jam. */
-type JamDetail = Jam & { rules?: string[]; criteria?: string[] };
 type Item = { name?: string; text: string };
 
-const jamBySlug = (slug: string) => JAMS.find((j) => j.slug === slug) as JamDetail | undefined;
 const when = (iso: string) => `${formatDay(iso)}, ${formatTime(iso)}`;
 
 /** Rules written from what the jam already states: theme, summary and window. */
@@ -70,15 +68,15 @@ export default async function JamPage({ params }: Props) {
   if (!jam) notFound();
 
   const track = trackById(jam.track);
-  const past = jamState(jam, pickNow()) === "past";
-  const host = CREATORS.find((c) => c.name === jam.host);
+  const now = pickNow();
+  const past = jamState(jam, now) === "past";
+  const host = jamHost(jam);
   const entries = GAMES.filter((g) => g.jam === jam.slug).sort(
     (a, b) => +new Date(a.published) - +new Date(b.published),
   );
   const rules: Item[] = jam.rules?.length ? jam.rules.map((text) => ({ text })) : derivedRules(jam);
   const criteria: Item[] = jam.criteria?.length ? jam.criteria.map((text) => ({ text })) : derivedCriteria(jam);
   const others = JAMS.filter((j) => j.slug !== jam.slug).sort((a, b) => +new Date(a.start) - +new Date(b.start));
-  const days = Math.round((+new Date(jam.end) - +new Date(jam.start)) / 86400000);
 
   return (
     <>
@@ -101,14 +99,14 @@ export default async function JamPage({ params }: Props) {
             <p className="jam-summary">{jam.summary}</p>
           </div>
           <aside className="jam-sheet" aria-label="Situação da jam">
-            <JamClock slug={jam.slug} start={jam.start} end={jam.end} />
+            <JamClock slug={jam.slug} start={jam.start} end={jam.end} serverNow={now} />
             <dl className="jam-facts">
               <dt>Abertura</dt>
               <dd className="num">{when(jam.start)}</dd>
               <dt>Prazo</dt>
               <dd className="num">{when(jam.end)}</dd>
               <dt>Duração</dt>
-              <dd className="num">{days <= 1 ? "1 dia" : `${days} dias`}</dd>
+              <dd className="num">{jamLength(jam)}</dd>
               <dt>Organiza</dt>
               <dd>{host ? <Link href={`/criador/${host.slug}`}>{host.name}</Link> : jam.host}</dd>
               <dt>Trilha</dt>
@@ -223,7 +221,14 @@ export default async function JamPage({ params }: Props) {
               )}
           </div>
         ) : (
-          <JamEntriesEmpty slug={jam.slug} start={jam.start} end={jam.end} submitted={jam.entries} release={jam.release} />
+          <JamEntriesEmpty
+            slug={jam.slug}
+            start={jam.start}
+            end={jam.end}
+            submitted={jam.entries}
+            release={jam.release}
+            serverNow={now}
+          />
         )}
       </section>
     </>
