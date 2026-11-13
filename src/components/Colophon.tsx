@@ -17,6 +17,7 @@ export function Colophon() {
           <h2>Programa</h2>
           <ul>
             <li><Link href="/jogos">Catálogo completo</Link></li>
+            <li><Link href="/etiquetas">Índice de etiquetas</Link></li>
             <li><Link href="/jams">Jams e agenda</Link></li>
             <li><Link href="/criadores">Criadores</Link></li>
             <li><Link href="/publicar">Publicar um jogo</Link></li>

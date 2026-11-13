@@ -16,6 +16,7 @@ const NAV = [
 
 const GUIDE = [
   { href: "/jogos#busca", label: "Buscar jogos" },
+  { href: "/etiquetas", label: "Etiquetas" },
   { href: "/estante", label: "Sua estante" },
   { href: "/sobre", label: "Como funciona" },
   { href: "/ajuda", label: "Ajuda" },
