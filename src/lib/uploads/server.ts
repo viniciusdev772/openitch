@@ -131,7 +131,7 @@ async function ownProject(userId: ObjectId, rawId: unknown): Promise<ProjectDoc>
   const id = typeof rawId === "string" ? toObjectId(rawId) : null;
   if (!id) throw PROJECT_NOT_FOUND();
   const { projects } = await db();
-  const p = await projects.findOne({ _id: id, userId });
+  const p = await projects.findOne({ _id: id, userId, status: { $ne: "excluindo" } });
   if (!p || !canEdit({ _id: userId }, p)) throw PROJECT_NOT_FOUND();
   return p;
 }
@@ -364,7 +364,19 @@ async function partsOf(u: UploadDoc) {
       .filter((p) => p.partNumber >= 1 && p.partNumber <= count && p.size === expectedPartSize(u.size, u.partSize, p.partNumber))
       .map((p) => ({ n: p.partNumber, size: p.size }));
   } catch (err) {
-    if (err instanceof S3Error && err.code === "NoSuchUpload") return [];
+    if (err instanceof S3Error && err.code === "NoSuchUpload") {
+      // O MinIO já descartou o multipart (expirou): abre outro no mesmo registro e recomeça do zero,
+      // em vez de devolver um id morto que faria todas as partes falharem.
+      const headers = objectHeaders(u);
+      if (u.checksum) headers["x-amz-checksum-algorithm"] = "SHA256";
+      const multipartId = await createMultipartUpload(u.bucket, u.key, headers);
+      await (await db()).uploads.updateOne(
+        { _id: u._id, userId: u.userId, multipartId: u.multipartId },
+        { $set: { multipartId, updatedAt: new Date() } },
+      );
+      u.multipartId = multipartId;
+      return [];
+    }
     throw err;
   }
 }

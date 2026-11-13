@@ -516,8 +516,18 @@ export function presignDownload(bucket: string, key: string, filename: string, e
   });
 }
 
-/** URL pública de um objeto do bucket jogável (leitura anônima por política). */
+/**
+ * URL pública de um objeto do bucket jogável (leitura anônima por política).
+ * Com S3_PLAY_PUBLIC_URL (outro domínio apontando para o mesmo MinIO), os jogos
+ * rodam numa origem separada da API S3, longe dos outros buckets do servidor.
+ */
 export function publicUrl(bucket: string, key: string) {
   const cfg = s3Config();
+  const play = process.env.S3_PLAY_PUBLIC_URL;
+  if (play) {
+    const u = new URL(play);
+    const base = u.pathname.replace(/\/+$/, "");
+    return `${u.origin}${base}/${enc(bucket)}/${enc(key, true)}`;
+  }
   return `${cfg.endpoint.origin}${objectPath(bucket, key)}`;
 }

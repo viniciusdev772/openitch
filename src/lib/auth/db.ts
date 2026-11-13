@@ -118,7 +118,8 @@ export interface ProjectDoc {
   cover: string;
   /** Slug da jam no catálogo, ou null. */
   jam: string | null;
-  status: "rascunho";
+  /** "excluindo": a exclusão começou (arquivos sendo apagados); não aceita envios novos. */
+  status: "rascunho" | "excluindo";
   createdAt: Date;
   updatedAt: Date;
 }

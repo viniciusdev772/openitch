@@ -34,7 +34,7 @@ export function isDownloadPlatform(p: unknown): p is DownloadPlatform {
 /**
  * Tamanho das partes do multipart: 16 MiB.
  *
- * Por que não 64 MiB (o PART_SIZE geral): com 6 partes em paralelo numa
+ * Por que não 64 MiB: com 6 partes em paralelo numa
  * conexão doméstica de 20 Mbit/s, cada parte de 64 MiB leva mais de dois
  * minutos; uma queda de rede ou uma página recarregada joga fora até
  * 6 × 64 MiB. Com 16 MiB a perda máxima cai para 96 MiB, o progresso fica

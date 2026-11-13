@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { db, type BuildDoc, type BuildFileDoc, type WebEngine } from "@/lib/auth/db";
 import { hit, waitText } from "@/lib/auth/ratelimit";
 import {
+  S3Error,
   abortMultipartUpload,
   completeMultipartUpload,
   createMultipartUpload,
@@ -156,7 +157,7 @@ export function parseCreate(body: unknown): CreateInput {
 
 export async function createBuild(userId: ObjectId, input: CreateInput) {
   const { projects, builds } = await collections();
-  const project = await projects.findOne({ _id: input.projectId, userId }, { projection: { _id: 1 } });
+  const project = await projects.findOne({ _id: input.projectId, userId, status: { $ne: "excluindo" } }, { projection: { _id: 1 } });
   if (!project) throw new BuildError(404, "Esse rascunho não existe ou não é da sua conta.");
   await rate("criar", userId);
   // Buckets, política pública de GetObject em b/* do jogável e ciclo de vida (src/lib/storage/setup.ts).
@@ -301,8 +302,10 @@ export async function startMultipart(userId: ObjectId, publicId: string, rawPath
         const expected = plan[part.partNumber - 1];
         if (expected && part.size === expected.size) done.add(part.partNumber);
       }
-    } catch {
-      // O multipart sumiu (abortado ou expirado): começa outro.
+    } catch (err) {
+      // Só "o multipart sumiu" (abortado ou expirado) recomeça o arquivo. Uma falha passageira
+      // (503, tempo esgotado) sobe como erro: o cliente tenta de novo sem perder as partes enviadas.
+      if (!(err instanceof S3Error && err.code === "NoSuchUpload")) throw err;
       await builds.updateOne({ _id: build._id }, { $pull: { multipart: { p: f.p } } });
       uploadId = null;
     }
@@ -447,8 +450,13 @@ export async function deleteBuild(userId: ObjectId, publicId: string) {
  * Apaga os objetos de um build e depois o registro. purgePrefix aborta os
  * multipart abertos e remove todas as versões e marcadores sob b/<id>/.
  */
-export async function purge(build: Pick<BuildDoc, "_id" | "bucket" | "prefix">) {
+export async function purge(build: Pick<BuildDoc, "_id" | "bucket" | "prefix"> & Pick<Partial<BuildDoc>, "multipart">) {
   if (!/^b\/[a-f0-9]{32}\/$/.test(build.prefix)) throw new Error(`prefixo inesperado: ${build.prefix}`);
+  // Os multiparts abertos são abortados pelo id que guardamos: listar por prefixo de pasta
+  // não é confiável no MinIO (ele lista por nome de objeto), e partes órfãs ocupariam espaço.
+  for (const m of build.multipart ?? []) {
+    await abortMultipartUpload(build.bucket, build.prefix + m.p, m.id).catch(() => {});
+  }
   await purgePrefix(build.bucket, build.prefix);
   const { builds } = await collections();
   await builds.deleteOne({ _id: build._id });

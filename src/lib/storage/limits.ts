@@ -19,12 +19,6 @@ export const MAX_WEB_BUILD_BYTES = 3 * GiB;
 /** Máximo de arquivos dentro de um build de navegador. */
 export const MAX_WEB_BUILD_FILES = 20_000;
 
-/** Partes do multipart: 64 MiB (3 GiB = 48 partes). */
-export const PART_SIZE = 64 * MiB;
-
-/** Arquivos até este tamanho vão num único PUT pré-assinado. */
-export const SINGLE_PUT_MAX = 64 * MiB;
-
 /** Partes enviadas em paralelo pelo navegador (ajustável conforme a rede). */
 export const PART_CONCURRENCY = 6;
 

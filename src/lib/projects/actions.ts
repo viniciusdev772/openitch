@@ -104,11 +104,12 @@ export async function deleteDraft(form: FormData): Promise<DeleteResult> {
     }
 
     const { projects } = await db();
-    if (!(await projects.findOne({ _id: id, userId }, { projection: { _id: 1 } }))) {
-      return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
-    }
-    // Arquivos e builds primeiro: se o armazenamento falhar, o rascunho fica
-    // e a pessoa tenta de novo, sem deixar objetos órfãos no MinIO.
+    // Marca primeiro: a partir daqui nenhum envio novo entra neste rascunho (envios e builds
+    // recusam projetos "excluindo"), então nada fica órfão entre apagar os arquivos e o registro.
+    const marked = await projects.updateOne({ _id: id, userId }, { $set: { status: "excluindo", updatedAt: new Date() } });
+    if (marked.matchedCount !== 1) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
+    // Arquivos e builds antes do registro: se o armazenamento falhar, o rascunho fica
+    // (marcado) e a pessoa tenta de novo para terminar.
     await deleteUploadsOfProject(userId, id);
     await deleteBuildsOfProject(userId, id);
     const res = await projects.deleteOne({ _id: id, userId });
@@ -121,7 +122,7 @@ export async function deleteDraft(form: FormData): Promise<DeleteResult> {
     return {
       ok: false,
       code: "servidor",
-      error: "Não conseguimos excluir agora. O rascunho e os arquivos dele continuam salvos; tente de novo em instantes.",
+      error: "A exclusão não terminou: parte dos arquivos pode já ter sido apagada. Tente excluir de novo em instantes para concluir.",
     };
   }
 }

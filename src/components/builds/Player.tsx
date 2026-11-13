@@ -182,7 +182,7 @@ export function Player(p: PlayerProps) {
 
       <aside className="play-margin" aria-label="Sobre esta prévia">
         <h1>{p.title}</h1>
-        <p className="play-private">Prévia do rascunho. Só você vê esta página.</p>
+        <p className="play-private">Prévia do rascunho: esta página só abre para você. Os arquivos do jogo ficam num endereço longo e impossível de adivinhar, mas quem receber o link de “Abrir em aba própria” consegue jogar.</p>
         <dl className="play-facts">
           <div>
             <dt>Motor</dt>

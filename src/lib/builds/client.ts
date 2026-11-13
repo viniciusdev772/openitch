@@ -492,9 +492,13 @@ export class BuildUpload {
     const queue = this.files.filter((f) => this.state.get(f.path) === "fila");
     // Os grandes primeiro: começam cedo e as partes correm junto com os pequenos.
     queue.sort((a, b) => b.size - a.size);
+    // Um erro fatal para todos os trabalhadores: a fila esvazia, cada um termina o arquivo em curso e
+    // só então run() falha. Assim "Tentar de novo" nunca corre junto de trabalhadores antigos.
+    let fatal: unknown = null;
     const workers = Array.from({ length: Math.min(FILE_CONCURRENCY, queue.length) }, async () => {
       for (;;) {
         if (this.ctrl.signal.aborted) throw new Cancelled();
+        if (fatal) return;
         const f = queue.shift();
         if (!f) return;
         this.state.set(f.path, "enviando");
@@ -508,12 +512,17 @@ export class BuildUpload {
           this.errors.set(f.path, err instanceof Error ? err.message : "Falha no envio.");
           this.sent -= this.perFile.get(f.path) ?? 0;
           this.perFile.delete(f.path);
-          if (err instanceof HttpError && (err.status === 401 || err.status === 404 || (err.status === 409 && !err.body.faltam))) throw err;
+          if (err instanceof HttpError && (err.status === 401 || err.status === 404 || (err.status === 409 && !err.body.faltam))) {
+            fatal ??= err;
+            queue.length = 0;
+            return;
+          }
         }
         this.emit();
       }
     });
     await Promise.all(workers);
+    if (fatal) throw fatal;
     if (this.errors.size) {
       this.phase = "falhas";
       this.emit(true);
