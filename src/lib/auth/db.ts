@@ -75,6 +75,22 @@ export interface RateLimitDoc {
   resetAt: Date;
 }
 
+/** Jogo guardado na estante. `game` é o slug, conferido contra o catálogo. */
+export interface SaveDoc {
+  _id?: ObjectId;
+  userId: ObjectId;
+  game: string;
+  at: Date;
+}
+
+/** Criador seguido. `creator` é o slug, conferido contra o catálogo. */
+export interface FollowDoc {
+  _id?: ObjectId;
+  userId: ObjectId;
+  creator: string;
+  at: Date;
+}
+
 export type SecurityEventType =
   | "conta_criada"
   | "entrada"
@@ -138,6 +154,8 @@ async function ensureIndexes(db: Db): Promise<void> {
         db.collection("rate_limits").createIndex({ resetAt: 1 }, { expireAfterSeconds: 0 }),
         db.collection("security_events").createIndex({ userId: 1, at: -1 }),
         db.collection("security_events").createIndex({ at: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 180 }),
+        db.collection("saves").createIndex({ userId: 1, game: 1 }, { unique: true }),
+        db.collection("follows").createIndex({ userId: 1, creator: 1 }, { unique: true }),
       ]);
     })().catch((err) => {
       cache.indexes = undefined;
@@ -157,5 +175,7 @@ export async function db() {
     mfa: database.collection<MfaChallengeDoc>("mfa_challenges"),
     rateLimits: database.collection<RateLimitDoc>("rate_limits"),
     events: database.collection<SecurityEventDoc>("security_events"),
+    saves: database.collection<SaveDoc>("saves"),
+    follows: database.collection<FollowDoc>("follows"),
   };
 }
