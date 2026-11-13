@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!info) return { title: "Etiqueta não encontrada" };
   return {
     title: `Etiqueta: ${info.tag}`,
-    description: `${info.count} ${info.count === 1 ? "jogo leva" : "jogos levam"} a etiqueta “${info.tag}” no catálogo da VibeGames.`,
+    description: `${info.count} ${info.count === 1 ? "jogo leva" : "jogos levam"} a etiqueta "${info.tag}" no catálogo da VibeGames.`,
     alternates: { canonical: `/etiqueta/${info.slug}` },
   };
 }
@@ -88,7 +88,7 @@ export default async function TagPage({ params }: Props) {
 
       <div className="wrap tag-page">
         <section className="index-list tag-games" aria-labelledby="jogos-etiqueta">
-          <h2 id="jogos-etiqueta">Jogos com “{info.tag}”</h2>
+          <h2 id="jogos-etiqueta">Jogos com "{info.tag}"</h2>
           <ol>
             {info.games.map((g) => (
               <li key={g.slug}>

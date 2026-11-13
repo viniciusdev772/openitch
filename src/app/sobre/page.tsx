@@ -8,7 +8,7 @@ import { Contents } from "@/components/leitura/Contents";
 export const metadata: Metadata = {
   title: "Como funciona a VibeGames",
   description:
-    "O que é a VibeGames, para quem joga, para quem faz jogos e para quem organiza jams, os princípios do programa e o que já funciona hoje.",
+    "O que é a VibeGames, como ela funciona para quem joga, publica ou organiza jams, e o que já funciona hoje.",
 };
 
 const SECTIONS = [
@@ -76,7 +76,7 @@ const STATUS: { part: string; state: State; note: React.ReactNode }[] = [
   {
     part: "Catálogo, trilhas e filtros",
     state: "sim",
-    note: "A navegação, a busca e os filtros leem os jogos publicados, na ordem em que chegaram.",
+    note: "A busca e os filtros leem os jogos publicados, na ordem em que chegaram.",
   },
   {
     part: "Publicar no programa",
@@ -125,8 +125,7 @@ export default function SobrePage() {
     <>
       <GuideHead title="Como funciona a VibeGames" current="sobre">
         <p>
-          Um lugar aberto para publicar e jogar jogos independentes. Esta página conta o que ele faz hoje, para quem ele
-          é e o que ainda falta.
+          Um lugar aberto para publicar e jogar jogos independentes. Aqui está o que ele já faz e o que ainda falta.
         </p>
       </GuideHead>
 
@@ -140,15 +139,15 @@ export default function SobrePage() {
             <div className="guide-prose">
               <p>
                 A VibeGames é uma vitrine e uma casa de publicação para jogos independentes. Quem faz um jogo cria uma
-                página, escolhe o preço (ou nenhum) e o jogo entra no programa. Quem joga encontra, abre e joga, muitas
-                vezes direto no navegador.
+                página, envia os arquivos e o jogo entra no programa. Quem joga abre a página e joga, muitas vezes direto
+                no navegador.
               </p>
               <p>
                 O site é montado como o programa impresso de um festival que não fecha. Os jogos são entradas
                 numeradas, as trilhas têm cor própria e as jams aparecem numa agenda, com hora para começar e acabar.
               </p>
               <p>
-                O programa está começando: contas, estante, rascunhos, envio de arquivos e publicação já funcionam. Os
+                O programa está no começo. Contas, estante, rascunhos, envio de arquivos e publicação já funcionam, e os
                 jogos entram no catálogo na ordem em que são publicados.
               </p>
             </div>
@@ -159,15 +158,15 @@ export default function SobrePage() {
               <p>
                 Você não precisa de conta para olhar nem para jogar. O <Link href="/jogos">catálogo</Link> se divide em
                 cinco trilhas (Navegador, Ação, Narrativo, Quebra-cabeça e Experimental) e tem filtros de plataforma e
-                de preço, todos à vista, sem nada escondido em menus.
+                de preço sempre à vista.
               </p>
               <p>
-                Um jogo pode ser grátis, ter preço fixo ou deixar você pagar o que quiser, às vezes com um valor
-                mínimo que quem fez escolheu. O preço aparece sempre do mesmo jeito, antes de qualquer clique.
+                Hoje todo jogo do programa é grátis, porque os pagamentos ainda não estão ligados. O preço aparece
+                na lista e na página do jogo, antes de qualquer clique.
               </p>
               <p>
-                Por enquanto não há cobrança: os pagamentos ainda não estão ligados, então todo jogo do programa é
-                grátis.
+                Quem publica já pode guardar no rascunho outro modelo de preço (fixo, ou pague o que quiser com um
+                mínimo) para quando os pagamentos existirem. Nada disso é cobrado agora.
               </p>
             </div>
           </GuideSection>
@@ -175,16 +174,17 @@ export default function SobrePage() {
           <GuideSection id="para-quem-faz" title="Para quem faz jogos">
             <div className="guide-prose">
               <p>
-                Publicar é um formulário de cinco passos: o jogo, a trilha e a capa, os arquivos, o preço e a página.
-                Enquanto você escreve, a sua entrada no programa aparece ao lado, do jeito que vai ser vista.
+                Publicar é um formulário de cinco passos: o jogo, a trilha e a capa, as plataformas e os arquivos, o
+                preço e a página. Enquanto você escreve, a sua entrada no programa aparece ao lado, do jeito que vai
+                ser vista.
               </p>
               <p>
-                Preço, página e arquivos são seus. Você decide se o jogo é grátis, quanto custa ou qual é o mínimo, e o
-                formulário diz com clareza o que vai acontecer em cada passo.
+                O rascunho fica salvo na sua conta. Quando a página estiver completa e os arquivos enviados, um clique
+                põe o jogo no programa, com número e endereço próprios. Dá para tirar do ar depois. Por enquanto, só
+                jogos grátis entram.
               </p>
               <p>
-                Hoje o formulário não envia arquivos nem cria a página de verdade: ele mostra o resultado e para. Para
-                testar, abra <Link href="/publicar">Publicar</Link>. Para guardar seu lugar,{" "}
+                Para testar o formulário, abra <Link href="/publicar">Publicar</Link>. Para salvar e publicar,{" "}
                 <Link href="/criar-conta">crie uma conta</Link>.
               </p>
             </div>
@@ -193,13 +193,13 @@ export default function SobrePage() {
           <GuideSection id="para-quem-organiza" title="Para quem organiza jams">
             <div className="guide-prose">
               <p>
-                Uma jam é uma maratona com tema e prazo. Na VibeGames ela tem um título, um tema, uma janela de datas e
-                uma lista de entradas. Na <Link href="/jams">agenda de jams</Link>, cada uma é uma barra na linha do
+                Uma jam é uma maratona com tema e prazo. Na VibeGames, cada jam tem título, tema, datas de abertura e
+                fechamento e uma lista de entradas. Na <Link href="/jams">agenda de jams</Link>, cada uma é uma barra na linha do
                 tempo, e uma linha marca o que está acontecendo agora.
               </p>
               <p>
-                Quando o prazo acaba, as entradas entram no programa juntas, e cada jogo leva na página o nome da jam
-                de onde veio.
+                Na maioria das jams, as entradas entram no programa juntas quando o prazo acaba. Cada jogo leva na
+                página o nome da jam de onde veio.
               </p>
               <p>
                 Ainda não dá para criar uma jam pelo site, nem inscrever um jogo, e nenhuma jam está marcada.
@@ -211,27 +211,27 @@ export default function SobrePage() {
             <dl className="principles">
               <div>
                 <dt>O jogo vem primeiro</dt>
-                <dd>Cada página existe para você ver, entender e jogar um jogo mais rápido. O resto vem depois.</dd>
+                <dd>Cada página existe para levar você ao jogo o mais rápido possível. O resto vem depois.</dd>
               </div>
               <div>
                 <dt>Quem faz decide</dt>
                 <dd>
-                  Preço, página e arquivos são de quem fez o jogo, e as ferramentas dizem com todas as letras o que vai
-                  acontecer antes de acontecer.
+                  Quem fez o jogo escolhe o preço e escreve a página. As ferramentas avisam o que vai acontecer antes
+                  do clique.
                 </dd>
               </div>
               <div>
                 <dt>Pequeno e estranho também é programa</dt>
                 <dd>
-                  A descoberta favorece o que é novo e diferente, não só o que já vende. Um jogo de um botão divide a
-                  página com um de quatro horas.
+                  O catálogo põe o mais novo no topo, sem ranking. Um jogo de um botão divide a página com um de
+                  quatro horas.
                 </dd>
               </div>
               <div>
                 <dt>Honesto por padrão</dt>
                 <dd>
-                  Sem truques no preço, sem contadores inventados, sem depoimentos de mentira. Quando algo ainda não
-                  existe, a página diz isso.
+                  Nada de truque no preço nem de número ou depoimento inventado. Quando algo ainda não existe, a página
+                  diz isso.
                 </dd>
               </div>
             </dl>

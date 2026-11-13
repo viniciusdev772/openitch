@@ -10,7 +10,7 @@ export function Colophon() {
             vibe<em>games</em>
           </p>
           <p style={{ marginTop: 24, maxWidth: "40ch", fontSize: "1.0625rem" }}>
-            Um programa aberto de jogos independentes. Quem faz, publica. Quem joga, escolhe quanto paga.
+            Um programa aberto de jogos independentes. Para publicar, basta uma conta; para jogar, nem isso.
           </p>
         </div>
         <div>

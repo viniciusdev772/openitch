@@ -8,7 +8,7 @@ import { Suspense } from "react";
 export const metadata: Metadata = {
   title: { default: "VibeGames · programa permanente de jogos independentes", template: "%s · VibeGames" },
   description:
-    "Publique seu jogo independente, defina o preço (ou nenhum) e deixe as pessoas jogarem direto no navegador.",
+    "Publique seu jogo independente e deixe as pessoas jogarem direto no navegador, de graça e sem conta.",
 };
 
 export const viewport: Viewport = {

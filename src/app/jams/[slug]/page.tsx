@@ -18,7 +18,7 @@ const when = (iso: string) => `${formatDay(iso)}, ${formatTime(iso)}`;
 /** Rules written from what the jam already states: theme, summary and window. */
 function derivedRules(j: Jam): Item[] {
   return [
-    { name: "Tema", text: `O tema é “${j.theme}”. Qualquer leitura vale, desde que dê para reconhecer o tema jogando.` },
+    { name: "Tema", text: `O tema é "${j.theme}". Qualquer leitura vale, desde que dê para reconhecer o tema jogando.` },
     { name: "Formato", text: j.summary },
     {
       name: "Prazo",
@@ -26,13 +26,13 @@ function derivedRules(j: Jam): Item[] {
     },
     { name: "Equipe", text: "Sozinho ou em grupo, uma entrada por pessoa ou equipe." },
     { name: "Créditos", text: "Material de terceiros só com licença que permita o uso, com os créditos na página do jogo." },
-    { name: "Envio", text: "Publique pela VibeGames marcando esta jam. A página, o preço e os arquivos continuam sendo de quem fez." },
+    { name: "Envio", text: "Publique pela VibeGames marcando esta jam. A página e os arquivos continuam sendo de quem fez." },
   ];
 }
 
 function derivedCriteria(j: Jam): Item[] {
   return [
-    { name: "Tema", text: `Quanto o jogo conversa com “${j.theme}”, e por um caminho que ninguém mais tomou.` },
+    { name: "Tema", text: `Quanto o jogo conversa com "${j.theme}" e se achou um caminho que ninguém mais tomou.` },
     { name: "Formato", text: "Se cumpre o formato da jam sem contornar a restrição." },
     { name: "Jogo", text: "Se dá vontade de jogar até o fim, ou de começar de novo." },
     { name: "Acabamento", text: "Se o que existe funciona: controles, texto e a primeira tela claros para quem chega." },
@@ -83,7 +83,7 @@ export default async function JamPage({ params }: Props) {
             </nav>
             <h1>{jam.title}</h1>
             <p className="jam-theme">
-              Tema <strong>“{jam.theme}”</strong>
+              Tema <strong>"{jam.theme}"</strong>
             </p>
             <p className="jam-summary">{jam.summary}</p>
           </div>

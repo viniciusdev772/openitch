@@ -48,7 +48,7 @@ const CHAPTERS: Chapter[] = [
   {
     id: "jogar",
     title: "Jogar",
-    intro: "Encontrar, abrir e jogar.",
+    intro: "Como achar um jogo e abrir.",
     questions: [
       {
         id: "jogar-conta",
@@ -60,7 +60,7 @@ const CHAPTERS: Chapter[] = [
         q: "Como sei se um jogo roda no navegador?",
         a: (
           <p>
-            A capa traz o selo “Joga aqui” e o código N fica aceso. No <Link href="/jogos?trilha=navegador">catálogo</Link>,
+            A capa traz o selo "Joga aqui" e o código N fica aceso. No <Link href="/jogos?trilha=navegador">catálogo</Link>,
             a trilha Navegador junta só esses jogos.
           </p>
         ),
@@ -70,8 +70,8 @@ const CHAPTERS: Chapter[] = [
         q: "Como acho um jogo do tipo que eu gosto?",
         a: (
           <p>
-            Pelas trilhas, pelos filtros de plataforma e de preço no <Link href="/jogos">catálogo</Link>, ou pelas tags na
-            página de cada jogo, que abrem uma busca.
+            O <Link href="/jogos">catálogo</Link> separa os jogos por trilha e tem filtros de plataforma e de preço. Na
+            página de cada jogo, as etiquetas levam a outros jogos com a mesma etiqueta.
           </p>
         ),
       },
@@ -111,7 +111,7 @@ const CHAPTERS: Chapter[] = [
       },
       {
         id: "publicar-botao",
-        q: "O que fica salvo quando clico em “Salvar rascunho”?",
+        q: 'O que fica salvo quando clico em "Salvar rascunho"?',
         a: (
           <p>
             Com a conta aberta, o texto, a trilha, a capa, as plataformas, o preço e a jam ficam guardados como rascunho,
@@ -122,7 +122,7 @@ const CHAPTERS: Chapter[] = [
       },
       {
         id: "publicar-arquivos",
-        q: "Que arquivos vou poder enviar?",
+        q: "Que arquivos posso enviar?",
         a: (
           <p>
             Builds de até 3 GB para Windows, macOS, Linux e Android, em qualquer formato (zip, 7z, exe, dmg, AppImage, apk e
@@ -204,8 +204,8 @@ const CHAPTERS: Chapter[] = [
         q: "Como funciona o mínimo do pague o que quiser?",
         a: (
           <p>
-            Quem fez o jogo escolhe um valor mínimo, ou zero para deixar livre. Abaixo do mínimo, o botão de pagar fica
-            travado e a página diz qual é o valor.
+            Quem fez o jogo escolhe um valor mínimo, ou zero para deixar livre, e a página do jogo mostra esse mínimo
+            junto do preço. Como os pagamentos ainda não estão ligados, ninguém é cobrado.
           </p>
         ),
       },
@@ -316,7 +316,7 @@ const CHAPTERS: Chapter[] = [
   {
     id: "conta",
     title: "Conta e segurança",
-    intro: "Estas respostas descrevem o que o sistema de contas faz de verdade, com os números que ele usa.",
+    intro: "Os prazos e limites abaixo são os que o sistema de contas usa.",
     questions: [
       {
         id: "conta-senha",
@@ -350,7 +350,7 @@ const CHAPTERS: Chapter[] = [
         a: (
           <>
             <p>
-              A mensagem é sempre “E-mail ou senha incorretos”, sem dizer qual dos dois. Depois de 5 erros para o mesmo
+              A mensagem é sempre "E-mail ou senha incorretos", sem dizer qual dos dois. Depois de 5 erros para o mesmo
               e-mail, a partir da mesma rede, as entradas nesse e-mail pausam por 15 minutos.
             </p>
             <p>
@@ -376,13 +376,13 @@ const CHAPTERS: Chapter[] = [
             </thead>
             <tbody>
               <tr>
-                <th scope="row">Com “manter conectado”</th>
+                <th scope="row">Com "manter conectado"</th>
                 <td className="ref-num">30 dias</td>
                 <td className="ref-num">7 dias</td>
               </tr>
               <tr>
                 <th scope="row">
-                  Sem “manter conectado”
+                  Sem "manter conectado"
                   <small>E também quando você fecha o navegador.</small>
                 </th>
                 <td className="ref-num">12 horas</td>
@@ -483,7 +483,7 @@ const CHAPTERS: Chapter[] = [
         a: (
           <p>
             As duas coisas ficam em <Link href="/conta">Sua conta</Link>. Desligar as duas etapas pede a senha e um código.
-            Excluir pede a senha, a palavra “excluir” e, se as duas etapas estiverem ligadas, um código. A exclusão apaga a
+            Excluir pede a senha, a palavra "excluir" e, se as duas etapas estiverem ligadas, um código. A exclusão apaga a
             conta, as sessões e o registro de segurança.
           </p>
         ),
@@ -498,8 +498,8 @@ export default function AjudaPage() {
     <>
       <GuideHead title="Ajuda" current="ajuda">
         <p>
-          Respostas curtas, por assunto. São <span className="num">{total}</span> perguntas sobre jogar, publicar, preços,
-          plataformas, jams e a segurança da sua conta.
+          Respostas curtas, separadas por assunto: <span className="num">{total}</span> perguntas sobre jogar, publicar,
+          preços, plataformas, jams e a segurança da sua conta.
         </p>
       </GuideHead>
 
