@@ -478,6 +478,6 @@ export async function buildForPlay(publicId: string) {
   const { builds, projects } = await collections();
   const build = await builds.findOne({ publicId }, { projection: { files: 0, multipart: 0 } });
   if (!build) return null;
-  const project = await projects.findOne({ _id: build.projectId, userId: build.userId }, { projection: { title: 1, userId: 1, status: 1, track: 1 } });
+  const project = await projects.findOne({ _id: build.projectId, userId: build.userId }, { projection: { title: 1, userId: 1, status: 1, track: 1, publicSlug: 1 } });
   return { build, project };
 }

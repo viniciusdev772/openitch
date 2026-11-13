@@ -784,6 +784,34 @@ p {
   }
 }
 
+/* featured game: its cover on its own ground, the whole stage opens the game */
+.screening-art {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--g, var(--ultra-deep));
+}
+.screening-art svg {
+  max-height: 100%;
+  transition: transform 320ms var(--ease-out);
+}
+.screening-art:hover svg {
+  transform: scale(1.02);
+}
+.screening-foot h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+.screening-foot h2 a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .screening-art svg {
+    transition: none;
+  }
+}
+
 /* empty screening slot: dashed means "empty, put something here" */
 .screening-wait {
   position: absolute;
@@ -1885,6 +1913,17 @@ p {
   font-size: 0.8125rem;
   color: var(--ink-mute);
   font-variant-numeric: tabular-nums;
+}
+.downloads .download-link {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+.downloads .download-link:hover {
+  text-decoration-thickness: 2px;
 }
 .creator-card {
   display: flex;

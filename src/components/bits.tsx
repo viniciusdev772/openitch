@@ -1,14 +1,12 @@
 // Programme furniture for pages that have the catalogue at hand. Everything
-// but the creator lookup lives in "./bits-base"; client components that do not
-// need the catalogue import from there instead, so GAMES and CREATORS stay out
-// of their bundle.
+// lives in "./bits-base"; this entry point only fills the creator's name from
+// the game itself (the catalogue loader resolves it), so callers need not.
 
-import { creatorBySlug } from "@/data/catalog";
 import { Entry as EntryCard, type EntryProps } from "./bits-base";
 
 export { Joined, PlatformCodes, TrackChip, trackStyle } from "./bits-base";
 
-/** The programme entry, with the creator's name looked up from the catalogue when not given. */
+/** The programme entry, with the creator's name taken from the game when not given. */
 export function Entry(props: EntryProps) {
-  return <EntryCard {...props} creatorName={props.creatorName ?? creatorBySlug(props.game.creator)?.name} />;
+  return <EntryCard {...props} creatorName={props.creatorName ?? props.game.creatorName} />;
 }

@@ -23,5 +23,5 @@ Signature interaction: Excluir turns the row itself into the confirmation (alert
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
 ## Unresolved
-- Publishing a draft into the programme (needs file storage).
+- (Resolved) Publishing lives in step 6 of /publicar; on-air rows show the live dot and a "Ver" action.
 - Link to /conta/projetos in the masthead account area (director).

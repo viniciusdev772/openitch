@@ -1,7 +1,7 @@
 import "server-only";
 import type { ObjectId } from "mongodb";
-import { creatorBySlug, gameBySlug } from "@/data/catalog";
 import { db } from "@/lib/auth/db";
+import { getCatalog } from "@/lib/catalog/server";
 
 /**
  * Regras da estante (jogos guardados e criadores seguidos). Tudo aqui roda só
@@ -22,10 +22,18 @@ const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
  * Só aceita uma string simples que exista no catálogo. Nada que venha do
  * cliente chega ao banco sem passar por aqui: nem objeto, nem operador.
  */
-export function catalogSlug(kind: Kind, raw: unknown): string | null {
+export async function catalogSlug(kind: Kind, raw: unknown): Promise<string | null> {
   if (typeof raw !== "string" || raw.length === 0 || raw.length > 64 || !SLUG.test(raw)) return null;
-  const found = kind === "save" ? gameBySlug(raw) : creatorBySlug(raw);
-  return found ? found.slug : null;
+  // Uma consulta pelo índice, sem montar o catálogo: a página do jogo pede isto a cada visita.
+  const { projects, users } = await db();
+  if (kind === "save") {
+    const found = await projects.findOne({ publicSlug: raw, status: "publicado" }, { projection: { _id: 1 } });
+    return found ? raw : null;
+  }
+  const user = await users.findOne({ creatorSlug: raw }, { projection: { _id: 1 } });
+  if (!user) return null;
+  const live = await projects.findOne({ userId: user._id, status: "publicado" }, { projection: { _id: 1 } });
+  return live ? raw : null;
 }
 
 /** Página canônica do item, para voltar depois de entrar. */
@@ -52,12 +60,13 @@ export interface ShelfItem {
 /** Estante inteira de uma conta, mais recente primeiro. Itens que saíram do catálogo ficam de fora. */
 export async function readShelf(userId: ObjectId): Promise<{ saves: ShelfItem[]; follows: ShelfItem[] }> {
   const { saves, follows } = await db();
-  const [s, f] = await Promise.all([
+  const [cat, s, f] = await Promise.all([
+    getCatalog(),
     saves.find({ userId }, { projection: { _id: 0, game: 1, at: 1 } }).sort({ at: -1 }).limit(MAX_ITEMS).toArray(),
     follows.find({ userId }, { projection: { _id: 0, creator: 1, at: 1 } }).sort({ at: -1 }).limit(MAX_ITEMS).toArray(),
   ]);
   return {
-    saves: s.filter((d) => gameBySlug(d.game)).map((d) => ({ slug: d.game, at: d.at.toISOString() })),
-    follows: f.filter((d) => creatorBySlug(d.creator)).map((d) => ({ slug: d.creator, at: d.at.toISOString() })),
+    saves: s.filter((d) => cat.gameBySlug(d.game)).map((d) => ({ slug: d.game, at: d.at.toISOString() })),
+    follows: f.filter((d) => cat.creatorBySlug(d.creator)).map((d) => ({ slug: d.creator, at: d.at.toISOString() })),
   };
 }

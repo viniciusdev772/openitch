@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { creatorBySlug, entryNumber, formatDate, formatDay, formatTime, trackById } from "@/data/catalog";
+import { entryNumber, formatDate, formatDay, formatTime, trackById, type Catalog } from "@/data/catalog";
 import { DEVLOG_KINDS, devlogGame, type Devlog } from "@/data/devlogs";
 import { Cover } from "@/components/Cover";
 import { TrackChip, trackStyle } from "@/components/bits";
@@ -30,12 +30,13 @@ function Day({ iso }: { iso: string }) {
  * the day once per day, like a printed timetable, and the time on every row.
  * Each row links to the full note, and separately to the game's page.
  */
-export function Diary({ notes }: { notes: Devlog[] }) {
+export function Diary({ cat, notes }: { cat: Catalog; notes: Devlog[] }) {
   return (
     <ol className="diary">
       {notes.map((note, i) => {
-        const game = devlogGame(note);
-        const creator = creatorBySlug(game.creator);
+        const game = devlogGame(cat, note);
+        if (!game) return null;
+        const creator = cat.creatorBySlug(game.creator);
         const track = trackById(game.track);
         const billing = billingFor(note, i);
         const firstOfDay = i === 0 || dayKey(notes[i - 1].at) !== dayKey(note.at);
@@ -85,11 +86,12 @@ export function Diary({ notes }: { notes: Devlog[] }) {
 }
 
 /** Compact ruled list for the side of a note: date numerals and titles. */
-export function DiaryCompact({ notes }: { notes: Devlog[] }) {
+export function DiaryCompact({ cat, notes }: { cat: Catalog; notes: Devlog[] }) {
   return (
     <ol className="diary-compact">
       {notes.map((note) => {
-        const game = devlogGame(note);
+        const game = devlogGame(cat, note);
+        if (!game) return null;
         return (
           <li key={note.slug}>
             <time className="diary-when" dateTime={note.at}>

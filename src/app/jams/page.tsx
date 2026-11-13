@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { GAMES, JAMS, formatDay, jamState, pickNow, trackById } from "@/data/catalog";
+import { JAMS, formatDay, jamState, pickNow, trackById } from "@/data/catalog";
+import { getCatalog } from "@/lib/catalog/server";
 import { JamSchedule } from "@/components/JamSchedule";
 import { Joined, trackStyle } from "@/components/bits";
 import { EmptyProgramme } from "@/components/EmptyProgramme";
@@ -9,10 +10,11 @@ import "@/styles/jams-criadores.css";
 export const metadata: Metadata = { title: "Jams" };
 
 // Os cartões seguem o mesmo relógio da agenda; a página se refaz a cada 5 minutos.
-export const revalidate = 300;
+export const revalidate = 60;
 
-export default function JamsPage() {
+export default async function JamsPage() {
   const NOW = pickNow();
+  const catalog = await getCatalog();
   return (
     <>
       <header className="page-head on-field" style={trackStyle("experimental")}>
@@ -41,7 +43,7 @@ export default function JamsPage() {
             .map((j) => {
             const state = jamState(j, NOW);
             const tr = trackById(j.track);
-            const entries = GAMES.filter((g) => g.jam === j.slug);
+            const entries = catalog.gamesByJam(j.slug);
             return (
               <article
                 key={j.slug}
@@ -93,13 +95,13 @@ export default function JamsPage() {
                 <span>Tema: {j.theme}</span>
                 <span>
                   <Joined>
-                    {GAMES.filter((g) => g.jam === j.slug).map((g) => (
+                    {catalog.gamesByJam(j.slug).map((g) => (
                       <Link key={g.slug} href={`/jogo/${g.slug}`}>
                         {g.title}
                       </Link>
                     ))}
                   </Joined>{" "}
-                  e mais {j.entries - GAMES.filter((g) => g.jam === j.slug).length} entradas
+                  e mais {j.entries - catalog.gamesByJam(j.slug).length} entradas
                 </span>
                 <span>
                   {formatDay(j.start)} → {formatDay(j.end)}

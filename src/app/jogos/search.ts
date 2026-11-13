@@ -1,22 +1,21 @@
 // Catalogue search: accent-blind matching over title, tagline, creator, city
 // and tags, plus "tags near what was typed" for the empty state.
 
-import { GAMES, type Game, type TrackId, creatorBySlug } from "@/data/catalog";
+import type { Game, TrackId } from "@/data/base";
 import { fold } from "@/components/etiquetas/slug";
 import { tagIndex, type TagInfo } from "@/components/etiquetas/tags";
 
 /** The words of a query, folded; every word must match somewhere. */
 export const terms = (q: string) => fold(q).split(/\s+/).filter(Boolean).slice(0, 8);
 
-const hayCache = new Map<string, string>();
+const hayCache = new WeakMap<Game, string>();
 
 /** Everything a game can be found by, folded into one string. */
 export function haystack(g: Game): string {
-  let hay = hayCache.get(g.slug);
+  let hay = hayCache.get(g);
   if (hay === undefined) {
-    const c = creatorBySlug(g.creator);
-    hay = fold([g.title, g.tagline, c?.name ?? "", c?.city ?? "", ...g.tags].join(" · "));
-    hayCache.set(g.slug, hay);
+    hay = fold([g.title, g.tagline, g.creatorName ?? "", ...g.tags].join(" · "));
+    hayCache.set(g, hay);
   }
   return hay;
 }
@@ -56,8 +55,8 @@ function closeness(tag: string, word: string): number {
  * words typed come first; with nothing close, the most used tags of the
  * chosen track (or of the whole catalogue).
  */
-export function nearTags(words: string[], track: TrackId | null, limit = 8): TagInfo[] {
-  const all = tagIndex();
+export function nearTags(games: readonly Game[], words: string[], track: TrackId | null, limit = 8): TagInfo[] {
+  const all = tagIndex(games);
   if (words.length) {
     const scored = all
       .map((t) => ({ t, score: Math.max(...words.map((w) => closeness(t.tag, w))) }))
@@ -66,7 +65,7 @@ export function nearTags(words: string[], track: TrackId | null, limit = 8): Tag
       .map((x) => x.t);
     if (scored.length) return scored.slice(0, limit);
   }
-  const pool = track ? GAMES.filter((g) => g.track === track) : GAMES;
+  const pool = track ? games.filter((g) => g.track === track) : games;
   const inPool = (t: TagInfo) => t.games.filter((g) => pool.includes(g)).length;
   return all
     .map((t) => ({ t, n: inPool(t) }))

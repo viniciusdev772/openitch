@@ -1,16 +1,5 @@
 import "server-only";
-import {
-  CREATORS,
-  GAMES,
-  PLATFORMS,
-  creatorBySlug,
-  gameBySlug,
-  gamesByCreator,
-  shortPrice,
-  trackById,
-  type Game,
-  type Platform,
-} from "@/data/catalog";
+import { PLATFORMS, shortPrice, trackById, type Catalog, type Game, type Platform } from "@/data/catalog";
 import type { ShelfData, ShelfGame, ShelfPerson } from "@/components/library/shelf-types";
 import type { ShelfItem } from "./rules";
 
@@ -25,7 +14,7 @@ function row(g: Game): ShelfGame {
     title: g.title,
     tagline: g.tagline,
     creator: g.creator,
-    creatorName: creatorBySlug(g.creator)?.name ?? "",
+    creatorName: g.creatorName ?? "",
     track: { name: t.name, color: t.color, on: t.on },
     platforms: ALL.map((p) => ({ code: PLATFORMS[p].code, name: PLATFORMS[p].name, on: g.platforms.includes(p) })),
     price: shortPrice(g.price),
@@ -33,10 +22,10 @@ function row(g: Game): ShelfGame {
   };
 }
 
-function person(slug: string, at?: string): ShelfPerson | null {
-  const c = creatorBySlug(slug);
+function person(cat: Catalog, slug: string, at?: string): ShelfPerson | null {
+  const c = cat.creatorBySlug(slug);
   if (!c) return null;
-  return { slug, name: c.name, city: c.city, count: GAMES.filter((g) => g.creator === slug).length, at };
+  return { slug, name: c.name, city: c.city, count: cat.gamesByCreator(slug).length, at };
 }
 
 const isPerson = (p: ShelfPerson | null): p is ShelfPerson => p !== null;
@@ -46,28 +35,28 @@ const isPerson = (p: ShelfPerson | null): p is ShelfPerson => p !== null;
  * Novidades levam os jogos de quem você segue e das sugestões, para que
  * seguir alguém ali mesmo já traga os jogos dessa pessoa sem outra ida ao servidor.
  */
-export function shelfData(saves: ShelfItem[], follows: ShelfItem[]): ShelfData {
+export function shelfData(cat: Catalog, saves: ShelfItem[], follows: ShelfItem[]): ShelfData {
   const saved = saves.flatMap((s) => {
-    const g = gameBySlug(s.slug);
+    const g = cat.gameBySlug(s.slug);
     return g ? [{ game: row(g), at: s.at }] : [];
   });
-  const following = follows.map((f) => person(f.slug, f.at)).filter(isPerson);
+  const following = follows.map((f) => person(cat, f.slug, f.at)).filter(isPerson);
   const suggested =
     following.length > 0
       ? []
-      : [...new Set(saves.map((s) => gameBySlug(s.slug)?.creator).filter((c): c is string => Boolean(c)))]
+      : [...new Set(saves.map((s) => cat.gameBySlug(s.slug)?.creator).filter((c): c is string => Boolean(c)))]
           .slice(0, SUGGESTIONS)
-          .map((slug) => person(slug))
+          .map((slug) => person(cat, slug))
           .filter(isPerson);
   const creators = new Set([...following, ...suggested].map((p) => p.slug));
   const news = [...creators]
-    .flatMap((slug) => gamesByCreator(slug))
+    .flatMap((slug) => cat.gamesByCreator(slug))
     .sort((a, b) => +new Date(b.published) - +new Date(a.published))
     .map(row);
   return { saved, following, suggested, news };
 }
 
 /** Criadores do programa para a estante vazia, com quantos jogos cada um tem. */
-export function programmeCreators(): ShelfPerson[] {
-  return CREATORS.map((c) => person(c.slug)).filter(isPerson);
+export function programmeCreators(cat: Catalog): ShelfPerson[] {
+  return cat.creators.map((c) => person(cat, c.slug)).filter(isPerson);
 }

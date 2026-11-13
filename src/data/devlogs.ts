@@ -1,7 +1,7 @@
-// Devlogs and release notes for games in catalog.ts. Empty until games publish
-// notes.
+// Devlogs and release notes for published games. Empty until games publish
+// notes. Lookups take the catalogue snapshot the page loaded.
 
-import { creatorBySlug, gameBySlug, type Game } from "./catalog";
+import type { Catalog, Game } from "./catalog";
 
 export type DevlogKind = "lancamento" | "atualizacao" | "devlog" | "jam";
 
@@ -30,15 +30,22 @@ const byNewest = (a: Devlog, b: Devlog) => +new Date(b.at) - +new Date(a.at);
 export const devlogsByNewest = () => [...DEVLOGS].sort(byNewest);
 export const devlogBySlug = (slug: string) => DEVLOGS.find((d) => d.slug === slug);
 
-/** The game a note belongs to. Every note points at an existing catalogue game. */
-export const devlogGame = (d: Devlog): Game => gameBySlug(d.game)!;
+/** The game a note belongs to, or undefined when it is not in the programme (any more). */
+export const devlogGame = (cat: Catalog, d: Devlog): Game | undefined => cat.gameBySlug(d.game);
 
-export const devlogCreator = (d: Devlog) => creatorBySlug(devlogGame(d).creator);
+export const devlogCreator = (cat: Catalog, d: Devlog) => {
+  const g = devlogGame(cat, d);
+  return g ? cat.creatorBySlug(g.creator) : undefined;
+};
+
+/** Notes whose game is in the programme, newest first. */
+export const liveDevlogs = (cat: Catalog) => devlogsByNewest().filter((d) => cat.gameBySlug(d.game));
 
 /** Other notes by the same creator, newest first. */
-export function devlogsBySameCreator(d: Devlog): Devlog[] {
-  const creator = devlogGame(d).creator;
-  return DEVLOGS.filter((x) => x.slug !== d.slug && gameBySlug(x.game)?.creator === creator).sort(byNewest);
+export function devlogsBySameCreator(cat: Catalog, d: Devlog): Devlog[] {
+  const creator = devlogGame(cat, d)?.creator;
+  if (!creator) return [];
+  return DEVLOGS.filter((x) => x.slug !== d.slug && cat.gameBySlug(x.game)?.creator === creator).sort(byNewest);
 }
 
 /** Previous (older) and next (newer) notes in date order. */

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, X } from "lucide-react";
-import { GAMES, PLATFORMS, TRACKS, type Game, type Platform, type TrackId, shortPrice } from "@/data/catalog";
+import { PLATFORMS, TRACKS, type Game, type Platform, type TrackId, shortPrice } from "@/data/base";
 import { Entry, TrackChip, trackStyle } from "@/components/bits";
 import { Cover } from "@/components/Cover";
 import { tagBySlug, tagIndex, type TagInfo } from "@/components/etiquetas/tags";
@@ -38,7 +38,7 @@ type Filters = {
   tag: TagInfo | null;
 };
 
-function readFilters(sp: URLSearchParams): Filters {
+function readFilters(games: readonly Game[], sp: URLSearchParams): Filters {
   const t = sp.get("trilha");
   const p = sp.get("preco");
   const o = sp.get("ordem");
@@ -49,7 +49,7 @@ function readFilters(sp: URLSearchParams): Filters {
     platforms: PLATFORM_IDS.filter((id) => (sp.get("plataforma") ?? "").split(",").includes(id)),
     price: PRICES.some(([k]) => k === p && k !== "all") ? (p as PriceFilter) : "all",
     sort: SORTS.some(([k]) => k === o) ? (o as Sort) : "recentes",
-    tag: tag ? (tagBySlug(tag) ?? null) : null,
+    tag: tag ? (tagBySlug(games, tag) ?? null) : null,
   };
 }
 
@@ -83,10 +83,11 @@ function matches(g: Game, f: Filters, qTerms: string[], ignore: { q?: boolean; r
   return true;
 }
 
-export function Catalog() {
+/** The catalogue with its filters. `games` is the published programme, newest first, as the server loaded it. */
+export function Catalog({ games }: { games: Game[] }) {
   const params = useSearchParams();
   const router = useRouter();
-  const filters = useMemo(() => readFilters(new URLSearchParams(params.toString())), [params]);
+  const filters = useMemo(() => readFilters(games, new URLSearchParams(params.toString())), [games, params]);
 
   // The search box types ahead of the address; the address follows after a pause.
   const [q, setQ] = useState(filters.q);
@@ -135,7 +136,7 @@ export function Catalog() {
   const qTerms = useMemo(() => terms(q), [q]);
 
   const results = useMemo(() => {
-    const list = GAMES.filter((g) => matches(g, filters, qTerms));
+    const list = games.filter((g) => matches(g, filters, qTerms));
     return list.sort((a, b) => {
       if (filters.sort === "az") return a.title.localeCompare(b.title, "pt-BR");
       if (filters.sort === "preco") {
@@ -144,7 +145,7 @@ export function Catalog() {
       }
       return +new Date(b.published) - +new Date(a.published);
     });
-  }, [filters, qTerms]);
+  }, [games, filters, qTerms]);
 
   const featured = results.length > 9 ? results.slice(0, 8) : results;
   const index = results.length > 9 ? results.slice(8) : [];
@@ -156,16 +157,19 @@ export function Catalog() {
 
   // Tags offered as filter toggles: the most used, plus the active one if it is not among them.
   const topTags = useMemo(() => {
-    const top = [...tagIndex()].sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "pt-BR")).slice(0, TOP_TAGS);
+    const top = [...tagIndex(games)].sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "pt-BR")).slice(0, TOP_TAGS);
     return filters.tag && !top.some((t) => t.slug === filters.tag!.slug) ? [filters.tag, ...top] : top;
-  }, [filters.tag]);
+  }, [games, filters.tag]);
 
   // Empty state helpers: what the search finds without the other filters, and tags near the words typed.
   const withoutFilters = useMemo(
-    () => (qTerms.length && narrowed ? GAMES.filter((g) => matches(g, filters, qTerms, { rest: true })).length : 0),
-    [filters, qTerms, narrowed],
+    () => (qTerms.length && narrowed ? games.filter((g) => matches(g, filters, qTerms, { rest: true })).length : 0),
+    [games, filters, qTerms, narrowed],
   );
-  const near = useMemo(() => (results.length ? [] : nearTags(qTerms, filters.track)), [results.length, qTerms, filters.track]);
+  const near = useMemo(
+    () => (results.length ? [] : nearTags(games, qTerms, filters.track)),
+    [games, results.length, qTerms, filters.track],
+  );
 
   const summary = (
     <>
@@ -221,7 +225,7 @@ export function Catalog() {
                     <i aria-hidden />
                     {t.name}
                   </span>
-                  <small>{GAMES.filter((g) => g.track === t.id).length}</small>
+                  <small>{games.filter((g) => g.track === t.id).length}</small>
                 </button>
               ))}
             </div>
@@ -240,7 +244,7 @@ export function Catalog() {
               })}
             </div>
             <Link className="tag-all" href="/etiquetas">
-              Todas as {tagIndex().length} etiquetas <ArrowRight aria-hidden />
+              Todas as {tagIndex(games).length} etiquetas <ArrowRight aria-hidden />
             </Link>
           </fieldset>
 

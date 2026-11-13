@@ -25,6 +25,7 @@ const STEPS: [string, string][] = [
   ["Plataformas e arquivos", "Onde o jogo roda, os builds para baixar e a versão de navegador."],
   ["Preço", "Grátis, preço fixo ou pague o que quiser."],
   ["A página", "O que é o jogo, quanto dura e para quem é."],
+  ["No programa", "Publicar: número e endereço próprios, aberto a todos."],
 ];
 
 /**
@@ -161,11 +162,18 @@ function Row({ draft, jamTitle, onDeleted }: { draft: DraftRow; jamTitle?: strin
           <h3>{draft.title}</h3>
         </Link>
         <small>{draft.tagline || "Sem frase de apresentação ainda."}</small>
+        {draft.state === "publicado" ? (
+          <span className="pj-onair">
+            <span className="pj-live" aria-hidden />
+            No programa
+          </span>
+        ) : null}
       </span>
       {confirming ? (
         <div className="pj-confirm" role="group" aria-label={`Confirmar exclusão de ${draft.title}`}>
           <p>
-            <strong>Excluir “{draft.title}”?</strong> Não dá para desfazer.
+            <strong>Excluir “{draft.title}”?</strong>{" "}
+            {draft.state === "publicado" ? "Ele sai do programa junto, com os arquivos. Não dá para desfazer." : "Não dá para desfazer."}
           </p>
           {error ? (
             <p className="field-error" role="alert">
@@ -191,6 +199,11 @@ function Row({ draft, jamTitle, onDeleted }: { draft: DraftRow; jamTitle?: strin
             <span className="pj-jam">{jamTitle ?? <span className="pj-none">Sem jam</span>}</span>
           </span>
           <span className="pj-act">
+            {draft.publicSlug ? (
+              <Link href={`/jogo/${draft.publicSlug}`} className="btn btn--sm btn--ghost" aria-label={`Ver a página publicada de ${draft.title}`}>
+                Ver
+              </Link>
+            ) : null}
             <Link href={href} className="btn btn--sm" aria-label={`Abrir ${draft.title}`}>
               Abrir
             </Link>

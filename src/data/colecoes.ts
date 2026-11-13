@@ -7,7 +7,7 @@
 //   blocks that do are signed by the programme team (curator: null);
 // - a block's track is the most frequent track among its games.
 
-import { GAMES, creatorBySlug, gameBySlug, type Creator, type Game, type TrackId } from "./catalog";
+import type { Catalog, Creator, Game, TrackId } from "./catalog";
 
 export interface ColecaoItem {
   /** Game slug from the catalogue */
@@ -43,17 +43,17 @@ export interface ColecaoEntry {
 }
 
 /** The running order with each game resolved; slugs missing from the catalogue are skipped. */
-export function colecaoEntries(c: Colecao): ColecaoEntry[] {
+export function colecaoEntries(cat: Catalog, c: Colecao): ColecaoEntry[] {
   return c.items.flatMap((item) => {
-    const game = gameBySlug(item.game);
+    const game = cat.gameBySlug(item.game);
     return game ? [{ game, note: item.note }] : [];
   });
 }
 
 export type Curator = { kind: "team"; name: string } | { kind: "creator"; name: string; creator: Creator };
 
-export function colecaoCurator(c: Colecao): Curator {
-  const creator = c.curator ? creatorBySlug(c.curator) : undefined;
+export function colecaoCurator(cat: Catalog, c: Colecao): Curator {
+  const creator = c.curator ? cat.creatorBySlug(c.curator) : undefined;
   return creator ? { kind: "creator", name: creator.name, creator } : { kind: "team", name: TEAM_NAME };
 }
 
@@ -61,12 +61,12 @@ export function colecaoCurator(c: Colecao): Curator {
 export const colecoesWithGame = (slug: string) => COLECOES.filter((c) => c.items.some((i) => i.game === slug));
 
 /** Sanity check for the collections data (used by development scripts, not by pages). */
-export function colecaoProblems(): string[] {
+export function colecaoProblems(cat: Catalog): string[] {
   const problems: string[] = [];
   for (const c of COLECOES) {
-    for (const i of c.items) if (!gameBySlug(i.game)) problems.push(`${c.slug}: jogo desconhecido ${i.game}`);
-    if (c.curator && !creatorBySlug(c.curator)) problems.push(`${c.slug}: curadoria desconhecida ${c.curator}`);
-    const games = colecaoEntries(c).map((e) => e.game);
+    for (const i of c.items) if (!cat.gameBySlug(i.game)) problems.push(`${c.slug}: jogo desconhecido ${i.game}`);
+    if (c.curator && !cat.creatorBySlug(c.curator)) problems.push(`${c.slug}: curadoria desconhecida ${c.curator}`);
+    const games = colecaoEntries(cat, c).map((e) => e.game);
     if (c.curator && games.some((g) => g.creator === c.curator)) problems.push(`${c.slug}: inclui jogo de quem assina`);
     const counts = new Map<TrackId, number>();
     for (const g of games) counts.set(g.track, (counts.get(g.track) ?? 0) + 1);
@@ -74,6 +74,6 @@ export function colecaoProblems(): string[] {
     if ((counts.get(c.track) ?? 0) < top) problems.push(`${c.slug}: trilha ${c.track} não é a mais frequente`);
   }
   if (new Set(COLECOES.map((c) => c.slug)).size !== COLECOES.length) problems.push("slugs repetidos");
-  if (GAMES.length === 0) problems.push("catálogo vazio");
+  if (cat.games.length === 0) problems.push("catálogo vazio");
   return problems;
 }

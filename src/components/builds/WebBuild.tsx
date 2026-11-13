@@ -1,5 +1,7 @@
 "use client";
 
+import { FILES_CHANGED } from "@/lib/projects/events";
+
 import "@/styles/jogavel.css";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
@@ -73,6 +75,8 @@ export function WebBuild({ projectId }: { projectId: string }) {
       if (!res.ok) throw new Error(data.error ?? "Não deu para listar os builds.");
       setBuilds(data.builds ?? []);
       setListError(null);
+      // O painel de publicar confere de novo o que falta.
+      window.dispatchEvent(new Event(FILES_CHANGED));
     } catch (err) {
       setListError(err instanceof Error ? err.message : "Não deu para listar os builds.");
     }

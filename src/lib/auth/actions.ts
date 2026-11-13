@@ -19,6 +19,7 @@ import { clear, hit, peek, waitText } from "./ratelimit";
 import { requestInfo } from "./request";
 import { deleteUploadsOfUser } from "@/lib/uploads/server";
 import { deleteBuildsOfUser } from "@/lib/builds/cleanup";
+import { revalidatePublic } from "@/lib/catalog/revalidate";
 import {
   clearMfaChallenge,
   createMfaChallenge,
@@ -417,6 +418,8 @@ async function updateNameInner(_prev: FormState, form: FormData): Promise<FormSt
     await users.updateOne({ _id: user._id }, { $set: { name, updatedAt: new Date() } });
     await logEvent(user._id, "nome_alterado");
     revalidatePath("/conta");
+    // O nome assina os jogos publicados.
+    if (user.creatorSlug) revalidatePublic();
     return { ok: "Nome salvo.", values: { nome: name } };
   });
 }
@@ -613,8 +616,11 @@ async function deleteAccountInner(_prev: FormState, form: FormData): Promise<For
         return { fields: { codigo: "Código incorreto ou já usado." } };
       }
     }
-    // Arquivos no MinIO primeiro (todas as versões e envios abertos): se o
-    // armazenamento falhar, nada é excluído e a pessoa tenta de novo.
+    // Os jogos publicados saem do programa antes de tudo; depois, os arquivos no
+    // MinIO (todas as versões e envios abertos): se o armazenamento falhar, a
+    // conta fica e a pessoa tenta de novo.
+    const published = await (await db()).projects.updateMany({ userId: user._id }, { $set: { status: "excluindo", updatedAt: new Date() } });
+    if (published.modifiedCount) revalidatePublic();
     await deleteUploadsOfUser(user._id);
     await deleteBuildsOfUser(user._id);
     const { users, sessions, mfa, events, saves, follows, projects } = await db();
@@ -625,6 +631,7 @@ async function deleteAccountInner(_prev: FormState, form: FormData): Promise<For
     await follows.deleteMany({ userId: user._id });
     await projects.deleteMany({ userId: user._id });
     await users.deleteOne({ _id: user._id });
+    revalidatePublic();
     await destroyCurrentSession();
     done = true;
     return undefined;

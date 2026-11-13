@@ -7,8 +7,18 @@ import { db } from "@/lib/auth/db";
 import { getSession, toObjectId } from "@/lib/auth/session";
 import { hit, waitText } from "@/lib/auth/ratelimit";
 import { str } from "@/lib/auth/validate";
-import { LIMITS, WRITES_PER_WINDOW, WRITE_WINDOW_MS, type DeleteResult, type SaveResult } from "./limits";
+import {
+  LIMITS,
+  WRITES_PER_WINDOW,
+  WRITE_WINDOW_MS,
+  publishFieldProblems,
+  type DeleteResult,
+  type PublishResult,
+  type SaveResult,
+} from "./limits";
 import { parseDraft } from "./rules";
+import { ensureCreatorSlug, ensureNumber, ensurePublicSlug, publishProblems } from "./publish";
+import { revalidatePublic } from "@/lib/catalog/revalidate";
 import { deleteUploadsOfProject } from "@/lib/uploads/server";
 import { deleteBuildsOfProject } from "@/lib/builds/cleanup";
 
@@ -57,8 +67,32 @@ export async function saveDraft(form: FormData): Promise<SaveResult> {
     const { projects } = await db();
     const now = new Date();
     if (id) {
-      const res = await projects.updateOne({ _id: id, userId }, { $set: { ...parsed.value, updatedAt: now } });
+      const current = await projects.findOne({ _id: id, userId, status: { $ne: "excluindo" } }, { projection: { status: 1 } });
+      if (!current) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
+      const live = current.status === "publicado";
+      if (live) {
+        // Publicado, cada gravação vai ao ar: a página tem de continuar completa.
+        const v = parsed.value;
+        const fields = publishFieldProblems({
+          title: v.title,
+          tagline: v.tagline,
+          description: v.description,
+          platforms: v.platforms,
+          priceKind: v.price.kind,
+        });
+        const n = Object.keys(fields).length;
+        if (n) {
+          return {
+            ok: false,
+            code: "campos",
+            error: `Este jogo está no programa, então a página precisa continuar completa. Confira ${n === 1 ? "o campo marcado" : `os ${n} campos marcados`}, ou tire o jogo do ar antes.`,
+            fields,
+          };
+        }
+      }
+      const res = await projects.updateOne({ _id: id, userId, status: current.status }, { $set: { ...parsed.value, updatedAt: now } });
       if (res.matchedCount !== 1) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
+      if (live) revalidatePublic();
     } else {
       if ((await projects.countDocuments({ userId })) >= LIMITS.drafts) return { ok: false, code: "limite", error: FULL };
       const _id = new ObjectId();
@@ -115,6 +149,7 @@ export async function deleteDraft(form: FormData): Promise<DeleteResult> {
     const res = await projects.deleteOne({ _id: id, userId });
     if (res.deletedCount !== 1) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
     revalidatePath("/conta/projetos");
+    revalidatePublic();
     return { ok: true };
   } catch (err) {
     unstable_rethrow(err);
@@ -124,5 +159,106 @@ export async function deleteDraft(form: FormData): Promise<DeleteResult> {
       code: "servidor",
       error: "A exclusão não terminou: parte dos arquivos pode já ter sido apagada. Tente excluir de novo em instantes para concluir.",
     };
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Publicação                                                          */
+/* ------------------------------------------------------------------ */
+
+const PUBLISH_DOWN = "Não conseguimos falar com o servidor agora. Nada mudou: tente de novo em instantes.";
+
+type Owned = { ok: true; userId: ObjectId; id: ObjectId } | { ok: false; result: Extract<PublishResult, { ok: false }> };
+
+/** Sessão, id e taxa: o começo comum de publicar, conferir e tirar do ar. */
+async function owned(form: FormData, limited: boolean): Promise<Owned> {
+  const session = await getSession();
+  if (!session) return { ok: false, result: { ok: false, code: "sessao", error: "Sua sessão terminou. Entre de novo para publicar." } };
+  const userId = session.user._id;
+  const id = toObjectId(str(form, "id", 40));
+  if (!id) return { ok: false, result: { ok: false, code: "nao_encontrado", error: NOT_FOUND } };
+  if (limited) {
+    const limit = await hit(writeKey(userId), WRITES_PER_WINDOW, WRITE_WINDOW_MS);
+    if (!limit.allowed) {
+      return { ok: false, result: { ok: false, code: "taxa", error: `Muitas alterações seguidas. Espere ${waitText(limit.retryAfterMs)}.` } };
+    }
+  }
+  return { ok: true, userId, id };
+}
+
+const pendencias = (n: number) =>
+  n === 1 ? "Falta uma coisa para o jogo entrar no programa." : `Faltam ${n} coisas para o jogo entrar no programa.`;
+
+/** Confere, sem mudar nada, o que falta para publicar este rascunho. */
+export async function checkPublish(form: FormData): Promise<PublishResult> {
+  if (!(form instanceof FormData)) return { ok: false, code: "nao_encontrado", error: "Pedido inválido." };
+  try {
+    const who = await owned(form, false);
+    if (!who.ok) return who.result;
+    const { projects } = await db();
+    const p = await projects.findOne({ _id: who.id, userId: who.userId, status: { $ne: "excluindo" } });
+    if (!p) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
+    const problems = await publishProblems(p);
+    const state = p.status === "publicado" ? "publicado" : "rascunho";
+    if (problems.length) return { ok: false, code: "pendencias", error: pendencias(problems.length), problems };
+    return { ok: true, state, slug: p.publicSlug ?? null, number: p.number ?? null };
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("[publicar]", err);
+    return { ok: false, code: "servidor", error: PUBLISH_DOWN };
+  }
+}
+
+/** Põe o rascunho no programa: aberto a todos, com endereço e número próprios. */
+export async function publishProject(form: FormData): Promise<PublishResult> {
+  if (!(form instanceof FormData)) return { ok: false, code: "nao_encontrado", error: "Pedido inválido." };
+  try {
+    const who = await owned(form, true);
+    if (!who.ok) return who.result;
+    const { projects } = await db();
+    const p = await projects.findOne({ _id: who.id, userId: who.userId, status: { $ne: "excluindo" } });
+    if (!p) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
+    const problems = await publishProblems(p);
+    if (problems.length) return { ok: false, code: "pendencias", error: pendencias(problems.length), problems };
+
+    await ensureCreatorSlug(who.userId);
+    const slug = await ensurePublicSlug(p);
+    const number = await ensureNumber(p);
+    const now = new Date();
+    const res = await projects.updateOne(
+      { _id: p._id, userId: who.userId, status: { $in: ["rascunho", "publicado"] } },
+      [{ $set: { status: "publicado", updatedAt: now, publishedAt: { $ifNull: ["$publishedAt", now] } } }],
+    );
+    if (res.matchedCount !== 1) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
+    revalidatePath("/conta/projetos");
+    revalidatePublic();
+    return { ok: true, state: "publicado", slug, number };
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("[publicar]", err);
+    return { ok: false, code: "servidor", error: PUBLISH_DOWN };
+  }
+}
+
+/** Tira o jogo do programa. Volta a rascunho; endereço e número ficam guardados para a volta. */
+export async function unpublishProject(form: FormData): Promise<PublishResult> {
+  if (!(form instanceof FormData)) return { ok: false, code: "nao_encontrado", error: "Pedido inválido." };
+  try {
+    const who = await owned(form, true);
+    if (!who.ok) return who.result;
+    const { projects } = await db();
+    const p = await projects.findOneAndUpdate(
+      { _id: who.id, userId: who.userId, status: { $in: ["rascunho", "publicado"] } },
+      { $set: { status: "rascunho", updatedAt: new Date() } },
+      { projection: { publicSlug: 1, number: 1 }, returnDocument: "after" },
+    );
+    if (!p) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
+    revalidatePath("/conta/projetos");
+    revalidatePublic();
+    return { ok: true, state: "rascunho", slug: p.publicSlug ?? null, number: p.number ?? null };
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("[publicar]", err);
+    return { ok: false, code: "servidor", error: PUBLISH_DOWN };
   }
 }

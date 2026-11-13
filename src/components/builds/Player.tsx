@@ -49,7 +49,10 @@ export interface PlayerProps {
   needsIsolation: boolean;
   isolatedMode: boolean;
   heavy: boolean;
-  draftHref: string;
+  /** Para onde volta: o rascunho (dono) ou a página do jogo (público). */
+  back: { href: string; label: string };
+  /** previa: rascunho, só o dono vê. dono-publicado: o dono vendo o jogo no ar. publico: qualquer pessoa. */
+  mode: "previa" | "dono-publicado" | "publico";
   buildId: string;
 }
 
@@ -158,7 +161,7 @@ export function Player(p: PlayerProps) {
           <iframe
             ref={iframeRef}
             src={p.src}
-            title={`${p.title}, prévia jogável`}
+            title={p.mode === "previa" ? `${p.title}, prévia jogável` : `${p.title}, jogo`}
             sandbox={SANDBOX}
             allow={ALLOW}
             referrerPolicy="no-referrer"
@@ -180,9 +183,16 @@ export function Player(p: PlayerProps) {
         ) : null}
       </div>
 
-      <aside className="play-margin" aria-label="Sobre esta prévia">
+      <aside className="play-margin" aria-label={p.mode === "previa" ? "Sobre esta prévia" : "Sobre este jogo"}>
         <h1>{p.title}</h1>
-        <p className="play-private">Prévia do rascunho: esta página só abre para você. Os arquivos do jogo ficam num endereço longo e impossível de adivinhar, mas quem receber o link de “Abrir em aba própria” consegue jogar.</p>
+        {p.mode === "previa" ? (
+          <p className="play-private">
+            Prévia do rascunho: esta página só abre para você. Os arquivos do jogo ficam num endereço longo e impossível de
+            adivinhar, mas quem receber o link de “Abrir em aba própria” consegue jogar.
+          </p>
+        ) : p.mode === "dono-publicado" ? (
+          <p className="play-private">Este jogo está no programa: qualquer pessoa abre esta tela, com ou sem conta.</p>
+        ) : null}
         <dl className="play-facts">
           <div>
             <dt>Motor</dt>
@@ -235,9 +245,9 @@ export function Player(p: PlayerProps) {
             <ExternalLink aria-hidden />
             Abrir em aba própria
           </a>
-          <Link className="play-back" href={p.draftHref}>
+          <Link className="play-back" href={p.back.href}>
             <ArrowLeft aria-hidden />
-            Voltar ao rascunho
+            {p.back.label}
           </Link>
         </div>
       </aside>

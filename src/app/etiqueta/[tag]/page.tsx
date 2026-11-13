@@ -3,16 +3,19 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import "@/styles/etiquetas.css";
-import { creatorBySlug, shortPrice, trackById } from "@/data/catalog";
+import { shortPrice, trackById, type Game } from "@/data/catalog";
+import { getCatalog } from "@/lib/catalog/server";
 import { Cover } from "@/components/Cover";
 import { TrackChip, trackStyle } from "@/components/bits";
 import { tagSlug } from "@/components/etiquetas/slug";
-import { relatedTags, tagBySlug, tagIndex, type TagInfo } from "@/components/etiquetas/tags";
+import { relatedTags, tagBySlug, type TagInfo } from "@/components/etiquetas/tags";
 
 type Props = { params: Promise<{ tag: string }> };
 
+// Rendered on first visit, then kept and refreshed (revalidate); publishing refreshes it at once.
+export const revalidate = 60;
 export function generateStaticParams() {
-  return tagIndex().map((t) => ({ tag: t.slug }));
+  return [];
 }
 
 /**
@@ -21,7 +24,7 @@ export function generateStaticParams() {
  * folded to a slug and looked up in the index. Nothing from the address is
  * used beyond that lookup.
  */
-function resolve(raw: string): { info?: TagInfo; canonical: boolean } {
+function resolve(games: readonly Game[], raw: string): { info?: TagInfo; canonical: boolean } {
   let text = raw;
   try {
     text = decodeURIComponent(raw);
@@ -29,13 +32,13 @@ function resolve(raw: string): { info?: TagInfo; canonical: boolean } {
     // Malformed escape: fold the raw text as it is.
   }
   const slug = tagSlug(text.slice(0, 120));
-  const info = slug ? tagBySlug(slug) : undefined;
+  const info = slug ? tagBySlug(games, slug) : undefined;
   return { info, canonical: info?.slug === raw };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { tag } = await params;
-  const { info } = resolve(tag);
+  const { info } = resolve((await getCatalog()).games, tag);
   if (!info) return { title: "Etiqueta não encontrada" };
   return {
     title: `Etiqueta: ${info.tag}`,
@@ -46,13 +49,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function TagPage({ params }: Props) {
   const { tag } = await params;
-  const { info, canonical } = resolve(tag);
+  const { games } = await getCatalog();
+  const { info, canonical } = resolve(games, tag);
   if (!info) notFound();
   // Any other spelling of a known tag goes to its one address. The target is
   // built from the index, never from the request.
   if (!canonical) permanentRedirect(`/etiqueta/${info.slug}`);
 
-  const related = relatedTags(info);
+  const related = relatedTags(games, info);
   const catalogHref = `/jogos?etiqueta=${info.slug}`;
 
   return (
@@ -96,7 +100,7 @@ export default async function TagPage({ params }: Props) {
                   <span>
                     <h3>{g.title}</h3>
                     <p>
-                      {g.tagline} <span className="tag-by">{creatorBySlug(g.creator)?.name}</span>
+                      {g.tagline} <span className="tag-by">{g.creatorName}</span>
                     </p>
                   </span>
                   <TrackChip id={g.track} />

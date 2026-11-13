@@ -75,18 +75,18 @@ const STATUS: { part: string; state: State; note: React.ReactNode }[] = [
   },
   {
     part: "Catálogo, trilhas e filtros",
-    state: "parte",
-    note: "A navegação, a busca e os filtros estão prontos. O catálogo ainda está vazio: nenhum jogo foi publicado.",
+    state: "sim",
+    note: "A navegação, a busca e os filtros leem os jogos publicados, na ordem em que chegaram.",
   },
   {
     part: "Publicar no programa",
-    state: "nao",
-    note: "Um rascunho ainda não vira página pública.",
+    state: "sim",
+    note: "Com a página completa e os arquivos enviados, o rascunho vira entrada numerada, aberta a todos. Por enquanto, só jogos grátis.",
   },
   {
     part: "Jogar no navegador",
-    state: "parte",
-    note: "A versão de navegador sobe e roda numa prévia só para quem enviou. Fica pública quando a publicação existir.",
+    state: "sim",
+    note: "A versão de navegador roda numa prévia para quem enviou e, publicada, para qualquer pessoa, sem conta.",
   },
   {
     part: "Envio de arquivos",
@@ -148,8 +148,8 @@ export default function SobrePage() {
                 numeradas, as trilhas têm cor própria e as jams aparecem numa agenda, com hora para começar e acabar.
               </p>
               <p>
-                O programa está começando: as contas, a estante e os rascunhos já funcionam, e o catálogo ainda está
-                vazio. Os primeiros jogos entram quando a publicação for ligada.
+                O programa está começando: contas, estante, rascunhos, envio de arquivos e publicação já funcionam. Os
+                jogos entram no catálogo na ordem em que são publicados.
               </p>
             </div>
           </GuideSection>
@@ -166,7 +166,8 @@ export default function SobrePage() {
                 mínimo que quem fez escolheu. O preço aparece sempre do mesmo jeito, antes de qualquer clique.
               </p>
               <p>
-                Por enquanto não há cobrança: os pagamentos ainda não estão ligados.
+                Por enquanto não há cobrança: os pagamentos ainda não estão ligados, então todo jogo do programa é
+                grátis.
               </p>
             </div>
           </GuideSection>

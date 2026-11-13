@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import "@/styles/etiquetas.css";
-import { GAMES } from "@/data/catalog";
+import { getCatalog } from "@/lib/catalog/server";
 import { trackStyle } from "@/components/bits";
 import { ALPHABET, billing, tagIndex, tagsByLetter } from "@/components/etiquetas/tags";
 import { EmptyProgramme } from "@/components/EmptyProgramme";
@@ -12,8 +12,11 @@ export const metadata: Metadata = {
   description: "Índice de todas as etiquetas do catálogo, por letra, com quantos jogos levam cada uma.",
 };
 
-export default function TagIndexPage() {
-  if (tagIndex().length === 0) {
+export const revalidate = 60;
+
+export default async function TagIndexPage() {
+  const { games } = await getCatalog();
+  if (tagIndex(games).length === 0) {
     return (
       <>
         <header className="page-head">
@@ -31,9 +34,9 @@ export default function TagIndexPage() {
       </>
     );
   }
-  const groups = tagsByLetter();
+  const groups = tagsByLetter(games);
   const present = new Set(groups.map((g) => g.letter));
-  const total = tagIndex().length;
+  const total = tagIndex(games).length;
   const letters = present.has("#") ? [...ALPHABET, "#"] : ALPHABET;
 
   return (
@@ -54,7 +57,7 @@ export default function TagIndexPage() {
         </h2>
         <div className="results-bar">
           <p>
-            <span className="num">{total}</span> etiquetas em <span className="num">{GAMES.length}</span> jogos
+            <span className="num">{total}</span> etiquetas em <span className="num">{games.length}</span> jogos
           </p>
           <nav className="tag-letters" aria-label="Ir para a letra">
             {letters.map((l) =>

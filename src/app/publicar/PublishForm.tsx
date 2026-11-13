@@ -8,6 +8,7 @@ import { Entry, trackStyle } from "@/components/bits-base";
 import DownloadFiles from "@/components/uploads/DownloadFiles";
 import { WebBuild } from "@/components/builds/WebBuild";
 import { DraftBar, type SaveStatus } from "@/components/projetos/DraftBar";
+import { PublishPanel } from "@/components/projetos/PublishPanel";
 import { saveDraft } from "@/lib/projects/actions";
 import {
   DRAFT_COVERS,
@@ -155,6 +156,8 @@ function PublishForm({
   const [tried, setTried] = useState(false);
   const [restored, setRestored] = useState(false);
   const [pending, startTransition] = useTransition();
+  // Qual rascunho está no ar (o passo 6 fica feito só para ele).
+  const [liveId, setLiveId] = useState<string | null>(initial?.state === "publicado" ? initial.id : null);
   const refs = useRef<Partial<Record<FieldKey, HTMLElement | null>>>({});
 
   const snap = JSON.stringify(f);
@@ -430,8 +433,17 @@ function PublishForm({
                   <p className="field-hint" id={`${id}-t-hint`}>
                     {f.title.trim() ? (
                       <>
-                        Endereço sugerido: <span className="pj-slug">/jogo/{suggestSlug(f.title) || "…"}</span>. Ele só fica
-                        reservado quando a publicação existir.
+                        {initial?.publicSlug ? (
+                          <>
+                            Endereço no programa: <span className="pj-slug">/jogo/{initial.publicSlug}</span>. Ele fica o
+                            mesmo, mesmo se o título mudar.
+                          </>
+                        ) : (
+                          <>
+                            Endereço sugerido: <span className="pj-slug">/jogo/{suggestSlug(f.title) || "…"}</span>. Ele fica
+                            reservado quando você publica.
+                          </>
+                        )}
                       </>
                     ) : (
                       "Só o título já basta para salvar um rascunho."
@@ -484,7 +496,7 @@ function PublishForm({
                     {jamInfo
                       ? jamInfo.state === "past"
                         ? "Essa jam já fechou. O rascunho guarda a escolha, mas ela não recebe mais jogos."
-                        : "Um rascunho não conta como envio: a jam só recebe jogos publicados, e a publicação ainda não existe."
+                        : "Um rascunho não conta como envio: a jam só recebe o jogo depois que ele é publicado."
                       : jams.length === 0
                         ? "Nenhuma jam está marcada agora. Quando houver uma, ela aparece aqui."
                         : "Se o jogo é para uma jam, escolha aqui. Dá para mudar depois."}
@@ -606,8 +618,8 @@ function PublishForm({
             <div>
               <h2>Preço</h2>
               <p>
-                Você escolhe o modelo e o valor. Como o dinheiro chega até você ainda não está decidido: nenhum pagamento
-                funciona nesta edição.
+                Você escolhe o modelo e o valor. Os pagamentos ainda não estão ligados, então por enquanto só jogos
+                grátis entram no programa; o rascunho guarda qualquer preço para depois.
               </p>
               <div className="stack">
                 <div className="seg" role="radiogroup" aria-label="Modelo de preço">
@@ -678,17 +690,36 @@ function PublishForm({
                 <span className="num">{count(f.description).toLocaleString("pt-BR")}</span> de{" "}
                 <span className="num">{LIMITS.description.toLocaleString("pt-BR")}</span> caracteres.
               </p>
-              <div className="pj-end">
-                <p>
-                  <strong>
-                    {open === 0 ? "Os cinco passos estão completos." : `${open} ${open === 1 ? "passo ainda em aberto" : "passos ainda em aberto"}.`}
-                  </strong>{" "}
-                  Publicar no programa ainda não está disponível.{" "}
-                  {account === "dentro"
-                    ? "Até lá, o jogo e os arquivos ficam como rascunho na sua conta, e você testa a versão de navegador."
-                    : "Até lá, quem tem conta guarda o jogo e os arquivos como rascunho."}
-                </p>
-              </div>
+            </div>
+          </li>
+
+          <li className="step" data-done={liveId !== null && liveId === draftId}>
+            <span className="step-num" aria-hidden>6</span>
+            <div>
+              <h2>No programa</h2>
+              <p>
+                {open === 0
+                  ? "Os cinco passos estão completos."
+                  : `${open} ${open === 1 ? "passo ainda em aberto" : "passos ainda em aberto"} acima.`}{" "}
+                Publicado, o jogo ganha número e endereço próprios e abre para todos, com ou sem conta. Dá para tirar do
+                ar quando quiser.
+              </p>
+              <PublishPanel
+                // Outro rascunho (ex.: "salvar como novo"): outro painel, que começa como rascunho.
+                key={draftId ?? "novo"}
+                signedIn={account === "dentro"}
+                draftId={draftId}
+                fields={{ title: f.title, tagline: f.tagline, description: f.description, platforms: f.platforms, priceKind: f.priceKind }}
+                dirty={dirty}
+                savedAt={savedAt}
+                initial={
+                  initial && initial.id === draftId
+                    ? { state: initial.state, slug: initial.publicSlug, number: initial.number }
+                    : { state: "rascunho", slug: null, number: null }
+                }
+                onFocusField={(k) => focusField(k)}
+                onLiveChange={(on) => setLiveId(on ? draftId : null)}
+              />
             </div>
           </li>
         </ol>

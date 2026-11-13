@@ -2,18 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import "@/styles/jams-criadores.css";
-import {
-  GAMES,
-  JAMS,
-  type Jam,
-  creatorBySlug,
-  formatDay,
-  formatTime,
-  jamBySlug,
-  jamHost,
-  shortPrice,
-  trackById,
-} from "@/data/catalog";
+import { JAMS, type Jam, formatDay, formatTime, jamBySlug, shortPrice, trackById } from "@/data/catalog";
+import { getCatalog } from "@/lib/catalog/server";
 import { Cover } from "@/components/Cover";
 import { PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 import { JamClock, JamEntriesEmpty } from "@/components/jams/JamClock";
@@ -50,7 +40,7 @@ function derivedCriteria(j: Jam): Item[] {
 }
 
 // O estado (encerrada, ao vivo, em breve) segue o relógio: refaz a cada 5 minutos.
-export const revalidate = 300;
+export const revalidate = 60;
 
 export function generateStaticParams() {
   return JAMS.map((j) => ({ slug: j.slug }));
@@ -70,10 +60,9 @@ export default async function JamPage({ params }: Props) {
   const track = trackById(jam.track);
   const now = pickNow();
   const past = jamState(jam, now) === "past";
-  const host = jamHost(jam);
-  const entries = GAMES.filter((g) => g.jam === jam.slug).sort(
-    (a, b) => +new Date(a.published) - +new Date(b.published),
-  );
+  const catalog = await getCatalog();
+  const host = catalog.jamHost(jam);
+  const entries = [...catalog.gamesByJam(jam.slug)].reverse();
   const rules: Item[] = jam.rules?.length ? jam.rules.map((text) => ({ text })) : derivedRules(jam);
   const criteria: Item[] = jam.criteria?.length ? jam.criteria.map((text) => ({ text })) : derivedCriteria(jam);
   const others = JAMS.filter((j) => j.slug !== jam.slug).sort((a, b) => +new Date(a.start) - +new Date(b.start));
@@ -192,7 +181,6 @@ export default async function JamPage({ params }: Props) {
           <div className="index-list">
               <ol>
                 {entries.map((g) => {
-                  const by = creatorBySlug(g.creator);
                   return (
                     <li key={g.slug}>
                       <Link href={`/jogo/${g.slug}`} style={trackStyle(g.track)}>
@@ -203,7 +191,7 @@ export default async function JamPage({ params }: Props) {
                         <span>
                           <h3>{g.title}</h3>
                           <p>
-                            {by?.name ?? g.creator} · {g.tagline}
+                            {g.creatorName ?? g.creator} · {g.tagline}
                           </p>
                         </span>
                         <PlatformCodes platforms={g.platforms} />

@@ -1,17 +1,7 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import {
-  GAMES,
-  JAMS,
-  TRACKS,
-  creatorBySlug,
-  dayKey,
-  formatDay,
-  formatTime,
-  gamesByNewest,
-  pickNow,
-  shortPrice,
-} from "@/data/catalog";
+import { ArrowRight, Play } from "lucide-react";
+import { JAMS, TRACKS, dayKey, entryNumber, formatDay, formatTime, pickNow, shortPrice } from "@/data/catalog";
+import { getCatalog } from "@/lib/catalog/server";
 import { Cover } from "@/components/Cover";
 import { PriceDemo } from "@/components/PriceDemo";
 import { JamSchedule } from "@/components/JamSchedule";
@@ -19,8 +9,10 @@ import { EditDemo } from "@/components/EditDemo";
 import { EmptyProgramme } from "@/components/EmptyProgramme";
 import { Entry, PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 
-export default function Home() {
-  const lineup = gamesByNewest().slice(0, 7);
+export default async function Home() {
+  const catalog = await getCatalog();
+  const lineup = catalog.games.slice(0, 7);
+  const featured = catalog.games.find((g) => g.play);
   // Same clock as the jams.
   const now = pickNow();
   const today = dayKey(now);
@@ -61,7 +53,38 @@ export default function Home() {
             </div>
           </div>
 
-          {/* A sala de exibição espera o primeiro jogo: moldura tracejada, nada aceso. */}
+          {featured ? (
+            /* Em cartaz: o jogo de navegador publicado mais recente. */
+            <div className="screening" aria-labelledby="sala-titulo">
+              <div className="screening-head">
+                <span className="live-dot">Em cartaz</span>
+                <span className="num">{entryNumber(featured.number)}</span>
+              </div>
+              <Link
+                href={featured.play!}
+                className="screening-stage screening-art"
+                style={{ "--g": `var(${featured.palette[0]})` } as React.CSSProperties}
+                tabIndex={-1}
+                aria-hidden
+              >
+                <Cover game={featured} label="" fit="meet" />
+              </Link>
+              <div className="screening-foot">
+                <div>
+                  <h2 id="sala-titulo">
+                    <Link href={`/jogo/${featured.slug}`}>{featured.title}</Link>
+                  </h2>
+                  <p>
+                    {catalog.creatorName(featured)} · {shortPrice(featured.price)}
+                  </p>
+                </div>
+                <Link href={featured.play!} className="btn btn--lime btn--sm">
+                  <Play aria-hidden /> Jogar agora
+                </Link>
+              </div>
+            </div>
+          ) : (
+          /* A sala de exibição espera o primeiro jogo: moldura tracejada, nada aceso. */
           <div className="screening screening--empty" aria-labelledby="sala-titulo">
             <div className="screening-head">
               <span>Sala de exibição</span>
@@ -75,13 +98,14 @@ export default function Home() {
             <div className="screening-foot">
               <div>
                 <h2 id="sala-titulo">Lugar vago</h2>
-                <p>A entrada Nº 0001 ainda não tem dono.</p>
+                <p>{catalog.games.length ? "Nenhum jogo de navegador publicado ainda." : "A entrada Nº 0001 ainda não tem dono."}</p>
               </div>
               <Link href="/publicar" className="btn btn--lime btn--sm">
                 Começar um rascunho
               </Link>
             </div>
           </div>
+          )}
         </div>
       </section>
 
@@ -121,7 +145,7 @@ export default function Home() {
                     <span className="lineup-title">
                       <h3>{g.title}</h3>
                       <p>
-                        <span className="by">{creatorBySlug(g.creator)?.name}</span> · {g.tagline}
+                        <span className="by">{catalog.creatorName(g)}</span> · {g.tagline}
                       </p>
                     </span>
                     <TrackChip id={g.track} />
@@ -138,7 +162,7 @@ export default function Home() {
 
       {/* Track bands */}
       {TRACKS.map((t, i) => {
-        const games = GAMES.filter((g) => g.track === t.id);
+        const games = catalog.games.filter((g) => g.track === t.id);
         const [lead, ...rest] = games;
         return (
           <section
@@ -273,6 +297,6 @@ export default function Home() {
   );
 }
 
-// "Hoje" and the jam schedule follow pickNow(): rebuild every 5 minutes.
-export const revalidate = 300;
+// "Hoje" and the jam schedule follow pickNow(); publishing also rebuilds the page at once.
+export const revalidate = 60;
 

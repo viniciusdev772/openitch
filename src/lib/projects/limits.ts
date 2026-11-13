@@ -55,6 +55,12 @@ export interface SavedDraft extends DraftFields {
   slug: string;
   /** ISO 8601 */
   updatedAt: string;
+  /** No programa ou só rascunho. */
+  state: "rascunho" | "publicado";
+  /** Endereço público reservado (/jogo/<slug>), depois da primeira publicação. */
+  publicSlug: string | null;
+  /** Número da entrada no programa, depois da primeira publicação. */
+  number: number | null;
 }
 
 /** Uma linha da lista de rascunhos. */
@@ -66,6 +72,9 @@ export interface DraftRow {
   jam: string | null;
   /** ISO 8601 */
   updatedAt: string;
+  state: "rascunho" | "publicado";
+  /** Endereço público, quando publicado. */
+  publicSlug: string | null;
 }
 
 export type SaveResult =
@@ -154,3 +163,52 @@ export function splitTags(raw: string): string[] {
   }
   return out;
 }
+
+/* ------------------------------------------------------------------ */
+/* Publicação                                                          */
+/* ------------------------------------------------------------------ */
+
+/** Mínimos para entrar no programa (o rascunho salva com menos). */
+export const PUBLISH_MIN = { tagline: 5, description: 20 } as const;
+
+export type PublishField = "title" | "tagline" | "description" | "platforms" | "amount";
+
+/** O que falta, campo a campo, para um jogo entrar (ou continuar) no programa. Mesmo texto no formulário e no servidor. */
+export function publishFieldProblems(d: {
+  title: string;
+  tagline: string;
+  description: string;
+  platforms: readonly string[];
+  priceKind: PriceKind;
+}): Partial<Record<PublishField, string>> {
+  const out: Partial<Record<PublishField, string>> = {};
+  const n = (s: string) => [...s.trim()].length;
+  if (n(d.title) < 2) out.title = "Dê um nome ao jogo.";
+  if (n(d.tagline) < PUBLISH_MIN.tagline) out.tagline = `Escreva a frase de apresentação, com pelo menos ${PUBLISH_MIN.tagline} caracteres.`;
+  if (n(d.description) <= PUBLISH_MIN.description) {
+    out.description = `Conte o que é o jogo na descrição, com mais de ${PUBLISH_MIN.description} caracteres.`;
+  }
+  if (d.platforms.length === 0) out.platforms = "Marque pelo menos uma plataforma.";
+  // Pagamentos ainda não existem: um jogo pago seria entregue de graça.
+  if (d.priceKind !== "free") out.amount = "Por enquanto só jogos grátis entram no programa: os pagamentos ainda não estão ligados.";
+  return out;
+}
+
+export type PublishState = "rascunho" | "publicado";
+
+/** Uma pendência para publicar, com o campo do formulário que resolve (quando há um). */
+export interface PublishProblem {
+  field?: PublishField;
+  text: string;
+  /** Pendência de arquivo (vem do armazenamento, não do formulário). */
+  file?: true;
+}
+
+export type PublishResult =
+  | { ok: true; state: PublishState; slug: string | null; number: number | null }
+  | {
+      ok: false;
+      code: "sessao" | "taxa" | "nao_encontrado" | "pendencias" | "servidor";
+      error: string;
+      problems?: PublishProblem[];
+    };

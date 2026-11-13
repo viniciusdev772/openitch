@@ -4,18 +4,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { tagHref } from "@/components/etiquetas/slug";
 import { notFound } from "next/navigation";
-import { ArrowRight, Check, TriangleAlert } from "lucide-react";
-import {
-  GAMES,
-  PLATFORMS,
-  creatorBySlug,
-  entryNumber,
-  formatDate,
-  formatPrice,
-  gameBySlug,
-  jamBySlug,
-  trackById,
-} from "@/data/catalog";
+import { ArrowRight, Check, Play, TriangleAlert } from "lucide-react";
+import { PLATFORMS, entryNumber, formatDate, formatPrice, jamBySlug, trackById } from "@/data/catalog";
+import { getCatalog } from "@/lib/catalog/server";
+import { creatorLine } from "@/components/creatorLine";
 import { Cover } from "@/components/Cover";
 import { Entry, PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 import { LibraryButton } from "@/components/library/LibraryButton";
@@ -24,32 +16,36 @@ import { BuyCard } from "./BuyCard";
 import { Controls, DayNumeral, gameLog } from "./parts";
 
 /*
- * Página estática (generateStaticParams, nenhuma API de pedido). O que muda
- * por visitante (Guardar / Seguir) mora na ilha <LibraryState>, que lê o
- * estado no cliente com uma só requisição.
+ * Página sem API de pedido: renderizada na primeira visita e guardada
+ * (revalidate), refeita na hora quando o jogo é publicado, editado ou sai do
+ * ar. O que muda por visitante (Guardar / Seguir) mora na ilha
+ * <LibraryState>, que lê o estado no cliente com uma só requisição.
  */
 
 type Props = { params: Promise<{ slug: string }> };
 
+export const revalidate = 60;
 export function generateStaticParams() {
-  return GAMES.map((g) => ({ slug: g.slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const g = gameBySlug(slug);
+  const g = (await getCatalog()).gameBySlug(slug);
   return g ? { title: g.title, description: g.tagline } : {};
 }
 
 export default async function GamePage({ params }: Props) {
   const { slug } = await params;
-  const game = gameBySlug(slug);
+  const catalog = await getCatalog();
+  const game = catalog.gameBySlug(slug);
   if (!game) notFound();
-  const creator = creatorBySlug(game.creator)!;
+  const creator = catalog.creatorBySlug(game.creator);
+  if (!creator) notFound();
   const track = trackById(game.track);
-  const more = GAMES.filter((g) => g.creator === game.creator && g.slug !== game.slug);
-  const related = more.length ? more : GAMES.filter((g) => g.track === game.track && g.slug !== game.slug).slice(0, 4);
-  const playable = game.platforms.includes("web");
+  const more = catalog.gamesByCreator(game.creator).filter((g) => g.slug !== game.slug);
+  const related = more.length ? more : catalog.games.filter((g) => g.track === game.track && g.slug !== game.slug).slice(0, 4);
+  const playable = Boolean(game.play);
   const controls = game.controls ?? [];
   const access = game.accessibility ?? [];
   const notes = game.contentNotes ?? [];
@@ -74,13 +70,15 @@ export default async function GamePage({ params }: Props) {
               <div className="stage-launch">
                 <p>
                   {playable
-                    ? "Este jogo roda no navegador. A build ainda não foi enviada: o envio de arquivos ainda não está ligado."
-                    : `Disponível para ${game.platforms.map((p) => PLATFORMS[p].name).join(", ")}. Baixe ao lado.`}
+                    ? "Este jogo roda no navegador, sem instalar nada. Abre numa tela própria, com tela cheia."
+                    : game.platforms.length
+                      ? `Disponível para ${game.platforms.map((p) => PLATFORMS[p].name).join(", ")}. Baixe ao lado.`
+                      : "Os arquivos deste jogo estão sendo trocados. Volte em instantes."}
                 </p>
-                {playable && (
-                  <span className="btn btn--lime btn--sm" aria-disabled="true">
-                    Jogar no navegador
-                  </span>
+                {game.play && (
+                  <Link href={game.play} className="btn btn--lime btn--sm">
+                    <Play aria-hidden /> Jogar no navegador
+                  </Link>
                 )}
               </div>
             </div>
@@ -153,20 +151,32 @@ export default async function GamePage({ params }: Props) {
             <dd>{formatDate(game.published)}</dd>
             <dt>Atualizado</dt>
             <dd>{formatDate(game.updated)}</dd>
-            <dt>Duração</dt>
-            <dd>{game.session}</dd>
-            <dt>Idiomas</dt>
-            <dd>{game.languages.join(", ")}</dd>
-            <dt>Tags</dt>
-            <dd>
-              <span className="tags">
-                {game.tags.map((t) => (
-                  <Link key={t} href={tagHref(t) ?? `/jogos?q=${encodeURIComponent(t)}`}>
-                    {t}
-                  </Link>
-                ))}
-              </span>
-            </dd>
+            {game.session && (
+              <>
+                <dt>Duração</dt>
+                <dd>{game.session}</dd>
+              </>
+            )}
+            {game.languages.length > 0 && (
+              <>
+                <dt>Idiomas</dt>
+                <dd>{game.languages.join(", ")}</dd>
+              </>
+            )}
+            {game.tags.length > 0 && (
+              <>
+                <dt>Etiquetas</dt>
+                <dd>
+                  <span className="tags">
+                    {game.tags.map((t) => (
+                      <Link key={t} href={tagHref(t) ?? `/jogos?q=${encodeURIComponent(t)}`}>
+                        {t}
+                      </Link>
+                    ))}
+                  </span>
+                </dd>
+              </>
+            )}
             {game.jam && (
               <>
                 <dt>Jam</dt>
@@ -182,17 +192,21 @@ export default async function GamePage({ params }: Props) {
           <BuyCard
             price={game.price}
             title={game.title}
-            downloads={game.downloads.map((d) => ({ ...d, code: PLATFORMS[d.platform].code, name: PLATFORMS[d.platform].name }))}
-            playable={playable}
+            downloads={game.downloads.map((d) => ({
+              file: d.file,
+              size: d.size,
+              href: d.href ?? null,
+              code: PLATFORMS[d.platform].code,
+              name: PLATFORMS[d.platform].name,
+            }))}
+            play={game.play ?? null}
             save={<LibraryButton kind="save" slug={game.slug} />}
           />
           <div className="creator-card">
             <Link className="name" href={`/criador/${creator.slug}`}>
               {creator.name}
             </Link>
-            <p>
-              {creator.city}. {creator.bio}
-            </p>
+            <p>{creatorLine(creator)}</p>
             <LibraryButton kind="follow" slug={creator.slug} name={creator.name} small />
           </div>
         </aside>
