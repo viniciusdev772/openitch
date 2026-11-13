@@ -8,14 +8,14 @@ import {
   completeMultipartUpload,
   createMultipartUpload,
   deleteObjects,
-  ensureBucket,
   listKeys,
   listParts,
   presign,
-  putBucketLifecycle,
-  putBucketPolicy,
+  purgePrefix,
   s3Config,
 } from "@/lib/storage/s3";
+import { ensureStorage } from "@/lib/storage/setup";
+import { usageOf } from "@/lib/uploads/server";
 import { MAX_WEB_BUILD_BYTES, MAX_WEB_BUILD_FILES, USER_QUOTA_BYTES, formatBytes } from "@/lib/storage/limits";
 import { cleanBuildPath, COI_FILE, dirOf } from "./paths";
 import { headersFor } from "./mime";
@@ -58,51 +58,12 @@ const MINUTE = 60_000;
 const bucket = () => s3Config().buckets.play;
 
 /* ------------------------------------------------------------------ */
-/* Preparação do bucket e índices (uma vez por instância)              */
+/* Índice (uma vez por instância)                                      */
 /* ------------------------------------------------------------------ */
 
-type Prep = { bucket?: Promise<void>; index?: Promise<void> };
+type Prep = { index?: Promise<void> };
 const g = globalThis as typeof globalThis & { __vgBuilds?: Prep };
 const prep: Prep = (g.__vgBuilds ??= {});
-
-/**
- * Cria o bucket jogável se faltar e aplica:
- * - política: leitura anônima (s3:GetObject) SÓ em b/*; sem s3:ListBucket,
- *   então ninguém lista os builds: é preciso conhecer o id de 128 bits;
- * - ciclo de vida: aborta multipart incompleto depois de 1 dia.
- */
-export function ensurePlayBucket(): Promise<void> {
-  if (!prep.bucket) {
-    prep.bucket = (async () => {
-      const name = bucket();
-      await ensureBucket(name);
-      await putBucketPolicy(name, {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Sid: "LeituraPublicaDosBuilds",
-            Effect: "Allow",
-            Principal: { AWS: ["*"] },
-            Action: ["s3:GetObject"],
-            Resource: [`arn:aws:s3:::${name}/b/*`],
-          },
-        ],
-      });
-      try {
-        await putBucketLifecycle(
-          name,
-          `<Rule><ID>abortar-multipart-parado</ID><Status>Enabled</Status><Filter><Prefix>b/</Prefix></Filter><AbortIncompleteMultipartUpload><DaysAfterInitiation>1</DaysAfterInitiation></AbortIncompleteMultipartUpload></Rule>`,
-        );
-      } catch (err) {
-        console.warn("[builds] ciclo de vida não aplicado:", (err as Error).message);
-      }
-    })().catch((err) => {
-      prep.bucket = undefined;
-      throw err;
-    });
-  }
-  return prep.bucket;
-}
 
 async function collections() {
   const c = await db();
@@ -117,25 +78,6 @@ async function collections() {
   }
   await prep.index;
   return c;
-}
-
-/* ------------------------------------------------------------------ */
-/* Cota                                                                */
-/* ------------------------------------------------------------------ */
-
-/** Bytes ocupados pela conta: downloads (uploads) + builds, enviando ou prontos. */
-export async function usedBytes(userId: ObjectId, exceptBuild?: ObjectId): Promise<number> {
-  const { uploads, builds } = await collections();
-  const [u, b] = await Promise.all([
-    uploads.aggregate<{ n: number }>([{ $match: { userId, status: { $in: ["enviando", "pronto"] } } }, { $group: { _id: null, n: { $sum: "$size" } } }]).toArray(),
-    builds
-      .aggregate<{ n: number }>([
-        { $match: { userId, status: { $in: ["enviando", "pronto"] }, ...(exceptBuild ? { _id: { $ne: exceptBuild } } : {}) } },
-        { $group: { _id: null, n: { $sum: "$totalSize" } } },
-      ])
-      .toArray(),
-  ]);
-  return (u[0]?.n ?? 0) + (b[0]?.n ?? 0);
 }
 
 /* ------------------------------------------------------------------ */
@@ -217,7 +159,8 @@ export async function createBuild(userId: ObjectId, input: CreateInput) {
   const project = await projects.findOne({ _id: input.projectId, userId }, { projection: { _id: 1 } });
   if (!project) throw new BuildError(404, "Esse rascunho não existe ou não é da sua conta.");
   await rate("criar", userId);
-  await ensurePlayBucket();
+  // Buckets, política pública de GetObject em b/* do jogável e ciclo de vida (src/lib/storage/setup.ts).
+  await ensureStorage();
 
   // Envios abandonados há mais de um dia saem antes de contar limites.
   await sweepStale(userId);
@@ -234,7 +177,7 @@ export async function createBuild(userId: ObjectId, input: CreateInput) {
   const total = input.files.reduce((n, f) => n + f.s, 0);
   const quotaMsg = (used: number) =>
     `Não há espaço: a conta usa ${formatBytes(used)} de ${formatBytes(USER_QUOTA_BYTES)} e este build tem ${formatBytes(total)}. Exclua builds ou downloads antigos.`;
-  const before = await usedBytes(userId);
+  const before = await usageOf(userId);
   if (before + total > USER_QUOTA_BYTES) throw new BuildError(413, quotaMsg(before));
 
   const publicId = randomBytes(16).toString("hex");
@@ -265,7 +208,7 @@ export async function createBuild(userId: ObjectId, input: CreateInput) {
   };
   await builds.insertOne(doc);
   // Conferido de novo depois de gravar: dois envios simultâneos não passam da cota.
-  const after = await usedBytes(userId);
+  const after = await usageOf(userId);
   if (after > USER_QUOTA_BYTES) {
     await builds.deleteOne({ _id, userId });
     throw new BuildError(413, quotaMsg(after - total));
@@ -444,7 +387,8 @@ export async function finishBuild(userId: ObjectId, publicId: string) {
   for (const m of build.multipart ?? []) await abortMultipartUpload(build.bucket, build.prefix + m.p, m.id).catch(() => {});
 
   const total = declared.reduce((n, f) => n + (real.get(f.p) ?? 0), 0);
-  const others = await usedBytes(userId, build._id);
+  // A cota conta o tamanho declarado deste build; troca pelo real (iguais: o Content-Length é assinado).
+  const others = (await usageOf(userId)) - build.totalSize;
   if (others + total > USER_QUOTA_BYTES) {
     await purge(build);
     throw new BuildError(413, `O build passou do espaço da conta (${formatBytes(USER_QUOTA_BYTES)}) e foi apagado.`);
@@ -499,12 +443,13 @@ export async function deleteBuild(userId: ObjectId, publicId: string) {
   return { ok: true };
 }
 
-/** Apaga os objetos de um build (multipart aberto incluído) e depois o registro. */
-export async function purge(build: Pick<BuildDoc, "_id" | "bucket" | "prefix" | "multipart">) {
+/**
+ * Apaga os objetos de um build e depois o registro. purgePrefix aborta os
+ * multipart abertos e remove todas as versões e marcadores sob b/<id>/.
+ */
+export async function purge(build: Pick<BuildDoc, "_id" | "bucket" | "prefix">) {
   if (!/^b\/[a-f0-9]{32}\/$/.test(build.prefix)) throw new Error(`prefixo inesperado: ${build.prefix}`);
-  for (const m of build.multipart ?? []) await abortMultipartUpload(build.bucket, build.prefix + m.p, m.id).catch(() => {});
-  const keys = (await listKeys(build.bucket, build.prefix)).map((o) => o.key);
-  if (keys.length) await deleteObjects(build.bucket, keys);
+  await purgePrefix(build.bucket, build.prefix);
   const { builds } = await collections();
   await builds.deleteOne({ _id: build._id });
 }

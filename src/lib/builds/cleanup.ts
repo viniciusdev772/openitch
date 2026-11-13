@@ -17,7 +17,7 @@ import { purge } from "./server";
 
 async function purgeAll(filter: { userId: ObjectId; projectId?: ObjectId }): Promise<number> {
   const { builds } = await db();
-  const docs = await builds.find(filter, { projection: { _id: 1, bucket: 1, prefix: 1, multipart: 1 } }).toArray();
+  const docs = await builds.find(filter, { projection: { _id: 1, bucket: 1, prefix: 1 } }).toArray();
   if (docs.length === 0) return 0;
   if (!storageConfigured()) throw new Error("Armazenamento não configurado: não dá para apagar os builds.");
   let failed: unknown = null;

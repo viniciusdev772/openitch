@@ -16,6 +16,8 @@ import { createHash, createHmac } from "node:crypto";
 
 export interface S3Config {
   endpoint: URL;
+  /** Caminho base do endpoint sem barra no fim ("" na raiz). URL.pathname nunca fica vazio. */
+  basePath: string;
   accessKey: string;
   secretKey: string;
   region: string;
@@ -32,9 +34,9 @@ export function s3Config(): S3Config {
     throw new Error("Armazenamento não configurado: defina S3_ENDPOINT, S3_ACCESS_KEY e S3_SECRET_KEY (veja .env.example).");
   }
   const url = new URL(endpoint);
-  url.pathname = url.pathname.replace(/\/+$/, "");
   cached = {
     endpoint: url,
+    basePath: url.pathname.replace(/\/+$/, ""),
     accessKey,
     secretKey,
     region: process.env.S3_REGION || "us-east-1",
@@ -60,9 +62,8 @@ const hmac = (key: Buffer | string, data: string) => createHmac("sha256", key).u
 
 /** RFC 3986: tudo codificado, menos A-Z a-z 0-9 - _ . ~ (e "/" no caminho). */
 function enc(s: string, keepSlash = false): string {
-  return encodeURIComponent(s)
-    .replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase())
-    .replace(keepSlash ? /%2F/g : /$^/, "/");
+  const out = encodeURIComponent(s).replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
+  return keepSlash ? out.replace(/%2F/g, "/") : out;
 }
 
 function amzDate(d = new Date()) {
@@ -78,8 +79,8 @@ function signingKey(secret: string, day: string, region: string) {
 }
 
 function objectPath(bucket: string, key?: string) {
-  const { endpoint } = s3Config();
-  return `${endpoint.pathname}/${enc(bucket)}${key !== undefined ? "/" + enc(key, true) : ""}`;
+  const { basePath } = s3Config();
+  return `${basePath}/${enc(bucket)}${key !== undefined ? "/" + enc(key, true) : ""}`;
 }
 
 function canonicalQuery(q: Record<string, string>) {
@@ -200,7 +201,14 @@ export function xmlAll(xml: string, tag: string): string[] {
   return [...xml.matchAll(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "g"))].map((m) => m[1]);
 }
 const xmlDecode = (s: string) =>
-  s.replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+  s
+    .replace(/&#x([0-9a-f]+);/gi, (_, h: string) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d: string) => String.fromCodePoint(Number(d)))
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
 export const xmlEscape = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
@@ -216,7 +224,7 @@ export async function listBuckets(): Promise<string[]> {
   const payloadHash = sha256hex("");
   const headers = { host: cfg.endpoint.host, "x-amz-date": stamp, "x-amz-content-sha256": payloadHash };
   const { canonical, signed } = canonicalHeaders(headers);
-  const path = cfg.endpoint.pathname || "/";
+  const path = cfg.basePath || "/";
   const creq = ["GET", path, "", canonical, signed, payloadHash].join("\n");
   const sts = ["AWS4-HMAC-SHA256", stamp, scope, sha256hex(creq)].join("\n");
   const sig = createHmac("sha256", signingKey(cfg.secretKey, day, cfg.region)).update(sts).digest("hex");
@@ -290,7 +298,7 @@ export function presignUploadPart(bucket: string, key: string, uploadId: string,
 }
 
 export async function listParts(bucket: string, key: string, uploadId: string) {
-  const parts: { partNumber: number; etag: string; size: number }[] = [];
+  const parts: { partNumber: number; etag: string; size: number; checksumSHA256?: string }[] = [];
   let marker: string | undefined;
   do {
     const query: Record<string, string> = { uploadId, "max-parts": "1000" };
@@ -301,6 +309,7 @@ export async function listParts(bucket: string, key: string, uploadId: string) {
         partNumber: Number(xmlTag(p, "PartNumber")),
         etag: xmlTag(p, "ETag") ?? "",
         size: Number(xmlTag(p, "Size") ?? 0),
+        ...(xmlTag(p, "ChecksumSHA256") ? { checksumSHA256: xmlTag(p, "ChecksumSHA256") as string } : {}),
       });
     }
     marker = xmlTag(xml, "IsTruncated") === "true" ? (xmlTag(xml, "NextPartNumberMarker") ?? undefined) : undefined;
@@ -312,13 +321,18 @@ export async function completeMultipartUpload(
   bucket: string,
   key: string,
   uploadId: string,
-  parts: { partNumber: number; etag: string }[],
+  parts: { partNumber: number; etag: string; checksumSHA256?: string }[],
 ) {
   const body =
     `<CompleteMultipartUpload>` +
     [...parts]
       .sort((a, b) => a.partNumber - b.partNumber)
-      .map((p) => `<Part><PartNumber>${p.partNumber}</PartNumber><ETag>${xmlEscape(p.etag)}</ETag></Part>`)
+      .map(
+        (p) =>
+          `<Part><PartNumber>${p.partNumber}</PartNumber><ETag>${xmlEscape(p.etag)}</ETag>` +
+          (p.checksumSHA256 ? `<ChecksumSHA256>${xmlEscape(p.checksumSHA256)}</ChecksumSHA256>` : "") +
+          `</Part>`,
+      )
       .join("") +
     `</CompleteMultipartUpload>`;
   const xml = await ok(await s3Fetch("POST", bucket, key, { query: { uploadId }, body, headers: { "content-type": "application/xml" } }));
@@ -330,6 +344,114 @@ export async function completeMultipartUpload(
 export async function abortMultipartUpload(bucket: string, key: string, uploadId: string) {
   const res = await s3Fetch("DELETE", bucket, key, { query: { uploadId } });
   if (!res.ok && res.status !== 404) await ok(res);
+}
+
+/**
+ * URL de uma parte com o tamanho exato e (opcional) o SHA-256 da parte
+ * assinados. O navegador manda Content-Length sozinho; se o corpo tiver outro
+ * tamanho, a assinatura não confere e o MinIO recusa (403). Com o checksum
+ * assinado, o MinIO recalcula o SHA-256 e recusa a parte corrompida (400).
+ */
+export function presignUploadPartChecked(
+  bucket: string,
+  key: string,
+  uploadId: string,
+  partNumber: number,
+  opts: { contentLength: number; sha256?: string | null; expires?: number },
+) {
+  const headers: Record<string, string> = { "content-length": String(opts.contentLength) };
+  if (opts.sha256) headers["x-amz-checksum-sha256"] = opts.sha256;
+  return presign("PUT", bucket, key, { expires: opts.expires ?? 3600, query: { partNumber: String(partNumber), uploadId }, headers });
+}
+
+/** Uploads multipart abertos sob um prefixo (ListMultipartUploads, paginado). */
+export async function listMultipartUploads(bucket: string, prefix: string) {
+  const out: { key: string; uploadId: string; initiated: Date | null }[] = [];
+  let keyMarker: string | undefined;
+  let idMarker: string | undefined;
+  for (let page = 0; page < 1000; page++) {
+    const query: Record<string, string> = { uploads: "", prefix, "max-uploads": "1000" };
+    if (keyMarker) query["key-marker"] = keyMarker;
+    if (idMarker) query["upload-id-marker"] = idMarker;
+    const xml = await ok(await s3Fetch("GET", bucket, undefined, { query }));
+    for (const u of xmlAll(xml, "Upload")) {
+      const initiated = xmlTag(u, "Initiated");
+      out.push({ key: xmlTag(u, "Key") ?? "", uploadId: xmlTag(u, "UploadId") ?? "", initiated: initiated ? new Date(initiated) : null });
+    }
+    if (xmlTag(xml, "IsTruncated") !== "true") break;
+    keyMarker = xmlTag(xml, "NextKeyMarker") ?? undefined;
+    idMarker = xmlTag(xml, "NextUploadIdMarker") ?? undefined;
+    if (!keyMarker) break;
+  }
+  return out;
+}
+
+/** Todas as versões e marcadores de exclusão sob um prefixo (ListObjectVersions). */
+export async function listObjectVersions(bucket: string, prefix: string) {
+  const out: { key: string; versionId: string; size: number; deleteMarker: boolean }[] = [];
+  let keyMarker: string | undefined;
+  let idMarker: string | undefined;
+  for (let page = 0; page < 10_000; page++) {
+    const query: Record<string, string> = { versions: "", prefix, "max-keys": "1000" };
+    if (keyMarker) query["key-marker"] = keyMarker;
+    if (idMarker) query["version-id-marker"] = idMarker;
+    const xml = await ok(await s3Fetch("GET", bucket, undefined, { query }));
+    for (const v of xmlAll(xml, "Version")) {
+      out.push({ key: xmlTag(v, "Key") ?? "", versionId: xmlTag(v, "VersionId") ?? "null", size: Number(xmlTag(v, "Size") ?? 0), deleteMarker: false });
+    }
+    for (const v of xmlAll(xml, "DeleteMarker")) {
+      out.push({ key: xmlTag(v, "Key") ?? "", versionId: xmlTag(v, "VersionId") ?? "null", size: 0, deleteMarker: true });
+    }
+    if (xmlTag(xml, "IsTruncated") !== "true") break;
+    keyMarker = xmlTag(xml, "NextKeyMarker") ?? undefined;
+    idMarker = xmlTag(xml, "NextVersionIdMarker") ?? undefined;
+    if (!keyMarker) break;
+  }
+  return out;
+}
+
+/**
+ * Apaga versões específicas (DeleteObjects com VersionId), até 1000 por
+ * chamada. Objetos gravados antes do versionamento têm VersionId "null", que
+ * precisa ir explícito: sem ele o MinIO só cria um marcador de exclusão.
+ */
+export async function deleteObjectVersions(bucket: string, items: { key: string; versionId: string }[]) {
+  for (let i = 0; i < items.length; i += 1000) {
+    const chunk = items.slice(i, i + 1000);
+    const body =
+      `<Delete><Quiet>true</Quiet>` +
+      chunk.map((o) => `<Object><Key>${xmlEscape(o.key)}</Key><VersionId>${xmlEscape(o.versionId)}</VersionId></Object>`).join("") +
+      `</Delete>`;
+    const xml = await ok(await s3Fetch("POST", bucket, undefined, { query: { delete: "" }, body, headers: { "content-type": "application/xml" } }));
+    const errors = xmlAll(xml, "Error");
+    if (errors.length) throw new S3Error(500, xmlTag(errors[0], "Code") ?? "DeleteFailed", xmlTag(errors[0], "Key") ?? "");
+  }
+}
+
+/**
+ * Apaga de vez tudo sob um prefixo: aborta uploads multipart abertos e
+ * remove todas as versões e marcadores (nada fica para o versionamento
+ * recuperar). Recusa prefixo vazio ou sem "/" no fim, para nunca apagar um
+ * bucket inteiro por engano.
+ */
+export async function purgePrefix(bucket: string, prefix: string): Promise<{ objects: number; uploads: number }> {
+  if (!prefix || !prefix.endsWith("/") || prefix.startsWith("/") || prefix.split("/").some((seg, i, a) => (seg === "" && i < a.length - 1) || seg === "." || seg === "..")) {
+    throw new Error(`purgePrefix: prefixo recusado (${JSON.stringify(prefix)})`);
+  }
+  let uploads = 0;
+  for (const u of await listMultipartUploads(bucket, prefix)) {
+    await abortMultipartUpload(bucket, u.key, u.uploadId);
+    uploads++;
+  }
+  let objects = 0;
+  // Uma volta normalmente basta; repete se algo foi gravado no meio.
+  for (let round = 0; round < 5; round++) {
+    const versions = await listObjectVersions(bucket, prefix);
+    if (!versions.length) break;
+    await deleteObjectVersions(bucket, versions);
+    objects += versions.filter((v) => !v.deleteMarker).length;
+  }
+  return { objects, uploads };
 }
 
 /* Configuração de bucket --------------------------------------------- */
@@ -363,6 +485,16 @@ export async function putBucketCors(bucket: string, xmlRules: string): Promise<b
   const text = await res.text();
   if (res.status === 501 || /NotImplemented/.test(text)) return false;
   throw new S3Error(res.status, xmlTag(text, "Code") ?? "Unknown", xmlTag(text, "Message") ?? text.slice(0, 200));
+}
+
+/** Criptografia padrão SSE-S3 no bucket. Devolve false se o servidor não tem KMS configurado. */
+export async function putBucketEncryption(bucket: string): Promise<boolean> {
+  const body =
+    `<ServerSideEncryptionConfiguration><Rule><ApplyServerSideEncryptionByDefault><SSEAlgorithm>AES256</SSEAlgorithm></ApplyServerSideEncryptionByDefault></Rule></ServerSideEncryptionConfiguration>`;
+  const res = await s3Fetch("PUT", bucket, undefined, { query: { encryption: "" }, body, headers: { "content-type": "application/xml" } });
+  if (res.ok) return true;
+  await res.text();
+  return false;
 }
 
 export async function putObjectTagging(bucket: string, key: string, tags: Record<string, string>) {

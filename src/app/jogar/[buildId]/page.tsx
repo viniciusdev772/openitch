@@ -5,7 +5,7 @@ import { notFound, redirect, unstable_rethrow } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { publicUrl, s3Config, storageConfigured } from "@/lib/storage/s3";
 import { buildForPlay } from "@/lib/builds/server";
-import { canView } from "@/lib/builds/access";
+import { canView } from "@/lib/projects/access";
 import { ENGINE_LABEL } from "@/lib/builds/detect";
 import { HEAVY_BUILD_BYTES, PUBLIC_ID_RE } from "@/lib/builds/config";
 import { TRACKS, trackById } from "@/data/catalog";
@@ -62,7 +62,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
     );
   }
   // De outra conta ou inexistente: a mesma resposta (não revela que existe).
-  if (!found || !canView(viewer, found.project)) notFound();
+  if (!found || !found.project || !canView(viewer, found.project)) notFound();
   const { build, project } = found;
   const draftHref = `/publicar?projeto=${build.projectId.toHexString()}`;
 

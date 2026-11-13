@@ -9,6 +9,8 @@ import { hit, waitText } from "@/lib/auth/ratelimit";
 import { str } from "@/lib/auth/validate";
 import { LIMITS, WRITES_PER_WINDOW, WRITE_WINDOW_MS, type DeleteResult, type SaveResult } from "./limits";
 import { parseDraft } from "./rules";
+import { deleteUploadsOfProject } from "@/lib/uploads/server";
+import { deleteBuildsOfProject } from "@/lib/builds/cleanup";
 
 /*
  * Rascunhos de jogos. Cada ação é um endpoint público: confere sozinha quem
@@ -102,6 +104,13 @@ export async function deleteDraft(form: FormData): Promise<DeleteResult> {
     }
 
     const { projects } = await db();
+    if (!(await projects.findOne({ _id: id, userId }, { projection: { _id: 1 } }))) {
+      return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
+    }
+    // Arquivos e builds primeiro: se o armazenamento falhar, o rascunho fica
+    // e a pessoa tenta de novo, sem deixar objetos órfãos no MinIO.
+    await deleteUploadsOfProject(userId, id);
+    await deleteBuildsOfProject(userId, id);
     const res = await projects.deleteOne({ _id: id, userId });
     if (res.deletedCount !== 1) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
     revalidatePath("/conta/projetos");
@@ -109,6 +118,10 @@ export async function deleteDraft(form: FormData): Promise<DeleteResult> {
   } catch (err) {
     unstable_rethrow(err);
     console.error("[projetos]", err);
-    return { ok: false, code: "servidor", error: "Não conseguimos excluir agora. O rascunho continua salvo; tente de novo em instantes." };
+    return {
+      ok: false,
+      code: "servidor",
+      error: "Não conseguimos excluir agora. O rascunho e os arquivos dele continuam salvos; tente de novo em instantes.",
+    };
   }
 }
