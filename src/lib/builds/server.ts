@@ -383,7 +383,7 @@ export async function finishBuild(userId: ObjectId, publicId: string) {
   const declared = build.files ?? [];
   const missing = declared.filter((f) => real.get(f.p) !== f.s).map((f) => f.p);
   if (missing.length) {
-    throw new BuildError(409, `Faltam ${missing.length} arquivo(s) no armazenamento.`, { faltam: missing.slice(0, 1000) });
+    throw new BuildError(409, `${missing.length === 1 ? "Falta 1 arquivo" : `Faltam ${missing.length} arquivos`} no armazenamento.`, { faltam: missing.slice(0, 1000) });
   }
   const declaredSet = new Set(declared.map((f) => f.p));
   const extra = listed.filter((o) => !declaredSet.has(o.key.slice(build.prefix.length))).map((o) => o.key);

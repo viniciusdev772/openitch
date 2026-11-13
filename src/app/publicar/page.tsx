@@ -63,7 +63,7 @@ export default async function PublishPage({ searchParams }: { searchParams: SP }
                 }${
                   staleJam ? " A jam que este rascunho tinha não está mais na agenda, então o campo de jam ficou vazio." : ""
                 }`
-              : "Cinco passos, nesta ordem, todos reversíveis. À direita está a sua entrada no programa: ela muda enquanto você escreve."}
+              : "Preencha os cinco passos na ordem. Dá para mudar tudo depois, e a sua entrada no programa, à direita, muda enquanto você escreve."}
           </p>
         </div>
       </header>

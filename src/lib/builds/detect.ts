@@ -346,7 +346,7 @@ export function detectBuild(files: BuildFileInfo[], sniffed: Sniffed, chosenEntr
         entry = "index.html";
         notices.push({
           level: "info",
-          text: "Só há um .swf: a plataforma cria um index.html que roda o Flash com o Ruffle (emulador de código aberto), carregado do unpkg.com. Recursos de Flash que o Ruffle ainda não cobre podem não funcionar.",
+          text: "Só há um .swf: o site cria um index.html que roda o Flash com o Ruffle (emulador de código aberto), carregado do unpkg.com. Recursos de Flash que o Ruffle ainda não cobre podem não funcionar.",
         });
       } else {
         notices.push({ level: "erro", text: "Há mais de um .swf e nenhum HTML. Inclua um index.html que carregue o .swf principal com o Ruffle." });
@@ -389,12 +389,12 @@ export function detectBuild(files: BuildFileInfo[], sniffed: Sniffed, chosenEntr
   if (needsIsolation) {
     notices.push({
       level: "info",
-      text: "Este build usa threads e precisa de isolamento entre origens (SharedArrayBuffer). A plataforma acrescenta um service worker que liga o isolamento; na primeira vez a página do jogo recarrega uma vez.",
+      text: "Este build usa threads e precisa de isolamento entre origens (SharedArrayBuffer). O site acrescenta um service worker que liga o isolamento, e na primeira vez a página do jogo recarrega sozinha.",
     });
   } else if (isolationUncertain) {
     notices.push({
       level: "aviso",
-      text: "Não deu para ler o .wasm comprimido em Brotli neste navegador, então não sabemos se o build usa threads. Se você ligou threads no motor (no Unity, “Enable Native C/C++ Multithreading”), marque “Precisa de isolamento”.",
+      text: `Não deu para ler o .wasm comprimido em Brotli neste navegador, então não sabemos se o build usa threads. Se você ligou threads no motor (no Unity, "Enable Native C/C++ Multithreading"), marque "Precisa de isolamento".`,
     });
   }
 
@@ -408,11 +408,11 @@ export function detectBuild(files: BuildFileInfo[], sniffed: Sniffed, chosenEntr
       notices.push({ level: "info", text: "Compressão Gzip: cada .gz é servido com Content-Encoding: gzip e o tipo certo." });
     }
     if (lowerPaths.some((p) => p.endsWith(".unityweb"))) {
-      notices.push({ level: "aviso", text: "Build com “Decompression Fallback” (.unityweb): funciona, mas o descompressor embutido deixa o carregamento mais lento. Como aqui os cabeçalhos ficam certos, prefira exportar com Brotli e sem o fallback." });
+      notices.push({ level: "aviso", text: `Build com "Decompression Fallback" (.unityweb): funciona, mas o descompressor embutido deixa o carregamento mais lento. Como aqui os cabeçalhos ficam certos, prefira exportar com Brotli e sem o fallback.` });
     }
   }
   if (guess.engine === "godot" && /"serviceWorker"\s*:\s*"[^"]+"/.test(html) && needsIsolation) {
-    notices.push({ level: "info", text: "O build do Godot traz o próprio service worker (PWA). O isolamento da plataforma roda antes dele, então o do Godot só entra se o nosso falhar." });
+    notices.push({ level: "info", text: "O build do Godot traz o próprio service worker (PWA). O isolamento do site roda antes dele, e o do Godot só entra se o nosso falhar." });
   }
   if (guess.engine === "unreal-html5") {
     notices.push({ level: "info", text: "Unreal 4 com HTML5 (exportação oficial até 4.23, plugin da comunidade até 4.24/4.27). Os .gz são servidos com Content-Encoding: gzip. O Unreal 5 não exporta para navegador." });

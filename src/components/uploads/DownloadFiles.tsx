@@ -289,8 +289,8 @@ export default function DownloadFiles({ projectId, platforms }: Props) {
 
       {shown.length === 0 ? (
         <p className="dl-empty">
-          Marque Windows, macOS, Linux ou Android acima para enviar o arquivo de cada sistema. O build para o navegador
-          entra no passo do jogável.
+          Marque Windows, macOS, Linux ou Android acima para enviar o arquivo de cada sistema. A versão de navegador tem
+          um envio próprio, que aparece quando você marca Navegador.
         </p>
       ) : null}
 
@@ -345,7 +345,7 @@ export default function DownloadFiles({ projectId, platforms }: Props) {
                             {busy === f.id ? "Excluindo" : "Excluir de vez"}
                           </button>
                           <button type="button" className="btn btn--ghost btn--sm" onClick={() => setConfirming(null)}>
-                            Manter
+                            Manter o arquivo
                           </button>
                         </>
                       ) : (

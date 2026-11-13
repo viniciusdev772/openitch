@@ -141,7 +141,7 @@ function lineHint(key: LineKey, raw: string): string | undefined {
   return undefined;
 }
 
-const LEAVE_WARNING = "Este rascunho tem alterações não salvas. Sair da página mesmo assim? O que não foi salvo se perde.";
+const LEAVE_WARNING = "Este rascunho tem alterações não salvas. Se sair agora, elas se perdem. Sair mesmo assim?";
 
 /**
  * O que voltou do sessionStorage, conferido campo a campo com as mesmas
@@ -751,7 +751,7 @@ function PublishForm({
             <span className="step-num" aria-hidden>5</span>
             <div>
               <h2>A página</h2>
-              <p>Conte o que é o jogo, quanto tempo dura e para quem é. Texto simples, parágrafos separados por linha em branco.</p>
+              <p>Conte do que se trata o jogo e para quem ele é. Texto simples: uma linha em branco separa um parágrafo do outro.</p>
               <label className="field-label" htmlFor={`${id}-d`}>Descrição</label>
               <textarea
                 id={`${id}-d`}
@@ -845,7 +845,7 @@ function PublishForm({
               <h2>No programa</h2>
               <p>
                 {open === 0
-                  ? "Os cinco passos estão completos."
+                  ? "Os cinco passos estão feitos."
                   : `${open} ${open === 1 ? "passo ainda em aberto" : "passos ainda em aberto"} acima.`}{" "}
                 Publicado, o jogo ganha número e endereço próprios e abre para todos, com ou sem conta. Dá para tirar do
                 ar quando quiser.
