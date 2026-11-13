@@ -3,9 +3,9 @@
 import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CloudOff } from "lucide-react";
 import { PLATFORMS, TRACKS, formatDay, type Game, type Platform, type TrackId } from "@/data/base";
 import { Entry, trackStyle } from "@/components/bits-base";
+import DownloadFiles from "@/components/uploads/DownloadFiles";
 import { DraftBar, type SaveStatus } from "@/components/projetos/DraftBar";
 import { saveDraft } from "@/lib/projects/actions";
 import {
@@ -587,16 +587,8 @@ function PublishForm({
                     })}
                   </div>
                 </fieldset>
-                <div className="pj-nofiles" role="note">
-                  <CloudOff aria-hidden />
-                  <div>
-                    <strong>O envio de arquivos ainda não existe.</strong>
-                    <p>
-                      Nenhum arquivo sai do seu computador por aqui. O rascunho guarda só as plataformas marcadas; quando o
-                      envio existir, é neste passo que entra um arquivo por plataforma.
-                    </p>
-                  </div>
-                </div>
+                {/* Os arquivos vão do navegador direto para o armazenamento; a página só assina. */}
+                <DownloadFiles projectId={account === "dentro" ? draftId : null} platforms={f.platforms} />
               </div>
             </div>
           </li>
