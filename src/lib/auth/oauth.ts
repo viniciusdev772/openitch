@@ -35,7 +35,7 @@ const form = (body: Record<string, string>) => ({
   cache: "no-store" as const,
 });
 
-const resumestreUrl = () => (process.env.RESUMESTRE_URL || "https://resumestre.com.br").replace(/\/+$/, "");
+const resumestreUrl = () => (process.env.RESUMESTRE_URL || "https://www.resumestre.com.br").replace(/\/+$/, "");
 
 const PROVIDERS: Record<ProviderId, Provider> = {
   google: {
