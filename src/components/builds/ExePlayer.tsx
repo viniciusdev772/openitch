@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Download, Maximize, Minimize, Play, RotateCcw } from "lucide-react";
 import { formatBytes } from "@/lib/storage/limits";
 import { BOXEDWINE, exeCandidates, peMachine, rangeBlob, type ExeToFrame, type ExeToParent } from "@/lib/builds/exe";
+import { BOXEDWINE64, isUnrealBuild, play64Url } from "@/lib/builds/exe64";
 import { entryHead, readZip, ZipError, type ZipEntry } from "@/lib/builds/zip";
 
 /*
@@ -22,7 +23,9 @@ import { entryHead, readZip, ZipError, type ZipEntry } from "@/lib/builds/zip";
 const SANDBOX = "allow-scripts allow-same-origin allow-pointer-lock";
 const ALLOW = "autoplay; gamepad; fullscreen";
 
-type Phase = "portao" | "preparando" | "carregando" | "rodando" | "fim" | "erro";
+type Phase = "portao" | "preparando" | "carregando" | "rodando" | "fim" | "erro" | "x64";
+/** Jogo de 64 bits: abre no motor de 64 bits (Boxedwine64), em aba própria. */
+type X64 = { exe: string; zip: boolean; unreal: boolean };
 type Game = { arquivo: Blob; zip: boolean; exes: string[]; entries: ZipEntry[] };
 type Bar = { got: number; total: number };
 
@@ -74,8 +77,8 @@ async function machineOf(blob: Blob, g: Omit<Game, "arquivo">, exe: string) {
 }
 
 const PE_HEAD = 64 * 1024;
-const NOT_32 = (exe: string, m: string) =>
-  `${exe} é um programa de ${m === "arm64" ? "ARM64" : "64 bits (PE32+, x64)"}. O emulador do navegador só roda programas de 32 bits: baixe o jogo para jogar no Windows.`;
+const NOT_ARM = (exe: string) => `${exe} é um programa para ARM64, que nenhum emulador do navegador roda: baixe o jogo para jogar no Windows.`;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function fetchGame(url: string, size: number, onProgress: (b: Bar) => void): Promise<Blob> {
   const res = await fetch(url);
@@ -110,12 +113,68 @@ export function ExePlayer(p: ExePlayerProps) {
   const [run, setRun] = useState(0);
   const [frameReady, setFrameReady] = useState(false);
   const [full, setFull] = useState(false);
+  const [x64, setX64] = useState<X64 | null>(null);
+  const [opening64, setOpening64] = useState("");
   const sent = useRef(-1);
 
   const fail = useCallback((text: string, detail?: string) => {
     setError({ text, detail });
     setPhase("erro");
   }, []);
+
+  /** O .exe é de 64 bits: ARM64 não roda; x64 vai para o motor de 64 bits. */
+  const route64 = useCallback(
+    (m: string, exe: string, g: Omit<Game, "arquivo">) => {
+      if (m === "arm64") return fail(NOT_ARM(exe.split("/").pop()!));
+      setX64({ exe, zip: g.zip, unreal: isUnrealBuild(g.zip ? g.entries.map((e) => e.path) : [exe]) });
+      setPhase("x64");
+    },
+    [fail],
+  );
+
+  /**
+   * Abre o jogo no Boxedwine64, numa aba própria (precisa de isolamento entre origens).
+   * A aba abre já no clique (senão o navegador a bloqueia) e recebe o endereço quando
+   * o motor estiver instalado no servidor e a URL curta do arquivo pronta.
+   */
+  const open64 = async () => {
+    if (!x64) return;
+    const w = window.open("", "_blank");
+    if (!w) return setOpening64("O navegador bloqueou a nova aba. Libere janelas deste site e tente de novo.");
+    const say = (text: string) => {
+      setOpening64(text);
+      try {
+        w.document.title = "Portal dos Games";
+        w.document.body.style.cssText = "font:16px system-ui,sans-serif;padding:24px;background:#12131b;color:#e9ecef";
+        w.document.body.textContent = text;
+      } catch {
+        /* a aba já mudou de endereço */
+      }
+    };
+    try {
+      say("Preparando o motor de 64 bits…");
+      let page: string | null = null;
+      for (let i = 0; i < 120 && !page; i++) {
+        const res = await fetch(`/api/jogar-exe/instalar?motor=64`, { method: p.canInstall ? "POST" : "GET" });
+        const d = (await res.json().catch(() => null)) as { ok?: boolean; estado?: string; launcher?: string; faltam?: number | null; error?: string } | null;
+        if (!res.ok || !d?.ok) throw new Error(d?.error ?? "Não deu para preparar o motor de 64 bits agora.");
+        if (d.estado === "pronto" && d.launcher) page = d.launcher;
+        else if (!p.canInstall) throw new Error("O motor de 64 bits ainda não foi instalado neste servidor. Volte mais tarde.");
+        else {
+          say(`Instalando o motor de 64 bits no servidor (só na primeira vez, alguns minutos)${d.faltam ? `: faltam ${d.faltam} arquivos` : ""}…`);
+          await sleep(d.faltam == null ? 10_000 : 300);
+        }
+      }
+      if (!page) throw new Error("A instalação do motor de 64 bits está demorando. Tente de novo em alguns minutos.");
+      const url = await signedUrl(p.fileHref);
+      w.opener = null;
+      w.location.href = play64Url(page, x64.exe, x64.zip, url);
+      setOpening64("O jogo abriu em outra aba. O motor leva alguns minutos para ligar na primeira vez.");
+    } catch (err) {
+      w.close();
+      setOpening64(err instanceof Error ? err.message : "Não deu para abrir o motor de 64 bits.");
+    }
+  };
 
   // Emulador ainda não instalado no servidor: pede a instalação e espera (só na primeira vez de cada versão).
   useEffect(() => {
@@ -159,7 +218,7 @@ export function ExePlayer(p: ExePlayerProps) {
           const info = await inspect(remote, p.filename);
           const m = info.exes[0] ? await machineOf(remote, info, info.exes[0]) : null;
           if (stop) return;
-          if (m === "x64" || m === "arm64") return fail(NOT_32(info.exes[0].split("/").pop()!, m));
+          if (m === "x64" || m === "arm64") return route64(m, info.exes[0], info);
         } catch {
           /* segue com o download inteiro */
         }
@@ -180,7 +239,7 @@ export function ExePlayer(p: ExePlayerProps) {
     return () => {
       stop = true;
     };
-  }, [wantGame, game, p.fileHref, p.size, p.filename, fail]);
+  }, [wantGame, game, p.fileHref, p.size, p.filename, fail, route64]);
 
   // Mensagens da página do Boxedwine.
   useEffect(() => {
@@ -209,13 +268,13 @@ export function ExePlayer(p: ExePlayerProps) {
     // O .exe escolhido (pode ter sido trocado no seletor) precisa ser de 32 bits.
     void machineOf(game.arquivo, game, exe).then(
       (m) => {
-        if (m === "x64" || m === "arm64") return fail(NOT_32(exe.split("/").pop()!, m));
+        if (m === "x64" || m === "arm64") return route64(m, exe, game);
         const msg: ExeToFrame = { vg: "exe", arquivo: game.arquivo, zip: game.zip, exe };
         target?.postMessage(msg, origin);
       },
       () => fail("Não deu para ler o .exe dentro do arquivo."),
     );
-  }, [frameReady, game, exe, run, origin, fail]);
+  }, [frameReady, game, exe, run, origin, fail, route64]);
 
   useEffect(() => {
     const onChange = () => setFull(document.fullscreenElement === frameRef.current);
@@ -316,6 +375,36 @@ export function ExePlayer(p: ExePlayerProps) {
             <p>{status || (game ? "Baixando o emulador…" : "Baixando o jogo…")}</p>
           </div>
         )}
+        {phase === "x64" && x64 && (
+          <div className="play-gate" role="status">
+            {x64.unreal ? (
+              <>
+                <p>
+                  Este jogo foi feito com Unreal Engine (64 bits, DirectX 11/12). Nenhum emulador de navegador roda DirectX
+                  11 ou 12 hoje: para jogar aqui, quem fez o jogo precisa exportar uma versão web.{" "}
+                  <Link href="/ajuda#unreal-web">Veja como</Link>.
+                </p>
+                <button type="button" className="btn btn--ghost" onClick={open64}>
+                  <Play aria-hidden />
+                  Tentar no motor de 64 bits mesmo assim
+                </button>
+              </>
+            ) : (
+              <>
+                <p>
+                  {x64.exe.split("/").pop()} é um programa de 64 bits. Ele pode rodar no motor experimental de 64 bits, que
+                  abre numa aba própria e leva alguns minutos para ligar. Rodam melhor jogos 2D leves; DirectX 10, 11 e 12
+                  não rodam.
+                </p>
+                <button type="button" className="btn btn--lime" onClick={open64}>
+                  <Play aria-hidden />
+                  Abrir no motor de 64 bits
+                </button>
+              </>
+            )}
+            {opening64 && <p className="exe-warn">{opening64}</p>}
+          </div>
+        )}
         {phase === "fim" && (
           <div className="play-gate">
             <p>O jogo fechou.</p>
@@ -363,6 +452,14 @@ export function ExePlayer(p: ExePlayerProps) {
               <a href={BOXEDWINE.source} target="_blank" rel="noopener noreferrer">
                 Boxedwine {BOXEDWINE.version}
               </a>
+              {x64 && (
+                <>
+                  {" · "}
+                  <a href={BOXEDWINE64.source} target="_blank" rel="noopener noreferrer">
+                    Boxedwine64
+                  </a>
+                </>
+              )}
             </dd>
           </div>
         </dl>

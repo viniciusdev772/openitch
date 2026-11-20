@@ -134,6 +134,47 @@ const CHAPTERS: Chapter[] = [
         ),
       },
       {
+        id: "jogar-windows",
+        q: "Um jogo de Windows roda no navegador?",
+        a: (
+          <p>
+            Às vezes, em modo experimental. Downloads de Windows (.exe ou .zip) ganham o botão Jogar no navegador: um
+            Windows emulado roda o jogo no computador de quem joga. Jogos de 32 bits leves (GDI, DirectDraw, RPG Maker,
+            GameMaker 8) rodam melhor. Jogos de 64 bits abrem num motor separado, numa aba própria, mais lento. DirectX 10,
+            11 e 12 não rodam em nenhum emulador de navegador hoje.
+          </p>
+        ),
+      },
+      {
+        id: "unreal-web",
+        q: "Fiz meu jogo em Unreal Engine 5. Como ele roda no navegador?",
+        a: (
+          <>
+            <p>
+              O .exe do Unreal 5 precisa de DirectX 11 ou 12, que nenhum emulador de navegador roda. O caminho é exportar
+              uma versão web do projeto, que roda direto na placa de vídeo de quem joga (WebGPU), e enviar o zip dela no
+              passo 3, em Navegador:
+            </p>
+            <ul>
+              <li>
+                <a href="https://simplystream.com/guides/unreal-engine-in-browser" target="_blank" rel="noopener noreferrer">
+                  SimplyStream
+                </a>
+                : porta projetos Unreal 5.8 e 6 para a web sem compilar a engine do código-fonte.
+              </li>
+              <li>Unreal Engine 5.9 Preview: a exportação web experimental da Epic, para projetos C++ com a engine compilada do código-fonte.</li>
+              <li>
+                <a href="https://github.com/UnrealEngineHTML5/Documentation/issues/170" target="_blank" rel="noopener noreferrer">
+                  Fork comunitário do UE 5.8.3 com WebGPU
+                </a>
+                : empacota como HTML5 pelo editor (ainda experimental).
+              </li>
+            </ul>
+            <p>Nanite e Lumen não funcionam no navegador: desligue-os no projeto antes de exportar.</p>
+          </>
+        ),
+      },
+      {
         id: "publicar-conta",
         q: "Preciso de conta para publicar?",
         a: (
