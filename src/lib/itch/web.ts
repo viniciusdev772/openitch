@@ -14,7 +14,7 @@ import { cleanBuildPath, COI_FILE, dirOf } from "@/lib/builds/paths";
 import type { WebEngine } from "@/lib/auth/db";
 import { ItchError } from "./fetch";
 import { publicPageHtml } from "./public";
-import { candidatesFor, isTextLike, refsOf, webEntryOf } from "./webcrawl";
+import { candidatesFor, isTextLike, refsOf, stripItchScripts, webEntryOf } from "./webcrawl";
 
 /*
  * "Trazer" a versão de navegador de um jogo do itch.io: o servidor segue as
@@ -87,7 +87,7 @@ async function crawl(root: string, entry: string): Promise<Map<string, Uint8Arra
     }
     bytes += body.byteLength;
     if (bytes > MAX_BYTES) throw new ItchError("indisponivel", "A versão de navegador é grande demais para trazer por aqui. Envie o zip pelo painel de builds.");
-    files.set(path, body);
+    files.set(path, /\.html?$/i.test(path) ? new TextEncoder().encode(stripItchScripts(new TextDecoder("utf-8").decode(body))) : body);
     if (isTextLike(path)) {
       const text = new TextDecoder("utf-8").decode(body);
       for (const ref of refsOf(path, text)) {

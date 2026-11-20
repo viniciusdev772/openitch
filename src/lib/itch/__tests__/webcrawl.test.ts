@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { candidatesFor, refsOf, webEntryOf } from "../webcrawl";
+import { candidatesFor, refsOf, stripItchScripts, webEntryOf } from "../webcrawl";
 
 // Rodar: node --experimental-strip-types --import ./src/lib/builds/__tests__/register.mjs --test src/lib/itch/__tests__/*.test.ts
 
@@ -24,4 +24,13 @@ test("onde procurar cada referência, sem sair da raiz", () => {
   assert.deepEqual(candidatesFor("assets/m.js", "/dados/x.json"), ["dados/x.json"]);
   assert.deepEqual(candidatesFor("index.html", "./assets/a%20b.css"), ["assets/a b.css"]);
   assert.deepEqual(candidatesFor("a/b.js", "../../../etc/passwd.txt"), []);
+});
+
+test("tira o script anti-hotlink que o itch injeta, e só ele", () => {
+  const html = `<head><script type="module" src="./assets/a.js"></script></head><body><canvas></canvas>
+<script defer src="https://static.itch.io/htmlgame.js" type="text/javascript"></script></body>`;
+  assert.equal(stripItchScripts(html), `<head><script type="module" src="./assets/a.js"></script></head><body><canvas></canvas>
+</body>`);
+  assert.equal(stripItchScripts(`<script src="//static.itch.io/api.js"></script>ok`), "ok");
+  assert.equal(stripItchScripts(`<script src="https://cdn.jsdelivr.net/x.js"></script>`), `<script src="https://cdn.jsdelivr.net/x.js"></script>`);
 });

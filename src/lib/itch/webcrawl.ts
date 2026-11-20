@@ -95,3 +95,15 @@ export function candidatesFor(fromPath: string, ref: string): string[] {
   const dir = fromPath.includes("/") ? fromPath.slice(0, fromPath.lastIndexOf("/") + 1) : "";
   return [...new Set([normalize(dir + r), normalize(r)].filter((x): x is string => Boolean(x)))];
 }
+
+/**
+ * Tira do HTML os scripts que o itch.io injeta ao servir o jogo
+ * (ex.: <script defer src="https://static.itch.io/htmlgame.js">): fora do
+ * itch eles trocam a página pelo aviso "You should be using itch.io".
+ */
+export function stripItchScripts(html: string): string {
+  return html.replace(
+    /<script\b[^>]*\bsrc\s*=\s*["']?(?:https?:)?\/\/[^"'\s>]*(?:itch\.io|itch\.zone)[^"'\s>]*["']?[^>]*>\s*<\/script\s*>/gi,
+    "",
+  );
+}
