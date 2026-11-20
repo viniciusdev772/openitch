@@ -106,9 +106,8 @@ function ItchNotice({ flag }: { flag: string }) {
           {parts.includes("semcapa") ? "" : ", e a capa"}. Confira tudo antes de publicar.
         </p>
         <p>
-          {parts.includes("seu")
-            ? "Os arquivos estão no passo 3, em Arquivos no itch.io: clique em Trazer em cada um (ou Trazer todos)."
-            : "Para os arquivos virem também, ligue sua conta do itch.io no passo 3. Ou envie cada build por lá."}
+          Os arquivos estão no passo 3, em Arquivos no itch.io: clique em Trazer em cada um (ou Trazer todos). A versão de navegador o
+          itch não deixa baixar; envie o zip dela no mesmo passo.
           {parts.includes("preco") ? " O preço no itch é em dólar: revise o valor e a moeda no passo 4." : ""}
           {parts.includes("semcapa") ? " A capa não veio; envie uma imagem no passo 2." : ""}
         </p>

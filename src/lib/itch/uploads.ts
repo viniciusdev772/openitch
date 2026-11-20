@@ -1,62 +1,65 @@
 import type { DownloadPlatform } from "@/lib/uploads/rules";
 
-/* Leitura dos uploads da API do itch.io (sem rede: testável fora do Next). */
-
-type Json = Record<string, unknown>;
-
-const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : typeof v === "string" && /^\d+$/.test(v) ? Number(v) : null);
-const strv = (v: unknown) => (typeof v === "string" ? v : "");
-const pick = (o: Json, ...keys: string[]) => {
-  for (const k of keys) if (o[k] !== undefined && o[k] !== null) return o[k];
-  return undefined;
-};
-
-export type ItchKind = "download" | "web" | "outro";
+/*
+ * Lista de arquivos de um jogo, lida do HTML público do itch.io (página do jogo,
+ * para jogos grátis, ou a página de downloads). Sem rede: testável fora do Next.
+ *
+ *   <div class="upload"><a class="button download_btn" data-upload_id="20677440">…
+ *     <strong class="name" title="Jogo-win64.zip">…</strong>
+ *     <span class="file_size"><span>837 MB</span></span>
+ *     <span class="download_platforms"><span class="icon icon-windows8"></span>…
+ *
+ * ponytail: lê o HTML com expressões simples; se o itch mudar essa marcação,
+ * a lista sai vazia e o criador envia os arquivos à mão (nada quebra).
+ */
 
 export interface ItchUpload {
   id: number;
   filename: string;
-  displayName: string;
-  size: number;
-  kind: ItchKind;
-  /** Plataformas de download que o upload declara (na ordem windows, macos, linux, android). */
+  /** Tamanho como o itch mostra ("837 MB"); o exato vem do CDN na hora de copiar. */
+  sizeLabel: string;
+  /** Plataformas de download (na ordem windows, macos, linux, android); vazio = outro tipo de arquivo. */
   platforms: DownloadPlatform[];
-  storage: string;
-  buildId: number | null;
-  updatedAt: number | null;
 }
 
-/** Plataformas do upload, em qualquer das formas que a API usa. */
-export function uploadPlatforms(raw: Json): DownloadPlatform[] {
-  const pl = (raw.platforms && typeof raw.platforms === "object" ? raw.platforms : {}) as Json;
-  const traits = Array.isArray(raw.traits) ? (raw.traits as unknown[]).map(String) : [];
-  const has = (name: string, alt: string) => Boolean(pl[name] || raw[`p_${alt}`] || traits.includes(`p_${alt}`));
-  const out: DownloadPlatform[] = [];
-  if (has("windows", "windows")) out.push("windows");
-  if (has("osx", "osx")) out.push("macos");
-  if (has("linux", "linux")) out.push("linux");
-  if (raw.p_android || traits.includes("p_android") || /\.apk$/i.test(strv(raw.filename))) out.push("android");
+const ICONS: [RegExp, DownloadPlatform][] = [
+  [/icon-windows/, "windows"],
+  [/icon-apple/, "macos"],
+  [/icon-tux/, "linux"],
+  [/icon-android/, "android"],
+];
+
+const decode = (s: string) =>
+  s
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&#x27;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+
+export function parseUploadList(html: string): ItchUpload[] {
+  const out: ItchUpload[] = [];
+  const blocks = html.split(/<div\s+class="upload"\s*>/i).slice(1);
+  for (const b of blocks) {
+    const id = Number(/data-upload_id="(\d+)"/.exec(b)?.[1]);
+    if (!Number.isSafeInteger(id) || id <= 0 || out.some((u) => u.id === id)) continue;
+    const name = /<strong\b[^>]*class="name"[^>]*title="([^"]*)"/.exec(b)?.[1] ?? /<strong\b[^>]*title="([^"]*)"[^>]*class="name"/.exec(b)?.[1];
+    const size = /class="file_size"[^>]*>\s*<span>([^<]*)</.exec(b)?.[1] ?? "";
+    const icons = /class="download_platforms"[^>]*>([\s\S]*?)<\/span>\s*<\/div>/.exec(b)?.[1] ?? "";
+    const filename = decode(name ?? "").trim() || `arquivo-${id}`;
+    const platforms = ICONS.filter(([re]) => re.test(icons)).map(([, p]) => p);
+    if (!platforms.length && /\.apk$/i.test(filename)) platforms.push("android");
+    out.push({ id, filename, sizeLabel: decode(size).trim(), platforms });
+  }
   return out;
 }
 
-export function normalizeUpload(raw: Json): ItchUpload | null {
-  const id = num(raw?.id);
-  const size = num(raw?.size);
-  if (id === null) return null;
-  const type = strv(raw.type) || "default";
-  const platforms = uploadPlatforms(raw);
-  const kind: ItchKind = type === "html" ? "web" : type === "default" && platforms.length ? "download" : "outro";
-  const updated = Date.parse(strv(pick(raw, "updated_at", "updatedAt")) || strv(pick(raw, "created_at", "createdAt")));
-  return {
-    id,
-    filename: strv(raw.filename) || `arquivo-${id}`,
-    displayName: strv(pick(raw, "display_name", "displayName")),
-    size: size ?? 0,
-    kind,
-    platforms,
-    storage: strv(raw.storage) || "hosted",
-    buildId: num(pick(raw, "build_id", "buildId")),
-    updatedAt: Number.isFinite(updated) ? updated : null,
-  };
+/** Validade do link assinado do CDN (parâmetro Expires, em segundos), ou null. */
+export function cdnExpiry(url: string): Date | null {
+  try {
+    const e = Number(new URL(url).searchParams.get("Expires"));
+    return Number.isFinite(e) && e > 0 ? new Date(e * 1000) : null;
+  } catch {
+    return null;
+  }
 }
-

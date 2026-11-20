@@ -21,7 +21,7 @@ export const IMAGE_MAX = 4 * 1024 * 1024;
 
 export class ItchError extends Error {
   constructor(
-    public code: "url" | "nao_encontrado" | "limite" | "indisponivel" | "chave" | "expirou" | "mudou" | "sem_conta" | "nao_e_seu",
+    public code: "url" | "nao_encontrado" | "limite" | "indisponivel" | "expirou" | "mudou" | "pago",
     message: string,
   ) {
     super(message);

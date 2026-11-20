@@ -2,30 +2,25 @@
 
 import { useCallback, useEffect, useId, useState } from "react";
 import { Check, Download, LoaderCircle, RotateCcw } from "lucide-react";
-import { ApiError, api, formatSize } from "@/lib/uploads/client";
-import { FILES_CHANGED, ITCH_FILES, ITCH_PLATFORM, handItchWebZip } from "@/lib/projects/events";
-import { ItchConnect } from "./ItchConnect";
+import { ApiError, api } from "@/lib/uploads/client";
+import { FILES_CHANGED, ITCH_FILES, ITCH_PLATFORM } from "@/lib/projects/events";
 
 /*
- * Passo 3, rascunho trazido do itch.io: os arquivos do jogo lá, cada um com
- * "Trazer". Downloads o servidor copia parte por parte (o navegador só coordena);
- * a versão de navegador vem em pedaços para este navegador e entra no painel de
- * builds como se o zip tivesse sido escolhido aqui.
+ * Passo 3, rascunho trazido do itch.io: os arquivos de download do jogo lá, cada
+ * um com "Trazer". O servidor copia parte por parte do CDN do itch para o
+ * armazenamento; o navegador só coordena e mostra o andamento.
  */
 
 interface Row {
   id: number;
   filename: string;
-  displayName: string;
-  size: number;
-  kind: "download" | "web" | "outro";
+  sizeLabel: string;
   platforms: string[];
   local: { id: string; status: string } | null;
 }
 interface ListResponse {
-  connected: boolean;
   fromItch: boolean;
-  username?: string;
+  itchUrl?: string;
   files: Row[];
 }
 interface Started {
@@ -35,8 +30,6 @@ interface Started {
 
 const PULL_BATCH = 4;
 const PULL_WORKERS = 3;
-const WEB_CHUNK = 4 * 1024 * 1024;
-const WEB_WORKERS = 3;
 
 const KIND: Record<string, string> = { windows: "Windows", macos: "macOS", linux: "Linux", android: "Android" };
 
@@ -78,7 +71,7 @@ export function ItchFiles({ projectId }: { projectId: string }) {
 
   /** Download: o servidor copia as partes que faltam e conclui com as conferências de sempre. */
   const pullDownload = async (row: Row) => {
-    set(row.id, { kind: "rodando", loaded: 0, total: row.size, label: "Preparando…" });
+    set(row.id, { kind: "rodando", loaded: 0, total: 0, label: "Pedindo o arquivo ao itch.io…" });
     try {
       const s = await api<Started>("/api/itch/arquivos", { method: "POST", body: { projectId, itchUploadId: row.id } });
       window.dispatchEvent(new CustomEvent(ITCH_PLATFORM, { detail: s.file.platform }));
@@ -110,42 +103,8 @@ export function ItchFiles({ projectId }: { projectId: string }) {
     }
   };
 
-  /** Versão de navegador: o zip vem em pedaços para este navegador e vai para o painel de builds. */
-  const pullWeb = async (row: Row) => {
-    set(row.id, { kind: "rodando", loaded: 0, total: row.size, label: "Baixando do itch.io…" });
-    try {
-      const count = Math.max(1, Math.ceil(row.size / WEB_CHUNK));
-      const chunks: ArrayBuffer[] = new Array(count);
-      let loaded = 0;
-      await pool(
-        Array.from({ length: count }, (_, n) => n),
-        WEB_WORKERS,
-        async (n) => {
-          for (let attempt = 1; ; attempt++) {
-            const res = await fetch(`/api/itch/web?projeto=${encodeURIComponent(projectId)}&upload=${row.id}&n=${n}`, { cache: "no-store" }).catch(() => null);
-            if (res?.ok) {
-              chunks[n] = await res.arrayBuffer();
-              break;
-            }
-            const data = res ? ((await res.json().catch(() => ({}))) as { error?: string }) : {};
-            if (attempt >= 3 || (res && res.status < 500 && res.status !== 429)) throw new ApiError(res?.status ?? 0, "itch", data.error ?? "O download parou. Tente de novo.");
-            await new Promise((r) => setTimeout(r, 1500 * attempt));
-          }
-          loaded += chunks[n].byteLength;
-          set(row.id, { kind: "rodando", loaded, total: row.size, label: "Baixando do itch.io…" });
-        },
-      );
-      const name = /\.zip$/i.test(row.filename) ? row.filename : `${row.filename}.zip`;
-      window.dispatchEvent(new CustomEvent(ITCH_PLATFORM, { detail: "web" }));
-      handItchWebZip(new File(chunks, name, { type: "application/zip" }));
-      set(row.id, { kind: "feito", message: "Pronto: o zip abriu no painel da versão de navegador, logo acima. Confira a entrada e envie." });
-    } catch (err) {
-      set(row.id, { kind: "erro", message: err instanceof ApiError ? err.message : "O download parou. Tente de novo." });
-    }
-  };
-
-  const take = (row: Row) => (row.kind === "web" ? pullWeb(row) : pullDownload(row));
-  const takeable = (list?.files ?? []).filter((r) => r.kind !== "outro" && r.local?.status !== "pronto");
+  const take = pullDownload;
+  const takeable = (list?.files ?? []).filter((r) => r.platforms.length && r.local?.status !== "pronto");
 
   return (
     <section className="itch-files" aria-labelledby={`${uid}-h`}>
@@ -153,7 +112,7 @@ export function ItchFiles({ projectId }: { projectId: string }) {
         <h3 id={`${uid}-h`} className="field-label">
           Arquivos no itch.io
         </h3>
-        {list?.connected && takeable.length > 1 ? (
+        {takeable.length > 1 ? (
           <button
             type="button"
             className="btn btn--sm"
@@ -176,23 +135,25 @@ export function ItchFiles({ projectId }: { projectId: string }) {
         </p>
       ) : null}
 
-      {list && !list.connected ? <ItchConnect onDone={() => void load()} /> : null}
+      {list && list.files.length === 0 ? (
+        <p className="field-hint">
+          O itch.io não mostra arquivos para baixar desse jogo (jogo só de navegador ou pago). Envie os arquivos aqui embaixo.
+        </p>
+      ) : null}
 
-      {list?.connected && list.files.length === 0 ? <p className="field-hint">Esse jogo não tem arquivos no itch.io.</p> : null}
-
-      {list?.connected && list.files.length > 0 ? (
+      {list && list.files.length > 0 ? (
         <ol className="itch-list">
           {list.files.map((row) => {
             const s = run[row.id];
-            const where = row.kind === "web" ? "Navegador" : row.kind === "download" ? row.platforms.map((p) => KIND[p] ?? p).join(", ") : "Outro tipo";
+            const where = row.platforms.length ? row.platforms.map((p) => KIND[p] ?? p).join(", ") : "Outro tipo";
             const ready = row.local?.status === "pronto";
             return (
               <li key={row.id} className="itch-row">
                 <div className="itch-main">
-                  <span className="itch-name">{row.displayName || row.filename}</span>
+                  <span className="itch-name">{row.filename}</span>
                   <span className="itch-meta">
-                    {where} · {formatSize(row.size)}
-                    {row.displayName && row.displayName !== row.filename ? ` · ${row.filename}` : ""}
+                    {where}
+                    {row.sizeLabel ? ` · ${row.sizeLabel}` : ""}
                   </span>
                   {s?.kind === "rodando" ? (
                     <span className="itch-progress" role="status">
@@ -207,7 +168,7 @@ export function ItchFiles({ projectId }: { projectId: string }) {
                     <span className="bo-ok itch-msg" role="status">
                       {s.message}
                     </span>
-                  ) : row.kind === "outro" ? (
+                  ) : !row.platforms.length ? (
                     <span className="itch-meta">Esse tipo de arquivo (trilha, livro, código…) não tem lugar aqui ainda.</span>
                   ) : null}
                 </div>
@@ -216,7 +177,7 @@ export function ItchFiles({ projectId }: { projectId: string }) {
                     <span className="itch-done">
                       <Check aria-hidden size={16} /> Trazido
                     </span>
-                  ) : row.kind !== "outro" ? (
+                  ) : row.platforms.length ? (
                     <button type="button" className="btn btn--sm btn--ghost" disabled={busy} onClick={() => void take(row)}>
                       {s?.kind === "rodando" ? (
                         <LoaderCircle aria-hidden className="bo-spin" size={16} />
