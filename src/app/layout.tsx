@@ -6,7 +6,8 @@ import { ThumbIndex } from "@/components/ThumbIndex";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://portaldosgames.com.br"),
+  // Troque SITE_URL para https://portaldosgames.com.br quando o domínio estiver ativo.
+  metadataBase: new URL(process.env.SITE_URL || "https://openitch.vercel.app"),
   applicationName: "Portal dos Games",
   title: { default: "Portal dos Games · programa permanente de jogos independentes", template: "%s · Portal dos Games" },
   description:
