@@ -29,6 +29,12 @@ export interface UserDoc {
   email: string;
   name: string;
   passwordHash: string;
+  /** Conta criada pelo Google: passwordHash é de uma senha aleatória que ninguém conhece. */
+  noPassword?: boolean;
+  /** `sub` do Google vinculado a esta conta. */
+  googleSub?: string;
+  /** `sub` do Resumestre vinculado a esta conta. */
+  resumestreSub?: string;
   passwordChangedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -271,7 +277,9 @@ export type SecurityEventType =
   | "codigo_recuperacao_usado"
   | "sessao_encerrada"
   | "outras_sessoes_encerradas"
-  | "nome_alterado";
+  | "nome_alterado"
+  | "google_vinculado"
+  | "resumestre_vinculado";
 
 export interface SecurityEventDoc {
   _id?: ObjectId;
@@ -331,6 +339,14 @@ async function ensureIndexes(db: Db): Promise<void> {
         db.collection("users").createIndex(
           { creatorSlug: 1 },
           { unique: true, partialFilterExpression: { creatorSlug: { $type: "string" } } },
+        ),
+        db.collection("users").createIndex(
+          { googleSub: 1 },
+          { unique: true, partialFilterExpression: { googleSub: { $type: "string" } } },
+        ),
+        db.collection("users").createIndex(
+          { resumestreSub: 1 },
+          { unique: true, partialFilterExpression: { resumestreSub: { $type: "string" } } },
         ),
         db.collection("uploads").createIndex({ projectId: 1, createdAt: -1 }),
         db.collection("uploads").createIndex({ userId: 1, status: 1 }),

@@ -126,6 +126,7 @@ async function claimRecoveryCode(userId: ObjectId, normalized: string): Promise<
 
 /** Senha atual para ações sensíveis, com limite próprio de tentativas. */
 async function checkCurrentPassword(user: UserDoc, password: string): Promise<string | null> {
+  if (user.noPassword) return null; // conta do Google: não há senha para conferir
   const key = `reauth:${user._id.toHexString()}`;
   const limit = await peek(key, 5);
   if (!limit.allowed) return `Muitas tentativas com a senha errada. Espere ${waitText(limit.retryAfterMs)}.`;
@@ -431,9 +432,9 @@ async function changePasswordInner(_prev: FormState, form: FormData): Promise<Fo
   const current = str(form, "senha_atual", MAX_PASSWORD_INPUT + 1);
   const password = str(form, "senha_nova", MAX_PASSWORD_INPUT + 1);
   const pErr = passwordError(password, [user.email, user.name]);
-  if (!current) return { fields: { senha_atual: "Escreva sua senha atual." } };
+  if (!current && !user.noPassword) return { fields: { senha_atual: "Escreva sua senha atual." } };
   if (pErr) return { fields: { senha_nova: pErr } };
-  if (current === password) return { fields: { senha_nova: "A senha nova precisa ser diferente da atual." } };
+  if (!user.noPassword && current === password) return { fields: { senha_nova: "A senha nova precisa ser diferente da atual." } };
 
   return guard(async (): Promise<FormState> => {
     const err = await checkCurrentPassword(user, current);
@@ -445,7 +446,7 @@ async function changePasswordInner(_prev: FormState, form: FormData): Promise<Fo
     const now = new Date();
     await users.updateOne(
       { _id: user._id },
-      { $set: { passwordHash: await hashPassword(password), passwordChangedAt: now, updatedAt: now } },
+      { $set: { passwordHash: await hashPassword(password), passwordChangedAt: now, updatedAt: now }, $unset: { noPassword: "" } },
     );
     await destroyOtherSessions(user._id, sessionId);
     await logEvent(user._id, "senha_alterada");
@@ -548,7 +549,7 @@ async function disableTotpInner(_prev: FormState, form: FormData): Promise<FormS
   const { user } = await requireSession();
   const password = str(form, "senha", MAX_PASSWORD_INPUT + 1);
   const code = str(form, "codigo", 64);
-  if (!password) return { fields: { senha: "Escreva sua senha." } };
+  if (!password && !user.noPassword) return { fields: { senha: "Escreva sua senha." } };
   if (!code.trim()) return { fields: { codigo: "Escreva um código do app ou um código de recuperação." } };
   if (!user.totp.enabled) return { ok: "A verificação em duas etapas já está desligada." };
 
@@ -574,7 +575,7 @@ async function regenerateRecoveryCodesInner(_prev: FormState, form: FormData): P
   const { user } = await requireSession();
   const password = str(form, "senha", MAX_PASSWORD_INPUT + 1);
   const code = str(form, "codigo", 32).replace(/\s/g, "");
-  if (!password) return { fields: { senha: "Escreva sua senha para gerar códigos novos." } };
+  if (!password && !user.noPassword) return { fields: { senha: "Escreva sua senha para gerar códigos novos." } };
   if (user.totp.enabled && !/^\d{6}$/.test(code)) {
     return { fields: { codigo: "Escreva os 6 dígitos do app autenticador." } };
   }
@@ -603,7 +604,7 @@ async function deleteAccountInner(_prev: FormState, form: FormData): Promise<For
   const confirm = str(form, "confirmacao", 40).trim().toLowerCase();
   const code = str(form, "codigo", 64);
   const fields: Record<string, string> = {};
-  if (!password) fields.senha = "Escreva sua senha.";
+  if (!password && !user.noPassword) fields.senha = "Escreva sua senha.";
   if (confirm !== "excluir") fields.confirmacao = "Escreva excluir para confirmar.";
   if (user.totp.enabled && !code.trim()) fields.codigo = "Escreva um código do app ou de recuperação.";
   if (Object.keys(fields).length) return { fields };

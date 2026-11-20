@@ -95,15 +95,17 @@ export function ProfileForm({ city, bio, page }: { city: string; bio: string; pa
   );
 }
 
-export function PasswordForm({ email, name }: { email: string; name: string }) {
+export function PasswordForm({ email, name, noPassword }: { email: string; name: string; noPassword?: boolean }) {
   const [state, action] = useActionState<FormState, FormData>(changePassword, undefined);
   return (
     <form action={action} className="acc-form" noValidate key={state?.ok ? "ok" : "form"}>
       <FormAlert error={state?.error} ok={state?.ok} />
       <input type="email" name="usuario" autoComplete="username" value={email} readOnly hidden />
-      <PasswordField label="Senha atual" name="senha_atual" autoComplete="current-password" error={state?.fields?.senha_atual} />
+      {noPassword ? null : (
+        <PasswordField label="Senha atual" name="senha_atual" autoComplete="current-password" error={state?.fields?.senha_atual} />
+      )}
       <PasswordField
-        label="Senha nova"
+        label={noPassword ? "Definir uma senha" : "Senha nova"}
         name="senha_nova"
         autoComplete="new-password"
         meter
@@ -113,14 +115,14 @@ export function PasswordForm({ email, name }: { email: string; name: string }) {
       />
       <div className="bo-row bo-row--end">
         <Submit pendingLabel="Trocando" className="btn--sm">
-          Trocar senha
+          {noPassword ? "Definir senha" : "Trocar senha"}
         </Submit>
       </div>
     </form>
   );
 }
 
-export function DisableTotpForm() {
+export function DisableTotpForm({ noPassword }: { noPassword?: boolean }) {
   const [state, action] = useActionState<FormState, FormData>(disableTotp, undefined);
   const [open, setOpen] = useState(false);
   if (state?.ok) return <FormAlert ok={state.ok} />;
@@ -135,7 +137,7 @@ export function DisableTotpForm() {
     <form action={action} className="acc-form" noValidate>
       <FormAlert error={state?.error} />
       <p className="acc-warn">Sem a segunda etapa, quem descobrir sua senha entra na conta.</p>
-      <PasswordField label="Senha" name="senha" autoComplete="current-password" error={state?.fields?.senha} />
+      {noPassword ? null : <PasswordField label="Senha" name="senha" autoComplete="current-password" error={state?.fields?.senha} />}
       <Field
         label="Código do app ou de recuperação"
         name="codigo"
@@ -157,7 +159,7 @@ export function DisableTotpForm() {
   );
 }
 
-export function RecoveryCodesForm({ email, needsCode }: { email: string; needsCode: boolean }) {
+export function RecoveryCodesForm({ email, needsCode, noPassword }: { email: string; needsCode: boolean; noPassword?: boolean }) {
   const [state, action] = useActionState<FormState, FormData>(regenerateRecoveryCodes, undefined);
   const [open, setOpen] = useState(false);
   if (state?.codes) return <RecoveryCodes codes={state.codes} email={email} />;
@@ -173,7 +175,7 @@ export function RecoveryCodesForm({ email, needsCode }: { email: string; needsCo
       <FormAlert error={state?.error} />
       <p className="acc-warn">Os códigos atuais param de valer assim que os novos forem gerados.</p>
       <input type="email" name="usuario" autoComplete="username" value={email} readOnly hidden />
-      <PasswordField label="Senha" name="senha" autoComplete="current-password" error={state?.fields?.senha} />
+      {noPassword ? null : <PasswordField label="Senha" name="senha" autoComplete="current-password" error={state?.fields?.senha} />}
       {needsCode ? (
         <Field
           label="Código do app autenticador"
@@ -199,7 +201,7 @@ export function RecoveryCodesForm({ email, needsCode }: { email: string; needsCo
   );
 }
 
-export function DeleteAccountForm({ needsCode }: { needsCode: boolean }) {
+export function DeleteAccountForm({ needsCode, noPassword }: { needsCode: boolean; noPassword?: boolean }) {
   const [state, action] = useActionState<FormState, FormData>(deleteAccount, undefined);
   const [open, setOpen] = useState(false);
   if (!open) {
@@ -212,7 +214,7 @@ export function DeleteAccountForm({ needsCode }: { needsCode: boolean }) {
   return (
     <form action={action} className="acc-form" noValidate>
       <FormAlert error={state?.error} />
-      <PasswordField label="Senha" name="senha" autoComplete="current-password" error={state?.fields?.senha} />
+      {noPassword ? null : <PasswordField label="Senha" name="senha" autoComplete="current-password" error={state?.fields?.senha} />}
       {needsCode ? (
         <Field
           label="Código do app ou de recuperação"

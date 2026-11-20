@@ -25,7 +25,7 @@ function dayLabel(d: Date) {
 
 const EVENT_LABEL: Record<SecurityEventType, string> = {
   conta_criada: "Conta criada",
-  entrada: "Entrada com senha",
+  entrada: "Entrada",
   entrada_2fa: "Entrada com senha e código",
   senha_errada: "Tentativa com senha errada",
   "2fa_errado": "Código de duas etapas errado",
@@ -39,6 +39,8 @@ const EVENT_LABEL: Record<SecurityEventType, string> = {
   sessao_encerrada: "Sessão encerrada",
   outras_sessoes_encerradas: "Outras sessões encerradas",
   nome_alterado: "Nome alterado",
+  google_vinculado: "Conta vinculada ao Google",
+  resumestre_vinculado: "Conta vinculada ao Resumestre",
 };
 const ALERT_EVENTS = new Set<SecurityEventType>(["senha_errada", "2fa_errado", "2fa_desativado"]);
 
@@ -136,9 +138,9 @@ export default async function ContaPage({ searchParams }: { searchParams: Promis
             <div className="acc-block">
               <div className="acc-block-head">
                 <h3>Senha</h3>
-                <p>Trocada em {full.format(user.passwordChangedAt)}.</p>
+                <p>{user.noPassword ? "Você entra com Google ou Resumestre e não tem senha. Defina uma se quiser também entrar com e-mail e senha." : `Trocada em ${full.format(user.passwordChangedAt)}.`}</p>
               </div>
-              <PasswordForm email={user.email} name={user.name} />
+              <PasswordForm email={user.email} name={user.name} noPassword={user.noPassword} />
             </div>
             <div className="acc-block" id="duas-etapas">
               <div className="acc-block-head">
@@ -150,7 +152,7 @@ export default async function ContaPage({ searchParams }: { searchParams: Promis
                 </p>
               </div>
               {user.totp.enabled ? (
-                <DisableTotpForm />
+                <DisableTotpForm noPassword={user.noPassword} />
               ) : (
                 <Link href="/conta/duas-etapas" className="btn btn--sm">
                   <ShieldCheck aria-hidden />
@@ -166,7 +168,7 @@ export default async function ContaPage({ searchParams }: { searchParams: Promis
                   {codesLeft <= 3 ? "Gere códigos novos antes que acabem." : "Guarde-os fora deste aparelho."}
                 </p>
               </div>
-              <RecoveryCodesForm email={user.email} needsCode={user.totp.enabled} />
+              <RecoveryCodesForm email={user.email} needsCode={user.totp.enabled} noPassword={user.noPassword} />
             </div>
           </section>
 
@@ -214,7 +216,7 @@ export default async function ContaPage({ searchParams }: { searchParams: Promis
             <p className="acc-intro">
               Apaga sua conta, sessões, registro de segurança, sua estante (jogos guardados e criadores seguidos), seus rascunhos de jogos e todos os arquivos enviados. Não dá para desfazer.
             </p>
-            <DeleteAccountForm needsCode={user.totp.enabled} />
+            <DeleteAccountForm needsCode={user.totp.enabled} noPassword={user.noPassword} />
           </section>
         </div>
 

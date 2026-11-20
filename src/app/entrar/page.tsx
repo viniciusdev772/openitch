@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { BoxBody, BoxHead, Notes } from "@/components/auth/BoxOffice";
 import { getSession } from "@/lib/auth/session";
 import { safeNext } from "@/lib/auth/validate";
+import { OAuthButtons } from "@/components/auth/OAuthButtons";
+import { OAUTH_ERRORS } from "@/lib/auth/oauth";
 import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = { title: "Entrar", robots: { index: false } };
@@ -13,12 +15,13 @@ const NOTICES: Record<string, { tone: "ok" | "error"; text: string }> = {
   redefinida: { tone: "ok", text: "Senha nova salva. Encerramos todas as sessões antigas; entre com a senha nova." },
 };
 
-type SP = Promise<{ de?: string | string[]; motivo?: string | string[] }>;
+type SP = Promise<{ de?: string | string[]; motivo?: string | string[]; erro?: string | string[] }>;
 
 export default async function EntrarPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
   const de = safeNext(typeof sp.de === "string" ? sp.de : null);
-  const motivo = typeof sp.motivo === "string" ? NOTICES[sp.motivo] : undefined;
+  const erro = typeof sp.erro === "string" ? OAUTH_ERRORS[sp.erro] : undefined;
+  const motivo = erro ? { tone: "error" as const, text: erro } : typeof sp.motivo === "string" ? NOTICES[sp.motivo] : undefined;
   const session = await getSession().catch(() => null);
   if (session) redirect(de);
 
@@ -41,6 +44,7 @@ export default async function EntrarPage({ searchParams }: { searchParams: SP })
         }
       >
         <LoginForm de={de} notice={motivo} />
+        <OAuthButtons from="entrar" de={de} />
       </BoxBody>
     </>
   );

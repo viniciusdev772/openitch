@@ -2,13 +2,17 @@ import type { Metadata } from "next";
 import { BoxBody, BoxHead, Notes } from "@/components/auth/BoxOffice";
 import { getSession } from "@/lib/auth/session";
 import { safeNext } from "@/lib/auth/validate";
+import { FormAlert } from "@/components/auth/Fields";
+import { OAuthButtons } from "@/components/auth/OAuthButtons";
+import { OAUTH_ERRORS } from "@/lib/auth/oauth";
 import { SignupForm } from "./SignupForm";
 
 export const metadata: Metadata = { title: "Criar conta", robots: { index: false } };
 
-export default async function CriarContaPage({ searchParams }: { searchParams: Promise<{ de?: string | string[] }> }) {
+export default async function CriarContaPage({ searchParams }: { searchParams: Promise<{ de?: string | string[]; erro?: string | string[] }> }) {
   const sp = await searchParams;
   const de = safeNext(typeof sp.de === "string" ? sp.de : null);
+  const erro = typeof sp.erro === "string" ? OAUTH_ERRORS[sp.erro] : undefined;
   const session = await getSession().catch(() => null);
 
   return (
@@ -32,7 +36,9 @@ export default async function CriarContaPage({ searchParams }: { searchParams: P
           />
         }
       >
+        {erro ? <FormAlert error={erro} /> : null}
         <SignupForm de={de} signedIn={Boolean(session)} />
+        {session ? null : <OAuthButtons from="criar-conta" de={de} />}
       </BoxBody>
     </>
   );
