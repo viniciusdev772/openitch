@@ -155,6 +155,8 @@ export interface ProjectDoc {
   accessibility?: string[];
   contentNotes?: string[];
   credits?: { role: string; name: string }[];
+  /** De onde o rascunho foi trazido (itch.io), para não importar o mesmo jogo duas vezes. */
+  source?: { itchUrl: string; itchId: number };
   createdAt: Date;
   updatedAt: Date;
 }

@@ -849,3 +849,17 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Trazer da itch.io ---------------------------------------------------- */
+.pj-import {
+  margin-bottom: var(--s-6);
+}
+.pj-import-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.pj-import-row .input {
+  flex: 1 1 18rem;
+  min-width: 0;
+}

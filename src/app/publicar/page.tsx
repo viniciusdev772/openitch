@@ -6,11 +6,12 @@ import { jamState, pickNow } from "@/components/jams/clock";
 import { getSession } from "@/lib/auth/session";
 import { readDraft } from "@/lib/projects/rules";
 import type { SavedDraft } from "@/lib/projects/limits";
+import { ImportItch } from "@/components/projetos/ImportItch";
 import { PublishFormHost, type Account, type JamOption } from "./PublishForm";
 
 export const metadata: Metadata = { title: "Publicar um jogo" };
 
-type SP = Promise<{ projeto?: string | string[]; jam?: string | string[] }>;
+type SP = Promise<{ projeto?: string | string[]; jam?: string | string[]; itch?: string | string[] }>;
 
 const HEX_ID = /^[a-f0-9]{24}$/i;
 
@@ -18,6 +19,7 @@ export default async function PublishPage({ searchParams }: { searchParams: SP }
   const sp = await searchParams;
   const projeto = typeof sp.projeto === "string" && HEX_ID.test(sp.projeto) ? sp.projeto : null;
   const asked = typeof sp.projeto === "string" && sp.projeto !== "";
+  const itch = typeof sp.itch === "string" ? sp.itch : "";
   const jamParam = typeof sp.jam === "string" ? sp.jam : "";
   const jam = jamParam && jamBySlug(jamParam) ? jamParam : "";
 
@@ -67,6 +69,8 @@ export default async function PublishPage({ searchParams }: { searchParams: SP }
           </p>
         </div>
       </header>
+      {account === "dentro" && !draft && !missing ? <ImportItch /> : null}
+      {draft && itch ? <ItchNotice flag={itch} /> : null}
       <PublishFormHost
         // A chave é o que o formulário está editando: abrir outro rascunho, um novo, outra jam (ou um id que não
         // existe) recomeça o formulário; um novo render do servidor do mesmo endereço mantém o que está escrito.
@@ -79,5 +83,34 @@ export default async function PublishPage({ searchParams }: { searchParams: SP }
         missing={missing}
       />
     </>
+  );
+}
+
+/** O que veio do itch e o que falta, logo depois de trazer um jogo. */
+function ItchNotice({ flag }: { flag: string }) {
+  if (flag === "ja") {
+    return (
+      <div className="wrap">
+        <p className="bo-ok pj-note" role="status">
+          Você já tinha trazido esse jogo: abrimos o rascunho que existe, sem duplicar.
+        </p>
+      </div>
+    );
+  }
+  const parts = flag.split(",");
+  return (
+    <div className="wrap">
+      <div className="bo-ok pj-note" role="status">
+        <p>
+          Trouxemos do itch.io o título, a descrição, as plataformas, o preço e as etiquetas
+          {parts.includes("semcapa") ? "" : ", e a capa"}. Confira tudo antes de publicar.
+        </p>
+        <p>
+          Faltam os arquivos: envie o build de cada plataforma pelo passo 3.
+          {parts.includes("preco") ? " O preço no itch é em dólar: revise o valor e a moeda no passo 4." : ""}
+          {parts.includes("semcapa") ? " A capa não veio; envie uma imagem no passo 2." : ""}
+        </p>
+      </div>
+    </div>
   );
 }
