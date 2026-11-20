@@ -7,12 +7,15 @@ export function OAuthButtons({ from, de }: { from: "entrar" | "criar-conta"; de:
   const on = IDS.filter(providerEnabled);
   if (!on.length) return null;
   return (
-    <p className="bo-row bo-row--end">
+    <div className="sso">
+      <p className="sso-or">ou</p>
       {on.map((id) => (
-        <a key={id} className="btn btn--ghost" href={`/api/auth/${id}/start?p=${from}&de=${encodeURIComponent(de)}`}>
+        <a key={id} className="btn btn-sso" href={`/api/auth/${id}/start?p=${from}&de=${encodeURIComponent(de)}`}>
+          <span className="sso-mark" aria-hidden />
           Entrar com {providerLabel(id)}
+          <span className="sso-arrow" aria-hidden>→</span>
         </a>
       ))}
-    </p>
+    </div>
   );
 }

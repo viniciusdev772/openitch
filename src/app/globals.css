@@ -3269,3 +3269,93 @@ p {
     width: 100%;
   }
 }
+
+/* Entrar com provedor (Google, Resumestre): bloco largo, sombra de impressão, brilho que passa sozinho. */
+.sso {
+  display: grid;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+}
+.sso-or {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  color: var(--ink-mute);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.sso-or::before,
+.sso-or::after {
+  content: "";
+  flex: 1;
+  border-top: var(--hair);
+}
+.btn-sso {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  width: 100%;
+  min-height: 60px;
+  gap: var(--s-3);
+  background: var(--ultra);
+  border-color: var(--ink);
+  color: var(--paper);
+  font-size: 1.0625rem;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.btn-sso::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 30%, color-mix(in oklab, var(--lime) 55%, transparent) 50%, transparent 70%);
+  transform: translateX(-120%);
+  animation: sso-sheen 4s var(--ease-out) infinite;
+}
+.sso-mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--lime);
+  animation: sso-pulse 2s ease-out infinite;
+}
+.sso-arrow {
+  transition: transform 220ms var(--ease-out);
+}
+.btn-sso:hover {
+  background: var(--ultra-deep);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--lime), 6px 6px 0 2px var(--ink);
+}
+.btn-sso:hover::before {
+  animation-duration: 1.1s;
+}
+.btn-sso:hover .sso-arrow {
+  transform: translateX(6px);
+}
+.btn-sso:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--ink);
+}
+.btn-sso:focus-visible {
+  outline: 3px solid var(--lime);
+  outline-offset: 3px;
+}
+@keyframes sso-sheen {
+  0%,
+  60% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+@keyframes sso-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--lime) 70%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
