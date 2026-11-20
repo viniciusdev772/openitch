@@ -6,9 +6,9 @@ import { GuideHead, GuideSection } from "@/components/leitura/Guide";
 import { Contents } from "@/components/leitura/Contents";
 
 export const metadata: Metadata = {
-  title: "Como funciona a VibeGames",
+  title: "Como funciona o Portal dos Games",
   description:
-    "O que é a VibeGames, como ela funciona para quem joga, publica ou organiza jams, e o que já funciona hoje.",
+    "O que é o Portal dos Games, como ele funciona para quem joga, publica ou organiza jams, e o que já funciona hoje.",
 };
 
 const SECTIONS = [
@@ -123,7 +123,7 @@ const STATUS: { part: string; state: State; note: React.ReactNode }[] = [
 export default function SobrePage() {
   return (
     <>
-      <GuideHead title="Como funciona a VibeGames" current="sobre">
+      <GuideHead title="Como funciona o Portal dos Games" current="sobre">
         <p>
           Um lugar aberto para publicar e jogar jogos independentes. Aqui está o que ele já faz e o que ainda falta.
         </p>
@@ -138,7 +138,7 @@ export default function SobrePage() {
           <GuideSection id="o-que-e" title="O que é">
             <div className="guide-prose">
               <p>
-                A VibeGames é uma vitrine e uma casa de publicação para jogos independentes. Quem faz um jogo cria uma
+                O Portal dos Games é uma vitrine e uma casa de publicação para jogos independentes. Quem faz um jogo cria uma
                 página, envia os arquivos e o jogo entra no programa. Quem joga abre a página e joga, muitas vezes direto
                 no navegador.
               </p>
@@ -193,7 +193,7 @@ export default function SobrePage() {
           <GuideSection id="para-quem-organiza" title="Para quem organiza jams">
             <div className="guide-prose">
               <p>
-                Uma jam é uma maratona com tema e prazo. Na VibeGames, cada jam tem título, tema, datas de abertura e
+                Uma jam é uma maratona com tema e prazo. No Portal dos Games, cada jam tem título, tema, datas de abertura e
                 fechamento e uma lista de entradas. Na <Link href="/jams">agenda de jams</Link>, cada uma é uma barra na linha do
                 tempo, e uma linha marca o que está acontecendo agora.
               </p>
@@ -240,10 +240,10 @@ export default function SobrePage() {
           <GuideSection
             id="estado"
             title="O que já existe e o que ainda não"
-            intro="O estado de cada parte da VibeGames nesta edição. Nada aqui é promessa de data."
+            intro="O estado de cada parte do Portal dos Games nesta edição. Nada aqui é promessa de data."
           >
             <table className="state-table">
-              <caption className="visually-hidden">Estado de cada parte da VibeGames</caption>
+              <caption className="visually-hidden">Estado de cada parte do Portal dos Games</caption>
               <thead>
                 <tr>
                   <th scope="col">Parte</th>

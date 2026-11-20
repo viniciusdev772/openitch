@@ -65,7 +65,7 @@ const cache: Cache = (g.__vibegamesStorage ??= {});
 /** Origens do site que podem enviar e baixar direto do MinIO pelo navegador. */
 export function siteOrigins(): string[] {
   const env = process.env.S3_CORS_ORIGINS?.split(",").map((s) => s.trim()).filter(Boolean);
-  return env?.length ? env : ["https://openitch.vercel.app", "https://openitch-*.vercel.app", "http://localhost:*"];
+  return env?.length ? env : ["https://portaldosgames.com.br", "https://www.portaldosgames.com.br", "https://openitch.vercel.app", "https://openitch-*.vercel.app", "http://localhost:*"];
 }
 
 function corsXml(origins: string[]) {

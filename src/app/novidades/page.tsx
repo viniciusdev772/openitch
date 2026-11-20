@@ -9,7 +9,7 @@ import { EmptyProgramme } from "@/components/EmptyProgramme";
 export const metadata: Metadata = {
   title: "Novidades",
   description:
-    "Diário do programa: lançamentos, atualizações, diários de desenvolvimento e notas de jam dos jogos da VibeGames.",
+    "Diário do programa: lançamentos, atualizações, diários de desenvolvimento e notas de jam dos jogos do Portal dos Games.",
 };
 
 export const revalidate = 60;

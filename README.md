@@ -1,4 +1,4 @@
-# VibeGames
+# Portal dos Games
 
 Programa permanente de jogos independentes: um lugar aberto para publicar jogos, definir o preço (ou nenhum) e deixar as pessoas jogarem direto no navegador.
 

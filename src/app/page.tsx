@@ -25,7 +25,7 @@ export default async function Home() {
         <div className="wrap">
           <div style={{ display: "flex", flexDirection: "column" }}>
             <h1 id="capa-titulo" className="cover-title">
-              vibe<em>games</em>
+              portal dos <em>games</em>
             </h1>
             <p className="cover-hook">
               Um festival de jogos independentes que não fecha. Publique o seu hoje: por enquanto, só jogos grátis entram.

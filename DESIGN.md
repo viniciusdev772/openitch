@@ -1,5 +1,5 @@
 ---
-name: VibeGames
+name: Portal dos Games
 description: A festival programme book for independent games, printed in blue-black ink on cool newsprint with one spot colour per track.
 colors:
   ultra: "#2b2fe3"
@@ -20,7 +20,7 @@ colors:
 typography:
   display:
     fontFamily: "Anybody Variable, Arial Narrow, sans-serif"
-    fontSize: "clamp(5.5rem, 15.5vw, 15rem)"
+    fontSize: "clamp(3.5rem, 10vw, 10rem)"
     fontWeight: 900
     lineHeight: 0.78
     letterSpacing: "-0.035em"
@@ -250,13 +250,13 @@ components:
     padding: "12px 16px"
 ---
 
-# Design System: VibeGames
+# Design System: Portal dos Games
 
 ## Overview
 
 **Creative North Star: "The Permanent Programme"**
 
-VibeGames is printed, not rendered. Every page is a spread from a festival programme book: cool grey newsprint, blue-black ink, and spot colours laid down as solid fields. A track does not wear its colour as a badge; it owns a whole band of the page, a page head, a game stage, a card. Ink draws the structure with 2px programme rules and a 6px double rule that opens each section. Everything else sits flat on the paper.
+Portal dos Games is printed, not rendered. Every page is a spread from a festival programme book: cool grey newsprint, blue-black ink, and spot colours laid down as solid fields. A track does not wear its colour as a badge; it owns a whole band of the page, a page head, a game stage, a card. Ink draws the structure with 2px programme rules and a 6px double rule that opens each section. Everything else sits flat on the paper.
 
 The voice is condensed and loud at the top and plain and readable below. Anybody, pulled narrow, carries the wordmark, section titles, entry titles and every number the programme prints: entry numbers (Nº 0142), times, prices, counts, scores. Schibsted Grotesk carries reading text and every control. Density is a printed schedule's: ruled rows, tabular figures, legend codes for platforms (N W M L A), and entries billed at different sizes rather than repeated as equal tiles.
 
@@ -317,7 +317,7 @@ Navegador = lime, Ação = tangerine, Narrativo = magenta, Quebra-cabeça = teal
 **Character:** A poster face squeezed narrow and set heavy and tight against a sturdy, slightly bookish grotesk. The condensed face shouts the programme's names and numbers; the grotesk reads and operates.
 
 ### Hierarchy
-- **Display** (900, clamp(5.5rem, 15.5vw, 15rem), 0.78, width 52%): the cover wordmark only. The colophon repeats it smaller (clamp(4rem, 10vw, 9rem), 0.8).
+- **Display** (900, clamp(3.5rem, 10vw, 10rem), 0.78, width 52%): the cover wordmark only. The colophon repeats it smaller (clamp(2.75rem, 6vw, 6rem), 0.8).
 - **Headline** (900, clamp(3.5rem, 9vw, 8rem), 0.82, width 52%): page titles (catalogue, game title, jams, publish).
 - **Section** (900, clamp(3rem, 7vw, 6rem), 0.95, width 55%): section heads on the home programme. Track band names run narrower (width 50%, clamp(3rem, 5.2vw, 5.75rem), 0.86).
 - **Title** (800, 1.625rem, width 66%): entry titles. Lead and wide entries step up to clamp(2.25rem, 4vw, 3.25rem) at width 60% and 900; row entries drop to 1.375rem; step and sub-section heads sit between at 2–2.5rem, width 60–65%.

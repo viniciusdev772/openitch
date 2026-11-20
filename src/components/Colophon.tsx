@@ -7,7 +7,7 @@ export function Colophon() {
       <div className="wrap">
         <div>
           <p className="big" aria-hidden>
-            vibe<em>games</em>
+            portal dos <em>games</em>
           </p>
           <p style={{ marginTop: 24, maxWidth: "40ch", fontSize: "1.0625rem" }}>
             Um programa aberto de jogos independentes. Para publicar, basta uma conta; para jogar, nem isso.

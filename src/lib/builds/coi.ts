@@ -15,14 +15,14 @@ import { COI_FILE } from "./paths";
  * cabeçalhos às respostas, como faz o projeto coi-serviceworker (MIT, Guido
  * Zuidhof, https://github.com/gzuidhof/coi-serviceworker) a partir do texto
  * de stefnotch (https://dev.to/stefnotch/enabling-coop-coep-without-touching-the-server-2d3n).
- * O código abaixo foi escrito do zero para a VibeGames; nenhum trecho foi copiado.
+ * O código abaixo foi escrito do zero para o Portal dos Games; nenhum trecho foi copiado.
  *
  * O mesmo arquivo roda em dois papéis:
  * - como service worker: repassa cada pedido e devolve a resposta com
  *   COOP/COEP/CORP;
  * - como <script> no topo do index.html: se a página ainda não está isolada,
  *   para o carregamento do jogo (window.stop), registra o worker e então
- *   recarrega (aba própria) ou avisa a página da VibeGames que o embute
+ *   recarrega (aba própria) ou avisa a página do Portal dos Games que o embute
  *   (iframe), que se recarrega com COEP para que o iframe também fique isolado.
  *
  * Mensagens para a página que embute (postMessage, sem dados sensíveis):
@@ -31,7 +31,7 @@ import { COI_FILE } from "./paths";
  *   { vg: "coi", estado: "sem-suporte" } navegador sem service worker ou sem contexto seguro
  */
 
-export const COI_SCRIPT = `/* VibeGames: isolamento entre origens por service worker (código próprio; ideia do coi-serviceworker, MIT). */
+export const COI_SCRIPT = `/* Portal dos Games: isolamento entre origens por service worker (código próprio; ideia do coi-serviceworker, MIT). */
 (function () {
   "use strict";
   if (typeof window === "undefined") {

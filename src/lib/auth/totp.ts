@@ -60,7 +60,7 @@ export function verifyTotp(secret: Buffer, code: string, lastStep: number): numb
 }
 
 export function otpauthUri(secret: Buffer, account: string): string {
-  const issuer = "VibeGames";
+  const issuer = "Portal dos Games";
   const label = encodeURIComponent(`${issuer}:${account}`);
   const params = new URLSearchParams({
     secret: base32(secret),

@@ -26,7 +26,7 @@ function derivedRules(j: Jam): Item[] {
     },
     { name: "Equipe", text: "Sozinho ou em grupo, uma entrada por pessoa ou equipe." },
     { name: "Créditos", text: "Material de terceiros só com licença que permita o uso, com os créditos na página do jogo." },
-    { name: "Envio", text: "Publique pela VibeGames marcando esta jam. A página e os arquivos continuam sendo de quem fez." },
+    { name: "Envio", text: "Publique pelo Portal dos Games marcando esta jam. A página e os arquivos continuam sendo de quem fez." },
   ];
 }
 

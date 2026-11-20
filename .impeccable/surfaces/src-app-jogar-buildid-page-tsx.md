@@ -5,7 +5,7 @@ primary_target: "src/app/jogar/[buildId]/page.tsx"
 related_targets: ["src/components/builds/Player.tsx"]
 ---
 
-# Surface brief: VibeGames jogar (prévia de build de navegador)
+# Surface brief: Portal dos Games jogar (prévia de build de navegador)
 
 ## Scope and mode
 - Experience. Visitor success: the creator presses one button on their draft and is inside their own browser game within seconds, at the build's own proportions, with fullscreen one key away.

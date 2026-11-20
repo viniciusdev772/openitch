@@ -687,7 +687,7 @@ p {
   font-family: var(--display);
   font-stretch: 52%;
   font-weight: 900;
-  font-size: clamp(5.5rem, 15.5vw, 15rem);
+  font-size: clamp(3.5rem, 10vw, 10rem);
   line-height: 0.78;
   letter-spacing: -0.035em;
   color: var(--paper);
@@ -1412,7 +1412,7 @@ p {
   font-family: var(--display);
   font-stretch: 52%;
   font-weight: 900;
-  font-size: clamp(4rem, 10vw, 9rem);
+  font-size: clamp(2.75rem, 6vw, 6rem);
   line-height: 0.8;
   letter-spacing: -0.03em;
 }

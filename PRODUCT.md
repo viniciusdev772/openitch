@@ -41,7 +41,7 @@ Open by default *(inherited from the project's first name, "openitch")*: creator
 
 ## Brand Commitments
 
-- Product name: **VibeGames** (renamed from openitch by the owner). The wordmark is set lowercase, "vibe" in the field colour and "games" in lime on ultramarine and ink. No logo exists yet. Internal identifiers (database name, auth key salt, cookie and event names, repository) keep "openitch" so existing accounts keep working.
+- Product name: **Portal dos Games** (renamed from VibeGames, and before that openitch; domain portaldosgames.com.br). The wordmark is set lowercase, "portal dos" in the field colour and "games" in lime on ultramarine and ink; the masthead shortens it to "portaldosgames". No logo exists yet. Internal identifiers (database name, auth key salt, cookie and event names, storage buckets, repository) keep their old names (openitch, vibegames) so existing accounts and data keep working.
 - Must stay visually and verbally distinct from existing storefronts; no borrowed logos, layouts, or trade dress.
 
 ## Evidence on Hand

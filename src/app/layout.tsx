@@ -6,7 +6,9 @@ import { ThumbIndex } from "@/components/ThumbIndex";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: { default: "VibeGames · programa permanente de jogos independentes", template: "%s · VibeGames" },
+  metadataBase: new URL("https://portaldosgames.com.br"),
+  applicationName: "Portal dos Games",
+  title: { default: "Portal dos Games · programa permanente de jogos independentes", template: "%s · Portal dos Games" },
   description:
     "Publique seu jogo independente e deixe as pessoas jogarem direto no navegador, de graça e sem conta.",
 };

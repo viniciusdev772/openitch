@@ -26,7 +26,7 @@ export function RecoveryCodes({
   }, []);
 
   const text = [
-    "VibeGames · códigos de recuperação",
+    "Portal dos Games · códigos de recuperação",
     `Conta: ${email}`,
     `Gerados em: ${new Date().toLocaleString("pt-BR")}`,
     "",
@@ -51,7 +51,7 @@ export function RecoveryCodes({
     const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "vibegames-codigos-de-recuperacao.txt";
+    a.download = "portaldosgames-codigos-de-recuperacao.txt";
     document.body.appendChild(a);
     a.click();
     a.remove();
