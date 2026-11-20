@@ -118,12 +118,34 @@ export async function removeCover(form: FormData): Promise<CoverResult> {
     if ("error" in who) return { ok: false, error: who.error! };
     const { projects } = await db();
     await projects.updateOne({ _id: who.p._id }, { $set: { coverImage: null, pendingCover: null, updatedAt: new Date() } });
-    await deleteCoverObjects(who.p);
+    // Só a capa: as capturas de tela ficam.
+    await deleteCoverObjects({ coverImage: who.p.coverImage, pendingCover: who.p.pendingCover });
     await revalidateIfLive(who.p._id);
     return { ok: true, url: null };
   } catch (err) {
     unstable_rethrow(err);
     console.error("[capa]", err);
+    return { ok: false, error: DOWN };
+  }
+}
+
+/** Tira uma captura de tela (trazida do itch.io) do jogo. */
+export async function removeScreenshot(form: FormData): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!(form instanceof FormData)) return { ok: false, error: "Pedido inválido." };
+  try {
+    const who = await owner(form);
+    if ("error" in who) return { ok: false, error: who.error! };
+    const key = str(form, "chave", 120);
+    const shot = (who.p.screenshots ?? []).find((x) => x.key === key);
+    if (!shot) return { ok: true };
+    const { projects } = await db();
+    await projects.updateOne({ _id: who.p._id }, { $pull: { screenshots: { key } }, $set: { updatedAt: new Date() } });
+    await deleteCoverObjects({ coverImage: null, screenshots: [shot] });
+    await revalidateIfLive(who.p._id);
+    return { ok: true };
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("[capturas]", err);
     return { ok: false, error: DOWN };
   }
 }

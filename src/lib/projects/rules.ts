@@ -56,7 +56,7 @@ function paragraphs(raw: string): string {
 
 export type DraftValues = Omit<
   ProjectDoc,
-  "_id" | "userId" | "status" | "createdAt" | "updatedAt" | "publicSlug" | "number" | "publishedAt" | "previousSlugs" | "coverImage" | "pendingCover"
+  "_id" | "userId" | "status" | "createdAt" | "updatedAt" | "publicSlug" | "number" | "publishedAt" | "previousSlugs" | "coverImage" | "pendingCover" | "source" | "screenshots"
 >;
 
 type Parsed = { ok: true; value: DraftValues } | { ok: false; result: Extract<SaveResult, { ok: false }> };
@@ -195,6 +195,7 @@ function toFields(doc: ProjectDoc): SavedDraft {
     publicSlug: doc.publicSlug ?? null,
     number: doc.number ?? null,
     coverImage: doc.coverImage?.url ?? null,
+    screenshots: (doc.screenshots ?? []).map((x) => ({ key: x.key, url: x.url })),
     session: doc.session ?? "",
     languages: (doc.languages ?? []).join(", "),
     controls: (doc.controls ?? []).join("\n"),

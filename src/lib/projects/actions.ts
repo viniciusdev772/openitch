@@ -145,7 +145,7 @@ export async function deleteDraft(form: FormData): Promise<DeleteResult> {
     const marked = await projects.findOneAndUpdate(
       { _id: id, userId },
       { $set: { status: "excluindo", updatedAt: new Date() } },
-      { projection: { coverImage: 1, pendingCover: 1 } },
+      { projection: { coverImage: 1, pendingCover: 1, screenshots: 1 } },
     );
     if (!marked) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
     // Sai do programa já, antes de apagar os arquivos.

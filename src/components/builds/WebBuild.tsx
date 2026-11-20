@@ -1,6 +1,6 @@
 "use client";
 
-import { FILES_CHANGED } from "@/lib/projects/events";
+import { FILES_CHANGED, ITCH_WEB, takeItchWebZip } from "@/lib/projects/events";
 
 import "@/styles/jogavel.css";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
@@ -85,6 +85,19 @@ export function WebBuild({ projectId }: { projectId: string }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Zip da versão de navegador trazido do itch.io: entra como se tivesse sido escolhido aqui.
+  useEffect(() => {
+    const pick = () => {
+      const file = takeItchWebZip();
+      if (file) void take(file.name, () => ingestZip(file));
+    };
+    pick();
+    window.addEventListener(ITCH_WEB, pick);
+    return () => window.removeEventListener(ITCH_WEB, pick);
+    // take é recriada a cada render, mas só lê setters estáveis.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sair da página no meio do envio: o navegador pergunta antes.
   useEffect(() => {

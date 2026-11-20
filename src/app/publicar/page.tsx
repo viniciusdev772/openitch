@@ -102,11 +102,13 @@ function ItchNotice({ flag }: { flag: string }) {
     <div className="wrap">
       <div className="bo-ok pj-note" role="status">
         <p>
-          Trouxemos do itch.io o título, a descrição, as plataformas, o preço e as etiquetas
+          Trouxemos do itch.io o título, a descrição, as plataformas, o preço, as etiquetas, os créditos e as imagens
           {parts.includes("semcapa") ? "" : ", e a capa"}. Confira tudo antes de publicar.
         </p>
         <p>
-          Faltam os arquivos: envie o build de cada plataforma pelo passo 3.
+          {parts.includes("seu")
+            ? "Os arquivos estão no passo 3, em Arquivos no itch.io: clique em Trazer em cada um (ou Trazer todos)."
+            : "Para os arquivos virem também, ligue sua conta do itch.io no passo 3. Ou envie cada build por lá."}
           {parts.includes("preco") ? " O preço no itch é em dólar: revise o valor e a moeda no passo 4." : ""}
           {parts.includes("semcapa") ? " A capa não veio; envie uma imagem no passo 2." : ""}
         </p>

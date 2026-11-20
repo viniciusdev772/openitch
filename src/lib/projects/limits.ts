@@ -87,6 +87,8 @@ export interface SavedDraft extends DraftFields {
   number: number | null;
   /** Imagem de capa enviada, quando há. */
   coverImage: string | null;
+  /** Capturas de tela (trazidas do itch.io). */
+  screenshots: { key: string; url: string }[];
 }
 
 /** Uma linha da lista de rascunhos. */

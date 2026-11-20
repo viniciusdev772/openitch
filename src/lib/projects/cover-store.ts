@@ -37,9 +37,11 @@ export function magicMatches(type: CoverType, head: Uint8Array): boolean {
   return at(0, 0x52, 0x49, 0x46, 0x46) && at(8, 0x57, 0x45, 0x42, 0x50); // RIFF....WEBP
 }
 
-/** Apaga o objeto da capa (e da capa pendente) de um projeto. Sem armazenamento, nada a apagar. */
-export async function deleteCoverObjects(p: Pick<ProjectDoc, "coverImage"> & { pendingCover?: { key: string } | null }) {
+/** Apaga o objeto da capa (e da capa pendente e das capturas de tela) de um projeto. Sem armazenamento, nada a apagar. */
+export async function deleteCoverObjects(
+  p: Pick<ProjectDoc, "coverImage"> & { pendingCover?: { key: string } | null; screenshots?: { key: string }[] },
+) {
   if (!storageConfigured()) return;
-  const keys = [p.coverImage?.key, p.pendingCover?.key].filter((k): k is string => Boolean(k && COVER_KEY_RE.test(k)));
+  const keys = [p.coverImage?.key, p.pendingCover?.key, ...(p.screenshots ?? []).map((x) => x.key)].filter((k): k is string => Boolean(k && COVER_KEY_RE.test(k)));
   for (const key of keys) await deleteObject(coverBucket(), key).catch(() => undefined);
 }

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseImageUrl, parseItch, parseItchUrl } from "../parse";
 
-// Rodar: node --experimental-strip-types --import ./src/lib/builds/__tests__/register.mjs --test src/lib/itch/__tests__/*.test.ts
+// Rodar: node --conditions=react-server --experimental-strip-types --import ./src/lib/builds/__tests__/register.mjs --test src/lib/itch/__tests__/*.test.ts
 
 const HTML = `<html><head>
 <meta property="og:description" content="Xadrez com peças &amp; regras estranhas">
@@ -17,10 +17,13 @@ const HTML = `<html><head>
 <tr><td>Platforms</td><td><a>Windows</a>, <a>Linux</a></td></tr>
 <tr><td>Genre</td><td>Puzzle</td></tr>
 <tr><td>Tags</td><td><a>3D</a>, <a>Unreal Engine</a></td></tr>
+<tr><td>Made with</td><td><a>Unreal Engine</a></td></tr>
+<tr><td>AI Disclosure</td><td><a>AI Assisted</a>, <a>Code</a></td></tr>
 </table></div>
+<div class="screenshot_list"><a href="https://img.itch.zone/a/original/x.jpg"><img srcset="https://img.itch.zone/a/347x500/s.jpg 1x, https://img.itch.zone/a/794x1000/m.jpg 2x" src="https://img.itch.zone/a/347x500/s.jpg"></a><a><img src="https://evil.com/x.jpg"></a></div>
 <a class="buy_btn">Download Now Name your own price</a>
 </body></html>`;
-const JSON_ = { id: 42, title: "Fantastic Chess", price: "$0.00", tags: ["3d", "unreal-engine"], links: { self: "https://vaula.itch.io/fantastic-chess" } };
+const JSON_ = { id: 42, title: "Fantastic Chess", price: "$0.00", authors: [{ name: "Bruno" }], tags: ["3d", "unreal-engine"], links: { self: "https://vaula.itch.io/fantastic-chess" } };
 
 test("mapeia plataformas, preço, etiquetas e capa", () => {
   const r = parseItch(HTML, JSON_, "https://vaula.itch.io/fantastic-chess/", ["3D"])!;
@@ -31,6 +34,12 @@ test("mapeia plataformas, preço, etiquetas e capa", () => {
   assert.equal(r.tagline, "Xadrez com peças & regras estranhas");
   assert.equal(r.coverUrl, "https://img.itch.zone/aW1n/cover.png");
   assert.equal(r.itchUrl, "https://vaula.itch.io/fantastic-chess");
+  assert.deepEqual(r.screenshots, ["https://img.itch.zone/a/794x1000/m.jpg"]);
+  assert.deepEqual(r.credits, [
+    { role: "Criação", name: "Bruno" },
+    { role: "Feito com", name: "Unreal Engine" },
+  ]);
+  assert.deepEqual(r.contentNotes, ["Uso de IA declarado: AI Assisted, Code"]);
   assert.equal(parseItch(HTML.replace("Name your own price", "Buy"), { ...JSON_, price: "$5.00" }, JSON_.links.self)!.reviewPrice, true);
 });
 

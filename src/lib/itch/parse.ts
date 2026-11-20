@@ -149,7 +149,7 @@ function infoTable(html: string): Map<string, string> {
   const region = html.slice(at, end < 0 ? undefined : end);
   for (const m of region.matchAll(/<tr\b[^>]*>\s*<td\b[^>]*>([\s\S]*?)<\/td>\s*<td\b[^>]*>([\s\S]*?)<\/td>\s*<\/tr>/gi)) {
     const k = oneLine(m[1]).toLowerCase();
-    if (k && !out.has(k)) out.set(k, oneLine(m[2]));
+    if (k && !out.has(k)) out.set(k, oneLine(m[2]).replace(/\s+,/g, ","));
   }
   return out;
 }
@@ -176,6 +176,39 @@ export interface ItchImport {
   controls: string[];
   /** Imagem de capa candidata (já validada: https em img.itch.zone), ou null. */
   coverUrl: string | null;
+  /** Capturas de tela em tamanho original (https em img.itch.zone), até SCREENSHOTS_MAX. */
+  screenshots: string[];
+  session: string;
+  accessibility: string[];
+  contentNotes: string[];
+  credits: { role: string; name: string }[];
+}
+
+export const SCREENSHOTS_MAX = 8;
+
+/**
+ * Capturas da página: de cada imagem em div.screenshot_list, a do srcset 2x
+ * (794x1000, boa e leve), senão o src; sem a lista, as 347x500 do data.json.
+ * O fim do caminho é uma assinatura do tamanho, então não dá para montar outro tamanho.
+ */
+function screenshotsOf(html: string, json: Record<string, unknown>): string[] {
+  const at = html.search(/class\s*=\s*["'][^"']*\bscreenshot_list\b/i);
+  const out: string[] = [];
+  if (at >= 0) {
+    const end = html.indexOf("</div>", at);
+    for (const m of html.slice(at, end < 0 ? undefined : end).matchAll(/<img\b[^>]*>/gi)) {
+      const tag = m[0];
+      const srcset = /\bsrcset\s*=\s*"([^"]*)"/i.exec(tag)?.[1] ?? "";
+      const twoX = srcset.split(",").map((x) => x.trim().split(/\s+/)).find((x) => x[1] === "2x")?.[0];
+      const src = /\bsrc\s*=\s*"([^"]*)"/i.exec(tag)?.[1];
+      const pickd = [twoX, src].map((u) => (u ? parseImageUrl(decode(u)) : null)).find(Boolean);
+      if (pickd) out.push(pickd.href);
+    }
+  }
+  if (!out.length && Array.isArray(json.screenshots)) {
+    for (const x of json.screenshots) if (typeof x === "string" && parseImageUrl(x)) out.push(parseImageUrl(x)!.href);
+  }
+  return [...new Set(out)].slice(0, SCREENSHOTS_MAX);
 }
 
 /** "$5.00" ou "R$ 12,50" em centavos; null quando não há número. */
@@ -190,6 +223,9 @@ function pickTrack(platforms: Platform[], genre: string): TrackId {
   if (/action|platformer|shooter|fighting|racing|survival|rhythm|sports/i.test(genre)) return "acao";
   return platforms.includes("web") ? "navegador" : "experimental";
 }
+
+/** Linhas dentro do limite do campo (quantidade e tamanho de cada uma). */
+const lines = (list: string[], lim: { lines: number; line: number }) => list.map((l) => cut(l, lim.line)).slice(0, lim.lines);
 
 const csv = (s: string | undefined) => (s ?? "").split(",").map((x) => x.replace(/\s+/g, " ").trim()).filter(Boolean);
 
@@ -260,5 +296,22 @@ export function parseItch(html: string, json: unknown, pageUrl: string, known: r
     languages,
     controls,
     coverUrl: cover ?? null,
+    screenshots: screenshotsOf(html, d),
+    session: cut(info.get("average session") ?? "", LIMITS.session),
+    accessibility: lines(csv(info.get("accessibility")), LIMITS.accessibility),
+    contentNotes: lines(
+      [info.get("ai disclosure") ? `Uso de IA declarado: ${info.get("ai disclosure")}` : "", info.get("content") ?? ""].filter(Boolean),
+      LIMITS.contentNotes,
+    ),
+    credits: lines(
+      [
+        ...(Array.isArray(d.authors) ? d.authors : []).map((a) => oneLine(String((a as { name?: unknown })?.name ?? ""))).filter(Boolean).map((n) => `Criação: ${n}`),
+        ...(info.get("made with") ? [`Feito com: ${info.get("made with")}`] : []),
+      ],
+      LIMITS.credits,
+    ).map((l) => {
+      const i = l.indexOf(": ");
+      return { role: l.slice(0, i), name: l.slice(i + 2) };
+    }),
   };
 }

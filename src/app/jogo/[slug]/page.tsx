@@ -124,6 +124,22 @@ export default async function GamePage({ params }: Props) {
             ))}
           </div>
 
+          {game.screenshots?.length ? (
+            <section className="game-part" aria-labelledby="imagens">
+              <h2 id="imagens">Imagens</h2>
+              <ul className="game-shots">
+                {game.screenshots.map((src, i) => (
+                  <li key={src}>
+                    <a href={src} target="_blank" rel="noopener">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt={`Imagem ${i + 1} de ${game.title}`} loading="lazy" decoding="async" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
           {(controls.length > 0 || access.length > 0) && (
             <section className="game-part game-how" aria-labelledby="como-jogar">
               <h2 id="como-jogar">Como jogar</h2>

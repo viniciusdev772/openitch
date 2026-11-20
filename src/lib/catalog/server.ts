@@ -107,6 +107,7 @@ function toGame(p: ProjectDoc, creator: Creator, files: Files): Game | null {
     cover: cover.style,
     palette: cover.palette,
     coverImage: p.coverImage?.url,
+    screenshots: p.screenshots?.length ? p.screenshots.map((x) => x.url) : undefined,
     downloads: downloads.filter((d) => platforms.includes(d.platform)),
     play,
     jam: p.jam && jamBySlug(p.jam) ? p.jam : undefined,

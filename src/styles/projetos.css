@@ -863,3 +863,156 @@
   flex: 1 1 18rem;
   min-width: 0;
 }
+.pj-import .bo-sheet {
+  display: grid;
+  gap: var(--s-4);
+}
+.linklike {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.itch-connect {
+  display: grid;
+  gap: var(--s-3);
+}
+.itch-account {
+  display: grid;
+  gap: var(--s-3);
+}
+.itch-games,
+.itch-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: var(--hair);
+}
+.itch-game,
+.itch-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--s-2) var(--s-4);
+  align-items: center;
+  padding: var(--s-3) 0;
+  border-bottom: var(--hair);
+}
+.itch-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.itch-game img,
+.itch-game-ph {
+  display: block;
+  width: 63px;
+  height: 50px;
+  object-fit: cover;
+  border: var(--rule);
+  border-radius: 4px;
+  background: var(--paper-deep);
+}
+.itch-game-text,
+.itch-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.itch-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.itch-meta {
+  color: var(--ink-mute);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.itch-files {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border: var(--rule);
+  border-radius: 8px;
+  background: var(--paper-bright);
+}
+.itch-files-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.itch-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: 0.875rem;
+}
+.itch-progress progress {
+  flex: 1 1 10rem;
+  height: 10px;
+  accent-color: var(--ultra);
+}
+.itch-msg {
+  margin: 0;
+  font-size: 0.875rem;
+}
+.itch-done {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-weight: 700;
+  color: var(--teal-ink);
+}
+@media (max-width: 480px) {
+  .itch-game {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .itch-game > .btn {
+    grid-column: 1 / -1;
+  }
+  .itch-row {
+    grid-template-columns: 1fr;
+  }
+}
+.pj-shots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--s-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pj-shots li {
+  position: relative;
+}
+.pj-shots img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border: var(--rule);
+  border-radius: 4px;
+}
+.pj-shot-x {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+.pj-shot-x:hover {
+  background: var(--ink);
+  color: var(--paper);
+}

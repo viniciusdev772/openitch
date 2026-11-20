@@ -627,7 +627,7 @@ async function deleteAccountInner(_prev: FormState, form: FormData): Promise<For
     await deleteUploadsOfUser(user._id);
     await deleteBuildsOfUser(user._id);
     const { users, sessions, mfa, events, saves, follows, projects } = await db();
-    for (const p of await projects.find({ userId: user._id }, { projection: { coverImage: 1, pendingCover: 1 } }).toArray()) {
+    for (const p of await projects.find({ userId: user._id }, { projection: { coverImage: 1, pendingCover: 1, screenshots: 1 } }).toArray()) {
       await deleteCoverObjects(p);
     }
     await sessions.deleteMany({ userId: user._id });

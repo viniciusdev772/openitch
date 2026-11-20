@@ -7,6 +7,9 @@ import { PLATFORMS, TRACKS, formatDay, type Game, type Platform, type TrackId } 
 import { Entry, trackStyle } from "@/components/bits-base";
 import DownloadFiles from "@/components/uploads/DownloadFiles";
 import { WebBuild } from "@/components/builds/WebBuild";
+import { ItchFiles } from "@/components/projetos/ItchFiles";
+import { Screenshots } from "@/components/projetos/Screenshots";
+import { ITCH_PLATFORM } from "@/lib/projects/events";
 import { DraftBar, type SaveStatus } from "@/components/projetos/DraftBar";
 import { PublishPanel } from "@/components/projetos/PublishPanel";
 import { CoverUpload } from "@/components/projetos/CoverUpload";
@@ -290,6 +293,17 @@ function PublishForm({
       window.removeEventListener("click", onClick, true);
     };
   }, [account, dirty]);
+
+  // Arquivo trazido do itch.io de uma plataforma ainda não marcada: o servidor já marcou, o formulário acompanha.
+  useEffect(() => {
+    const on = (e: Event) => {
+      const p = (e as CustomEvent<string>).detail as Platform;
+      if (!ALL_PLATFORMS.includes(p)) return;
+      setF((cur) => (cur.platforms.includes(p) ? cur : { ...cur, platforms: ALL_PLATFORMS.filter((x) => x === p || cur.platforms.includes(x)) }));
+    };
+    window.addEventListener(ITCH_PLATFORM, on);
+    return () => window.removeEventListener(ITCH_PLATFORM, on);
+  }, []);
 
   const stash = () => {
     try {
@@ -610,6 +624,12 @@ function PublishForm({
                   <legend className="field-label">Imagem de capa</legend>
                   <CoverUpload draftId={account === "dentro" ? draftId : null} url={coverImage} onChange={setCoverImage} />
                 </fieldset>
+                {account === "dentro" && draftId && initial?.id === draftId && initial.screenshots.length ? (
+                  <fieldset className="pj-fieldset">
+                    <legend className="field-label">Imagens do jogo</legend>
+                    <Screenshots draftId={draftId} initial={initial.screenshots} />
+                  </fieldset>
+                ) : null}
                 <fieldset className="pj-fieldset">
                   <legend className="field-label">{coverImage ? "Capa provisória (se tirar a imagem)" : "Capa provisória"}</legend>
                   <div className="seg">
@@ -689,6 +709,7 @@ function PublishForm({
                     <p className="field-hint">Salve o rascunho para enviar a versão de navegador (zip ou pasta do build).</p>
                   )
                 ) : null}
+                {account === "dentro" && draftId ? <ItchFiles projectId={draftId} /> : null}
                 <DownloadFiles projectId={account === "dentro" ? draftId : null} platforms={f.platforms} />
               </div>
             </div>

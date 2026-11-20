@@ -35,6 +35,8 @@ export interface UserDoc {
   googleSub?: string;
   /** `sub` do Resumestre vinculado a esta conta. */
   resumestreSub?: string;
+  /** Conta do itch.io ligada: chave da API cifrada (AES-256-GCM, contexto itch:<userId>) e quem ela é. */
+  itch?: { key: string; userId: number; username: string; connectedAt: Date } | null;
   passwordChangedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -156,7 +158,9 @@ export interface ProjectDoc {
   contentNotes?: string[];
   credits?: { role: string; name: string }[];
   /** De onde o rascunho foi trazido (itch.io), para não importar o mesmo jogo duas vezes. */
-  source?: { itchUrl: string; itchId: number };
+  source?: { itchUrl: string; itchId: number; verified?: boolean };
+  /** Capturas de tela (bucket jogável, b/capa-*), na ordem de exibição. */
+  screenshots?: { bucket: string; key: string; url: string }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -203,6 +207,8 @@ export interface UploadDoc {
   etag?: string | null;
   /** Trava curta enquanto o servidor conclui o multipart. */
   completing?: Date | null;
+  /** Arquivo trazido do itch.io pelo servidor (o id do upload lá e, se for do butler, o build). */
+  itch?: { uploadId: number; buildId: number | null };
 }
 
 /** Contador sequencial (ex.: "entradas", o número de cada jogo no programa). */

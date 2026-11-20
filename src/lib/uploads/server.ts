@@ -147,7 +147,7 @@ async function ownUpload(userId: ObjectId, rawId: unknown): Promise<UploadDoc> {
   return u;
 }
 
-const uploadPrefix = (u: Pick<UploadDoc, "userId" | "projectId" | "_id">) =>
+export const uploadPrefix = (u: Pick<UploadDoc, "userId" | "projectId" | "_id">) =>
   `u/${u.userId.toHexString()}/${u.projectId.toHexString()}/${u._id.toHexString()}/`;
 
 function disposition(name: string) {
@@ -155,7 +155,7 @@ function disposition(name: string) {
   return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(name).replace(/['()*]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase())}`;
 }
 
-function objectHeaders(u: UploadDoc): Record<string, string> {
+export function objectHeaders(u: UploadDoc): Record<string, string> {
   return {
     "content-type": u.contentType,
     "content-disposition": disposition(u.filename),

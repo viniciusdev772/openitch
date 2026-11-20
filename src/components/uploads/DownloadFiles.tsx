@@ -1,6 +1,6 @@
 "use client";
 
-import { FILES_CHANGED } from "@/lib/projects/events";
+import { FILES_CHANGED, ITCH_FILES } from "@/lib/projects/events";
 
 import "@/styles/envios.css";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
@@ -93,6 +93,9 @@ export default function DownloadFiles({ projectId, platforms }: Props) {
 
   useEffect(() => {
     void refresh();
+    const on = () => void refresh();
+    window.addEventListener(ITCH_FILES, on);
+    return () => window.removeEventListener(ITCH_FILES, on);
   }, [refresh]);
 
   // Percentual dos envios interrompidos (página recarregada no meio).

@@ -101,6 +101,8 @@ export interface Game {
   palette: [string, string, string];
   /** An uploaded cover image (public URL), drawn instead of the cover style when present. */
   coverImage?: string;
+  /** Screenshots (public URLs), in display order (optional). */
+  screenshots?: string[];
   downloads: Download[];
   /** The creator's display name, resolved when the catalogue is loaded (optional). */
   creatorName?: string;
