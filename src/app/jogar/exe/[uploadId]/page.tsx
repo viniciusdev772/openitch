@@ -4,6 +4,7 @@ import { notFound, redirect, unstable_rethrow } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { storageConfigured } from "@/lib/storage/s3";
 import { exeForPlay, exeLauncherUrl, ExeRuntimeMissing } from "@/lib/builds/exe-server";
+import { exeBlockReason } from "@/lib/builds/exe";
 import { TRACKS, trackById } from "@/data/catalog";
 import { trackStyle } from "@/components/bits";
 import { ExePlayer } from "@/components/builds/ExePlayer";
@@ -22,10 +23,15 @@ export const metadata: Metadata = {
   referrer: "no-referrer",
 };
 
-type Props = { params: Promise<{ uploadId: string }> };
+type Props = {
+  params: Promise<{ uploadId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
-export default async function ExePlayPage({ params }: Props) {
+export default async function ExePlayPage({ params, searchParams }: Props) {
   const { uploadId } = await params;
+  // ?forcar=1: "Tentar mesmo assim" num arquivo de Windows fora dos filtros (grande demais ou outro formato).
+  const forced = (await searchParams).forcar === "1";
   if (!/^[a-f0-9]{24}$/.test(uploadId)) notFound();
   if (!storageConfigured()) {
     return <Notice title="Jogo indisponível">O armazenamento de arquivos ainda não está configurado neste servidor.</Notice>;
@@ -37,8 +43,8 @@ export default async function ExePlayPage({ params }: Props) {
   let launcher: string | null = null;
   try {
     viewer = (await getSession())?.user ?? null;
-    found = await exeForPlay(viewer, uploadId);
-    if (!found && !viewer) redirect(`/entrar?de=${encodeURIComponent(`/jogar/exe/${uploadId}`)}`);
+    found = await exeForPlay(viewer, uploadId, forced);
+    if (!found && !viewer) redirect(`/entrar?de=${encodeURIComponent(`/jogar/exe/${uploadId}${forced ? "?forcar=1" : ""}`)}`);
     if (!found) notFound();
     launcher = await exeLauncherUrl().catch((err) => {
       if (err instanceof ExeRuntimeMissing) return null;
@@ -70,6 +76,7 @@ export default async function ExePlayPage({ params }: Props) {
           title={project.title || "Jogo sem título"}
           filename={upload.filename}
           size={upload.size}
+          blocked={exeBlockReason(upload)}
           fileHref={`/baixar/${uploadId}`}
           back={back}
         />

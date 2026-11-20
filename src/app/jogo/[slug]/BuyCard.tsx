@@ -8,8 +8,8 @@ interface DL {
   size: string;
   /** Link de download (redireciona para o armazenamento), ou null se o arquivo não está no ar. */
   href: string | null;
-  /** Jogar no navegador (emulador de Windows, experimental), quando o arquivo serve. */
-  playExe?: string | null;
+  /** Arquivo de Windows: jogar no navegador (emulador, experimental); blocked = por que não passa nos filtros. */
+  exe?: { href: string; blocked: string | null } | null;
   code: string;
   name: string;
 }
@@ -64,12 +64,26 @@ export function BuyCard({
                 <span className="visually-hidden">, para {d.name}, {d.size}</span>
               </a>
               <small aria-hidden>{d.size}</small>
-              {d.playExe && (
-                <Link href={d.playExe} className="download-play" rel="nofollow">
-                  <Play aria-hidden size={14} />
-                  Jogar no navegador (experimental)
-                </Link>
-              )}
+              {d.exe &&
+                (d.exe.blocked ? (
+                  <span className="download-blocked">
+                    <span className="download-play" aria-disabled="true">
+                      <Play aria-hidden size={14} />
+                      Jogar no navegador
+                    </span>
+                    <small>
+                      {d.exe.blocked}{" "}
+                      <Link href={d.exe.href} rel="nofollow">
+                        Tentar mesmo assim
+                      </Link>
+                    </small>
+                  </span>
+                ) : (
+                  <Link href={d.exe.href} className="download-play" rel="nofollow">
+                    <Play aria-hidden size={14} />
+                    Jogar no navegador (experimental)
+                  </Link>
+                ))}
             </li>
           ))}
         </ul>

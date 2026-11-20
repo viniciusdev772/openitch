@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Download, Maximize, Minimize, Play, RotateCcw } from "lucide-react";
 import { formatBytes } from "@/lib/storage/limits";
-import { BOXEDWINE, exeCandidates, type ExeToFrame, type ExeToParent } from "@/lib/builds/exe";
-import { readZip, ZipError } from "@/lib/builds/zip";
+import { BOXEDWINE, exeCandidates, peMachine, rangeBlob, type ExeToFrame, type ExeToParent } from "@/lib/builds/exe";
+import { entryHead, readZip, ZipError, type ZipEntry } from "@/lib/builds/zip";
 
 /*
  * Jogo de Windows no navegador. Esta página (origem do site) baixa o arquivo
@@ -23,7 +23,7 @@ const SANDBOX = "allow-scripts allow-same-origin allow-pointer-lock";
 const ALLOW = "autoplay; gamepad; fullscreen";
 
 type Phase = "portao" | "preparando" | "carregando" | "rodando" | "fim" | "erro";
-type Game = { arquivo: Blob; zip: boolean; exes: string[] };
+type Game = { arquivo: Blob; zip: boolean; exes: string[]; entries: ZipEntry[] };
 type Bar = { got: number; total: number };
 
 export interface ExePlayerProps {
@@ -34,12 +34,14 @@ export interface ExePlayerProps {
   title: string;
   filename: string;
   size: number;
+  /** Por que o arquivo não passa nos filtros ("Tentar mesmo assim"), ou null. */
+  blocked: string | null;
   /** /baixar/<id>: com ?url=1 devolve a URL curta do arquivo. */
   fileHref: string;
   back: { href: string; label: string };
 }
 
-async function fetchGame(href: string, size: number, onProgress: (b: Bar) => void): Promise<Blob> {
+async function signedUrl(href: string): Promise<string> {
   const meta = await fetch(`${href}?url=1`, { cache: "no-store" });
   if (!meta.ok) {
     throw new Error(
@@ -50,7 +52,32 @@ async function fetchGame(href: string, size: number, onProgress: (b: Bar) => voi
           : "O download está fora do ar agora. Tente de novo em instantes.",
     );
   }
-  const { url } = (await meta.json()) as { url: string };
+  return ((await meta.json()) as { url: string }).url;
+}
+
+/** Zip (pelo começo dos bytes, não pelo nome) e os .exe dele; um .exe solto é ele mesmo. */
+async function inspect(blob: Blob, filename: string): Promise<Omit<Game, "arquivo">> {
+  const magic = new Uint8Array(await blob.slice(0, 4).arrayBuffer());
+  if (magic[0] === 0x50 && magic[1] === 0x4b) {
+    const { entries } = await readZip(blob);
+    return { zip: true, entries, exes: exeCandidates(entries).map((e) => e.path) };
+  }
+  if (magic[0] === 0x4d && magic[1] === 0x5a) return { zip: false, entries: [], exes: [filename] };
+  throw new Error("Este arquivo não é .exe nem .zip: o navegador não abre esse formato.");
+}
+
+/** Arquitetura do .exe escolhido, lendo só o cabeçalho (64 KB). */
+async function machineOf(blob: Blob, g: Omit<Game, "arquivo">, exe: string) {
+  const entry = g.entries.find((e) => e.path === exe);
+  const head = g.zip ? (entry ? await entryHead(blob, entry, PE_HEAD) : new Uint8Array()) : new Uint8Array(await blob.slice(0, PE_HEAD).arrayBuffer());
+  return peMachine(head);
+}
+
+const PE_HEAD = 64 * 1024;
+const NOT_32 = (exe: string, m: string) =>
+  `${exe} é um programa de ${m === "arm64" ? "ARM64" : "64 bits (PE32+, x64)"}. O emulador do navegador só roda programas de 32 bits: baixe o jogo para jogar no Windows.`;
+
+async function fetchGame(url: string, size: number, onProgress: (b: Bar) => void): Promise<Blob> {
   const res = await fetch(url);
   if (!res.ok || !res.body) throw new Error("Não deu para baixar o jogo do armazenamento.");
   const total = Number(res.headers.get("content-length")) || size;
@@ -123,19 +150,26 @@ export function ExePlayer(p: ExePlayerProps) {
     let stop = false;
     (async () => {
       try {
-        const blob = await fetchGame(p.fileHref, p.size, (b) => !stop && setGameBar(b));
-        if (stop) return;
-        if (!/\.zip$/i.test(p.filename)) {
-          setGame({ arquivo: blob, zip: false, exes: [p.filename] });
-          setExe(p.filename);
-          return;
+        const url = await signedUrl(p.fileHref);
+        // Antes de baixar tudo: o índice do zip e o cabeçalho do .exe por HTTP Range
+        // (alguns KB). Um jogo de 64 bits para aqui, sem baixar centenas de MB.
+        // Sem Range (ou com erro), segue para o download inteiro, que confere de novo.
+        try {
+          const remote = rangeBlob(url, p.size);
+          const info = await inspect(remote, p.filename);
+          const m = info.exes[0] ? await machineOf(remote, info, info.exes[0]) : null;
+          if (stop) return;
+          if (m === "x64" || m === "arm64") return fail(NOT_32(info.exes[0].split("/").pop()!, m));
+        } catch {
+          /* segue com o download inteiro */
         }
-        const { entries } = await readZip(blob);
-        const exes = exeCandidates(entries).map((e) => e.path);
+        const blob = await fetchGame(url, p.size, (b) => !stop && setGameBar(b));
         if (stop) return;
-        if (exes.length === 0) return fail("Este zip não tem nenhum .exe para abrir.");
-        setGame({ arquivo: blob, zip: true, exes });
-        setExe(exes[0]);
+        const info = await inspect(blob, p.filename);
+        if (stop) return;
+        if (info.exes.length === 0) return fail("Este zip não tem nenhum .exe para abrir.");
+        setGame({ arquivo: blob, ...info });
+        setExe(info.exes[0]);
       } catch (err) {
         if (stop) return;
         if (err instanceof ZipError) fail(`Não deu para abrir o zip: ${err.message}`);
@@ -171,9 +205,17 @@ export function ExePlayer(p: ExePlayerProps) {
   useEffect(() => {
     if (!frameReady || !game || !exe || sent.current === run) return;
     sent.current = run;
-    const msg: ExeToFrame = { vg: "exe", arquivo: game.arquivo, zip: game.zip, exe };
-    iframeRef.current?.contentWindow?.postMessage(msg, origin);
-  }, [frameReady, game, exe, run, origin]);
+    const target = iframeRef.current?.contentWindow;
+    // O .exe escolhido (pode ter sido trocado no seletor) precisa ser de 32 bits.
+    void machineOf(game.arquivo, game, exe).then(
+      (m) => {
+        if (m === "x64" || m === "arm64") return fail(NOT_32(exe.split("/").pop()!, m));
+        const msg: ExeToFrame = { vg: "exe", arquivo: game.arquivo, zip: game.zip, exe };
+        target?.postMessage(msg, origin);
+      },
+      () => fail("Não deu para ler o .exe dentro do arquivo."),
+    );
+  }, [frameReady, game, exe, run, origin, fail]);
 
   useEffect(() => {
     const onChange = () => setFull(document.fullscreenElement === frameRef.current);
@@ -223,13 +265,20 @@ export function ExePlayer(p: ExePlayerProps) {
             <p className="play-gate-size">
               <span className="num">{formatBytes(p.size)}</span>
             </p>
-            <p>
-              Experimental: um Windows emulado roda o jogo aqui no seu computador. Na primeira vez, o emulador baixa uns
-              40 MB a mais.
-            </p>
+            {p.blocked ? (
+              <p className="exe-warn">
+                {p.blocked} Tentar mesmo assim pode travar a aba. Jogos de 64 bits e com DirectX 10, 11, 12 ou Vulkan
+                não rodam neste emulador.
+              </p>
+            ) : (
+              <p>
+                Experimental: um Windows emulado roda o jogo aqui no seu computador. Na primeira vez, o emulador baixa
+                uns 40 MB a mais.
+              </p>
+            )}
             <button type="button" className="btn btn--lime" onClick={() => start()}>
               <Play aria-hidden />
-              Jogar no navegador
+              {p.blocked ? "Tentar mesmo assim" : "Jogar no navegador"}
             </button>
           </div>
         )}

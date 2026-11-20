@@ -237,6 +237,11 @@
 .exe-file {
   overflow-wrap: anywhere;
 }
+.play-gate .exe-warn {
+  border-left: 4px solid var(--paper);
+  padding-left: var(--s-3);
+  text-align: left;
+}
 @media (prefers-reduced-motion: reduce) {
   .exe-bar span {
     transition: none;

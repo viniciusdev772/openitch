@@ -7,7 +7,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { CloudUpload, Download, Pause, Play, RotateCcw, Trash2, TriangleAlert, X } from "lucide-react";
 import { PLATFORMS, type Platform } from "@/data/base";
 import { MAX_FILE_BYTES } from "@/lib/storage/limits";
-import { canPlayExe } from "@/lib/builds/exe";
+import { canPlayExe, canTryExe, exeBlockReason } from "@/lib/builds/exe";
 import {
   api,
   ApiError,
@@ -334,6 +334,14 @@ export default function DownloadFiles({ projectId, platforms }: Props) {
                         <span aria-hidden> · </span>
                         enviado em <span className="num">{dateFmt.format(new Date(f.completedAt ?? f.createdAt))}</span>
                       </span>
+                      {canTryExe(f) && exeBlockReason(f) ? (
+                        <span className="dl-meta">
+                          Não roda no navegador: {exeBlockReason(f)}{" "}
+                          <a href={`/jogar/exe/${f.id}?forcar=1`} target="_blank" rel="noopener">
+                            Tentar mesmo assim
+                          </a>
+                        </span>
+                      ) : null}
                       {rowError[f.id] ? <span className="field-error">{rowError[f.id]}</span> : null}
                     </div>
                     <div className="dl-actions">
@@ -354,12 +362,17 @@ export default function DownloadFiles({ projectId, platforms }: Props) {
                         </>
                       ) : (
                         <>
-                          {canPlayExe(f) && (
+                          {canPlayExe(f) ? (
                             <a className="btn btn--ghost btn--sm" href={`/jogar/exe/${f.id}`} target="_blank" rel="noopener">
                               <Play aria-hidden />
                               Testar no navegador
                             </a>
-                          )}
+                          ) : canTryExe(f) ? (
+                            <button type="button" className="btn btn--ghost btn--sm" disabled title={exeBlockReason(f) ?? undefined}>
+                              <Play aria-hidden />
+                              Testar no navegador
+                            </button>
+                          ) : null}
                           <a className="btn btn--ghost btn--sm" href={`/baixar/${f.id}`} download>
                             <Download aria-hidden />
                             Baixar

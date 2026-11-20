@@ -1936,9 +1936,32 @@ p {
   text-decoration: none;
   transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
 }
-.downloads .download-play:hover {
+.downloads a.download-play:hover {
   background: var(--ink);
   color: var(--paper);
+}
+.downloads .download-play[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.downloads .download-blocked {
+  grid-column: 2 / -1;
+  display: grid;
+  justify-items: start;
+  gap: var(--s-1);
+  white-space: normal;
+  overflow: visible;
+}
+.downloads .download-blocked .download-play {
+  grid-column: auto;
+}
+.downloads .download-blocked small {
+  white-space: normal;
+}
+.downloads .download-blocked a {
+  font-weight: 700;
+  color: var(--ink);
+  text-underline-offset: 3px;
 }
 .downloads .download-link {
   min-width: 0;

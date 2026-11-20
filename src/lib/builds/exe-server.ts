@@ -5,7 +5,7 @@ import { db } from "@/lib/auth/db";
 import { canView } from "@/lib/projects/access";
 import { ensureStorage } from "@/lib/storage/setup";
 import { headObject, publicUrl, s3Config, s3Fetch } from "@/lib/storage/s3";
-import { BOXEDWINE, canPlayExe } from "./exe";
+import { BOXEDWINE, canPlayExe, canTryExe } from "./exe";
 import { missingRuntimeFiles } from "./exe-install";
 import { EXE_LAUNCHER_HTML } from "./exe-launcher";
 import { CACHE_IMMUTABLE } from "./mime";
@@ -57,11 +57,12 @@ export async function exeLauncherUrl(): Promise<string> {
  * (mesma regra de /baixar: o dono, ou todos com o jogo publicado). Senão null,
  * sem dizer se existe.
  */
-export async function exeForPlay(viewer: { _id: ObjectId } | null, rawId: string) {
+export async function exeForPlay(viewer: { _id: ObjectId } | null, rawId: string, forced = false) {
   if (!/^[a-f0-9]{24}$/.test(rawId)) return null;
   const { uploads, projects } = await db();
   const upload = await uploads.findOne({ _id: new ObjectId(rawId), status: "pronto", kind: "download" });
-  if (!upload || !canPlayExe(upload)) return null;
+  // "Tentar mesmo assim" (forced): qualquer arquivo de Windows, acima do limite ou de outro formato.
+  if (!upload || !(forced ? canTryExe(upload) : canPlayExe(upload))) return null;
   const project = await projects.findOne(
     { _id: upload.projectId, userId: upload.userId },
     { projection: { title: 1, userId: 1, status: 1, track: 1, publicSlug: 1 } },

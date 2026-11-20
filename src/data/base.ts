@@ -78,8 +78,11 @@ export interface Download {
   size: string;
   /** Where the file is served (a short redirect to storage), when it is live. */
   href?: string;
-  /** A Windows .exe/.zip that can also run in the browser (experimental emulator), when it qualifies. */
-  play?: string;
+  /**
+   * Windows files only: play in the browser (experimental emulator). `blocked` says why
+   * the file fails the filters (then `href` is the "try anyway" page), or null when it qualifies.
+   */
+  exe?: { href: string; blocked: string | null };
 }
 
 export interface Game {
