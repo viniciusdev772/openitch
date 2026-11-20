@@ -8,7 +8,8 @@ import { S3Error, s3Fetch } from "@/lib/storage/s3";
 import { expectedPartSize, partCountFor, type DownloadPlatform } from "@/lib/uploads/rules";
 import { UploadError, objectHeaders, startUpload } from "@/lib/uploads/server";
 import { ItchError } from "./fetch";
-import { itchRange, publicFileUrl, publicUploads } from "./public";
+import { itchRange, publicFileUrl, publicPageHtml, publicUploads } from "./public";
+import { webEntryOf } from "./webcrawl";
 import type { ItchUpload } from "./uploads";
 
 /*
@@ -63,14 +64,17 @@ export async function listItchFiles(userId: ObjectId, rawProjectId: unknown) {
     const project = await ownProject(userId, rawProjectId);
     if (!project.source?.itchUrl) return { fromItch: false, files: [] as ItchFileRow[] };
     await limit(`itch:listar:${userId.toHexString()}`, 30);
-    const files = await publicUploads(project.source.itchUrl);
+    const itchUrl = project.source.itchUrl;
+    const [files, web] = await Promise.all([publicUploads(itchUrl), publicPageHtml(itchUrl).then((h) => Boolean(webEntryOf(h)))]);
     const { uploads } = await db();
     const locals = await uploads
       .find({ userId, projectId: project._id, "itch.uploadId": { $in: files.map((f) => f.id) }, status: { $in: ["enviando", "pronto"] } })
       .toArray();
     return {
       fromItch: true,
-      itchUrl: project.source.itchUrl,
+      itchUrl,
+      /** O jogo roda no navegador no itch: dá para trazer essa versão. */
+      web,
       files: files.map((f): ItchFileRow => {
         const l = locals.find((u) => u.itch?.uploadId === f.id);
         return { ...f, local: l ? { id: l._id.toHexString(), status: l.status } : null };

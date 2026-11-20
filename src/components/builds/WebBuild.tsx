@@ -1,6 +1,6 @@
 "use client";
 
-import { FILES_CHANGED } from "@/lib/projects/events";
+import { FILES_CHANGED, ITCH_FILES } from "@/lib/projects/events";
 
 import "@/styles/jogavel.css";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
@@ -84,6 +84,10 @@ export function WebBuild({ projectId }: { projectId: string }) {
 
   useEffect(() => {
     void load();
+    // Build trazido do itch.io pelo servidor: a lista recarrega.
+    const on = () => void load();
+    window.addEventListener(ITCH_FILES, on);
+    return () => window.removeEventListener(ITCH_FILES, on);
   }, [load]);
 
   // Sair da página no meio do envio: o navegador pergunta antes.

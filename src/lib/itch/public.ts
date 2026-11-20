@@ -107,6 +107,11 @@ async function postJson(jar: Jar, url: string, csrf: string): Promise<Record<str
 
 const errorsOf = (j: Record<string, unknown>) => (Array.isArray(j.errors) ? j.errors.map(String) : []);
 
+/** HTML da página do jogo (para achar a versão de navegador). */
+export async function publicPageHtml(gameUrl: string): Promise<string> {
+  return (await open(gameUrl)).html;
+}
+
 /** Arquivos para baixar do jogo (pode ser vazia: jogo só de navegador, pago, ou marcação desconhecida). */
 export async function publicUploads(gameUrl: string): Promise<ItchUpload[]> {
   const s = await open(gameUrl);

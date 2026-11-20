@@ -21,8 +21,10 @@ interface Row {
 interface ListResponse {
   fromItch: boolean;
   itchUrl?: string;
+  web?: boolean;
   files: Row[];
 }
+const WEB_ROW = -1;
 interface Started {
   file: { id: string; platform: string; size: number; partSize: number; partCount: number };
   done: number[];
@@ -103,6 +105,24 @@ export function ItchFiles({ projectId }: { projectId: string }) {
     }
   };
 
+  /** Versão de navegador: o servidor segue os arquivos do build no itch e cria o build daqui. */
+  const pullWeb = async () => {
+    set(WEB_ROW, { kind: "rodando", loaded: 0, total: 0, label: "Copiando a versão de navegador (pode levar alguns minutos)…" });
+    try {
+      // Uma tentativa só: repetir no meio criaria outro build.
+      const r = await api<{ files: number; engine: string; notices: string[] }>("/api/itch/web", { method: "POST", body: { projectId } }, 1);
+      window.dispatchEvent(new CustomEvent(ITCH_PLATFORM, { detail: "web" }));
+      window.dispatchEvent(new Event(ITCH_FILES));
+      window.dispatchEvent(new Event(FILES_CHANGED));
+      set(WEB_ROW, {
+        kind: "feito",
+        message: `Pronto: ${r.files} ${r.files === 1 ? "arquivo" : "arquivos"} no painel da versão de navegador. Abra o jogo por lá para conferir.${r.notices.length ? " " + r.notices.join(" ") : ""}`,
+      });
+    } catch (err) {
+      set(WEB_ROW, { kind: "erro", message: err instanceof ApiError ? err.message : "A cópia parou. Tente de novo." });
+    }
+  };
+
   const take = pullDownload;
   const takeable = (list?.files ?? []).filter((r) => r.platforms.length && r.local?.status !== "pronto");
 
@@ -135,14 +155,45 @@ export function ItchFiles({ projectId }: { projectId: string }) {
         </p>
       ) : null}
 
-      {list && list.files.length === 0 ? (
-        <p className="field-hint">
-          O itch.io não mostra arquivos para baixar desse jogo (jogo só de navegador ou pago). Envie os arquivos aqui embaixo.
-        </p>
+      {list && list.files.length === 0 && !list.web ? (
+        <p className="field-hint">O itch.io não mostra arquivos para baixar desse jogo (talvez seja pago). Envie os arquivos aqui embaixo.</p>
       ) : null}
 
-      {list && list.files.length > 0 ? (
+      {list && (list.files.length > 0 || list.web) ? (
         <ol className="itch-list">
+          {list.web ? (
+            <li className="itch-row">
+              <div className="itch-main">
+                <span className="itch-name">Versão de navegador</span>
+                <span className="itch-meta">Navegador · o jogo que roda na página do itch</span>
+                {run[WEB_ROW]?.kind === "rodando" ? (
+                  <span className="itch-progress" role="status">
+                    <LoaderCircle aria-hidden className="bo-spin" size={16} /> {(run[WEB_ROW] as { label: string }).label}
+                  </span>
+                ) : run[WEB_ROW]?.kind === "erro" ? (
+                  <span className="bo-alert itch-msg" role="alert">
+                    {(run[WEB_ROW] as { message: string }).message}
+                  </span>
+                ) : run[WEB_ROW]?.kind === "feito" ? (
+                  <span className="bo-ok itch-msg" role="status">
+                    {(run[WEB_ROW] as { message: string }).message}
+                  </span>
+                ) : null}
+              </div>
+              <div className="itch-actions">
+                {run[WEB_ROW]?.kind === "feito" ? (
+                  <span className="itch-done">
+                    <Check aria-hidden size={16} /> Trazido
+                  </span>
+                ) : (
+                  <button type="button" className="btn btn--sm btn--ghost" disabled={busy} onClick={() => void pullWeb()}>
+                    {run[WEB_ROW]?.kind === "rodando" ? <LoaderCircle aria-hidden className="bo-spin" size={16} /> : <Download aria-hidden size={16} />}
+                    {run[WEB_ROW]?.kind === "erro" ? "Tentar de novo" : "Trazer"}
+                  </button>
+                )}
+              </div>
+            </li>
+          ) : null}
           {list.files.map((row) => {
             const s = run[row.id];
             const where = row.platforms.length ? row.platforms.map((p) => KIND[p] ?? p).join(", ") : "Outro tipo";
