@@ -178,6 +178,71 @@
   text-decoration-thickness: 2px;
 }
 
+/* Jogo de Windows (/jogar/exe): o iframe nasce escondido sob o carregamento. */
+.exe-frame {
+  position: relative;
+}
+.exe-frame iframe[data-hidden] {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+.exe-load {
+  width: min(100%, 420px);
+  margin-inline: auto;
+  justify-items: stretch;
+}
+.exe-step {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) 4rem;
+  align-items: center;
+  gap: var(--s-3);
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.exe-step .num {
+  text-align: right;
+  font-stretch: 75%;
+  font-weight: 750;
+}
+.exe-bar {
+  height: 14px;
+  border: 2px solid var(--paper);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.exe-bar span {
+  display: block;
+  height: 100%;
+  background: var(--paper);
+  transition: width 200ms var(--ease-out);
+}
+.exe-detail {
+  max-width: min(100%, 52ch);
+  text-align: left;
+  font-size: 0.8125rem;
+}
+.exe-detail summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.exe-detail pre {
+  max-height: 10rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: var(--s-2) 0 0;
+}
+.exe-file {
+  overflow-wrap: anywhere;
+}
+@media (prefers-reduced-motion: reduce) {
+  .exe-bar span {
+    transition: none;
+  }
+}
+
 .play-notice {
   padding-top: var(--s-9);
   padding-bottom: var(--s-9);

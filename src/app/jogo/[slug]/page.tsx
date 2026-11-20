@@ -219,6 +219,7 @@ export default async function GamePage({ params }: Props) {
               file: d.file,
               size: d.size,
               href: d.href ?? null,
+              playExe: d.play ?? null,
               code: PLATFORMS[d.platform].code,
               name: PLATFORMS[d.platform].name,
             }))}

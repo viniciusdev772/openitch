@@ -1919,6 +1919,27 @@ p {
   color: var(--ink-mute);
   font-variant-numeric: tabular-nums;
 }
+/* Segunda linha do arquivo de Windows: jogar no navegador (emulador). */
+.downloads .download-play {
+  grid-column: 2 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 36px;
+  padding: 0 var(--s-4);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.downloads .download-play:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
 .downloads .download-link {
   min-width: 0;
   overflow: hidden;

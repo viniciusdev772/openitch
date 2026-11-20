@@ -78,6 +78,8 @@ export interface Download {
   size: string;
   /** Where the file is served (a short redirect to storage), when it is live. */
   href?: string;
+  /** A Windows .exe/.zip that can also run in the browser (experimental emulator), when it qualifies. */
+  play?: string;
 }
 
 export interface Game {

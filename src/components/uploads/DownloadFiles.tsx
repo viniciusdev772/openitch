@@ -7,6 +7,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { CloudUpload, Download, Pause, Play, RotateCcw, Trash2, TriangleAlert, X } from "lucide-react";
 import { PLATFORMS, type Platform } from "@/data/base";
 import { MAX_FILE_BYTES } from "@/lib/storage/limits";
+import { canPlayExe } from "@/lib/builds/exe";
 import {
   api,
   ApiError,
@@ -353,6 +354,12 @@ export default function DownloadFiles({ projectId, platforms }: Props) {
                         </>
                       ) : (
                         <>
+                          {canPlayExe(f) && (
+                            <a className="btn btn--ghost btn--sm" href={`/jogar/exe/${f.id}`} target="_blank" rel="noopener">
+                              <Play aria-hidden />
+                              Testar no navegador
+                            </a>
+                          )}
                           <a className="btn btn--ghost btn--sm" href={`/baixar/${f.id}`} download>
                             <Download aria-hidden />
                             Baixar

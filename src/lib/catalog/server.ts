@@ -5,6 +5,7 @@ import { PLATFORMS, TRACKS, makeCatalog, EMPTY_CATALOG, jamBySlug, type Catalog,
 import { db, type ProjectDoc } from "@/lib/auth/db";
 import { DRAFT_COVERS } from "@/lib/projects/limits";
 import { formatBytes } from "@/lib/storage/limits";
+import { canPlayExe } from "@/lib/builds/exe";
 
 /*
  * O catálogo público, lido do MongoDB: só projetos com status "publicado".
@@ -53,7 +54,14 @@ async function filesOf(ids: ObjectId[]): Promise<Files> {
   for (const u of ups) {
     const key = u.projectId.toHexString();
     const list = downloads.get(key) ?? [];
-    list.push({ platform: u.platform, file: u.filename, size: formatBytes(u.size), href: `/baixar/${u._id.toHexString()}` });
+    const id = u._id.toHexString();
+    list.push({
+      platform: u.platform,
+      file: u.filename,
+      size: formatBytes(u.size),
+      href: `/baixar/${id}`,
+      ...(canPlayExe(u) ? { play: `/jogar/exe/${id}` } : {}),
+    });
     downloads.set(key, list);
   }
   for (const list of downloads.values()) {

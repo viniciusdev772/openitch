@@ -8,6 +8,8 @@ interface DL {
   size: string;
   /** Link de download (redireciona para o armazenamento), ou null se o arquivo não está no ar. */
   href: string | null;
+  /** Jogar no navegador (emulador de Windows, experimental), quando o arquivo serve. */
+  playExe?: string | null;
   code: string;
   name: string;
 }
@@ -62,6 +64,12 @@ export function BuyCard({
                 <span className="visually-hidden">, para {d.name}, {d.size}</span>
               </a>
               <small aria-hidden>{d.size}</small>
+              {d.playExe && (
+                <Link href={d.playExe} className="download-play" rel="nofollow">
+                  <Play aria-hidden size={14} />
+                  Jogar no navegador (experimental)
+                </Link>
+              )}
             </li>
           ))}
         </ul>
