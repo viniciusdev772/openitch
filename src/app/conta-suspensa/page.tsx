@@ -7,6 +7,8 @@ import { banDetails } from "@/lib/moderation/server";
 import { judgeName, readAppealAnswer, readCaseAnswer } from "@/lib/moderation/decide";
 import { ruleById } from "@/lib/moderation/rules";
 import { AppealForm } from "./AppealForm";
+import { RecursoGame } from "./RecursoGame";
+import "@/styles/recurso.css";
 
 export const metadata: Metadata = { title: "Conta suspensa", robots: { index: false } };
 
@@ -25,6 +27,9 @@ export default async function ContaSuspensaPage() {
         <BoxHead title="Conta suspensa">
           <p>Para ver o aviso de uma conta suspensa, entre com ela de novo.</p>
         </BoxHead>
+        <div className="wrap">
+          <RecursoGame realAppeal={false} />
+        </div>
         <BoxBody>
           <p>
             <Link className="btn" href="/entrar">
@@ -56,6 +61,9 @@ export default async function ContaSuspensaPage() {
             : `Em ${day(ban.at)}, o tribunal de moderação do Portal dos Games concluiu que conteúdo desta conta quebrou uma regra da comunidade.`}
         </p>
       </BoxHead>
+      <div className="wrap">
+        <RecursoGame realAppeal={!ban.revokedAt && !ban.appeal} />
+      </div>
       <BoxBody
         notes={
           <Notes

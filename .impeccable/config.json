@@ -11,6 +11,12 @@
         ],
         "createdAt": "2026-11-21T11:17:20.154Z",
         "reason": "agent judgment (2026-11-21 audit): .cm-replies thread rail tying replies to their parent comment, not a decorated card"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "georgia",
+        "createdAt": "2026-11-21T14:01:14.465Z",
+        "reason": "Claude decided: diegetic serif for in-game court documents and subtitles in src/styles/recurso.css, not site UI"
       }
     ]
   }

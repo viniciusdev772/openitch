@@ -1,0 +1,491 @@
+/* O Recurso: o julgamento em 3D da página de conta suspensa (src/app/conta-suspensa/RecursoGame.tsx). */
+
+.rc {
+  margin: var(--s-6) 0 var(--s-2);
+}
+
+.rc-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+.rc-title {
+  margin: 0;
+  font-family: var(--display);
+  font-stretch: 70%;
+  font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+.rc-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.rc-tool svg {
+  width: 18px;
+  height: 18px;
+}
+
+.rc-stage {
+  --rc-glass: color-mix(in oklab, #0d0b09 78%, transparent);
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-height: 82vh;
+  width: 100%;
+  border: var(--rule);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #15120f;
+  box-shadow: 6px 6px 0 var(--ink);
+  color: #f3efe6;
+}
+.rc-stage:focus-visible {
+  outline: 4px solid var(--lime);
+  outline-offset: 4px;
+}
+.rc-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.rc-kicker {
+  margin: 0;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #d8b878;
+}
+.rc-go {
+  background: var(--lime);
+  color: var(--ink);
+  border-color: var(--ink);
+  justify-self: start;
+}
+.rc-go svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Telas inteiras: abertura, ficha do caso, veredito. */
+.rc-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  padding: var(--s-5);
+  text-align: center;
+  overflow-y: auto;
+}
+.rc-screen h3,
+.rc-modal h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-stretch: 70%;
+  font-weight: 900;
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.rc-screen p {
+  margin: 0;
+  max-width: 58ch;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.rc-screen--title {
+  justify-content: flex-end;
+  padding-bottom: var(--s-6);
+  background: linear-gradient(to bottom, transparent 25%, color-mix(in oklab, #0d0b09 85%, transparent) 70%);
+}
+.rc-keys {
+  font-size: 0.8125rem;
+  color: color-mix(in oklab, #f3efe6 70%, transparent);
+}
+
+/* A ficha e o veredito: uma folha de processo. */
+.rc-screen--brief,
+.rc-screen--verdict {
+  background: color-mix(in oklab, #0d0b09 55%, transparent);
+  justify-content: flex-start;
+}
+.rc-file {
+  display: grid;
+  gap: var(--s-3);
+  width: min(720px, 100%);
+  margin: auto;
+  padding: clamp(var(--s-4), 3vw, var(--s-6));
+  text-align: left;
+  background: #f6f1e4;
+  color: #1d1a14;
+  border-radius: 6px;
+  box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.7);
+}
+.rc-file .rc-kicker {
+  color: #8a6a2c;
+}
+.rc-facts {
+  display: grid;
+  gap: var(--s-3);
+  margin: 0;
+}
+.rc-facts dt {
+  font-weight: 800;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.rc-facts dd {
+  margin: 2px 0 0;
+  line-height: 1.5;
+}
+.rc-bench,
+.rc-tips {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  padding-left: 1.1em;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+.rc-bench li[data-vote="sim"]::marker {
+  color: #1f7a2a;
+}
+.rc-bench li[data-vote="nao"]::marker {
+  color: #b0003a;
+}
+.rc-screen--verdict[data-won] h3 {
+  color: #1f6b2a;
+}
+
+/* Mesa da defesa: lista de provas ao lado da cena. */
+.rc-side {
+  position: absolute;
+  top: var(--s-4);
+  right: var(--s-4);
+  bottom: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: min(340px, 38%);
+  padding: var(--s-4);
+  background: var(--rc-glass);
+  backdrop-filter: blur(6px);
+  border-radius: 10px;
+  overflow-y: auto;
+}
+.rc-side-help {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+.rc-evidence {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rc-ev {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: var(--s-2) var(--s-3);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.rc-ev:hover,
+.rc-ev:focus-visible {
+  background: rgb(255 255 255 / 0.12);
+}
+.rc-ev[data-picked] {
+  border-color: var(--lime);
+}
+.rc-ev-kind {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #d8b878;
+}
+.rc-ev-title {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+.rc-ev-badge {
+  justify-self: start;
+  margin-top: 2px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--ink);
+  background: var(--lime);
+  border-radius: 999px;
+}
+.rc-side .rc-go {
+  margin-top: auto;
+}
+
+/* Examinar uma prova. */
+.rc-modal {
+  position: absolute;
+  left: var(--s-5);
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  gap: var(--s-3);
+  width: min(460px, 52%);
+  padding: var(--s-5);
+  background: #f6f1e4;
+  color: #1d1a14;
+  border-radius: 6px;
+  box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.75);
+}
+.rc-modal .rc-kicker {
+  color: #8a6a2c;
+}
+.rc-modal h3 {
+  font-size: clamp(1.375rem, 2.6vw, 2rem);
+}
+.rc-doc {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+.rc-close {
+  position: absolute;
+  top: var(--s-2);
+  right: var(--s-2);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.rc-close:hover {
+  background: rgb(0 0 0 / 0.08);
+}
+.rc-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+.rc-note {
+  font-size: 0.875rem;
+  color: #8a1030;
+}
+
+/* Audiência: a fala do juiz como legenda de cinema e as respostas embaixo. */
+.rc-dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-6) var(--s-5) var(--s-4);
+  background: linear-gradient(to bottom, transparent, color-mix(in oklab, #0d0b09 92%, transparent) 30%);
+}
+.rc-speaker {
+  margin: 0;
+  font-weight: 800;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #d8b878;
+}
+.rc-speaker span {
+  font-weight: 600;
+  color: color-mix(in oklab, #f3efe6 65%, transparent);
+}
+.rc-line {
+  margin: 0;
+  max-width: 64ch;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.0625rem, 2vw, 1.375rem);
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.rc-thinking span {
+  display: inline-block;
+  animation: rc-dots 1.2s steps(4) infinite;
+  overflow: hidden;
+  vertical-align: bottom;
+  width: 1.1em;
+}
+@keyframes rc-dots {
+  from {
+    width: 0;
+  }
+  to {
+    width: 1.1em;
+  }
+}
+.rc-say {
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-2);
+}
+.rc-say-input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--s-2) var(--s-3);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: inherit;
+  background: rgb(255 255 255 / 0.08);
+  border: 1px solid rgb(255 255 255 / 0.3);
+  border-radius: 8px;
+  resize: none;
+}
+.rc-say-input::placeholder {
+  color: color-mix(in oklab, #f3efe6 55%, transparent);
+}
+.rc-say-input:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 1px;
+}
+.rc-say .rc-go {
+  align-self: stretch;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rc-thinking span {
+    animation: none;
+  }
+}
+.rc-attach {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: 0.8125rem;
+}
+.rc-chip {
+  padding: 4px 12px;
+  font: inherit;
+  font-weight: 700;
+  color: inherit;
+  background: rgb(255 255 255 / 0.08);
+  border: 1px solid rgb(255 255 255 / 0.25);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.rc-chip[aria-pressed="true"] {
+  color: var(--ink);
+  background: var(--lime);
+  border-color: var(--lime);
+}
+.rc-answers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rc-answer {
+  width: 100%;
+  height: 100%;
+  padding: var(--s-2) var(--s-3);
+  text-align: left;
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: inherit;
+  background: rgb(255 255 255 / 0.07);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.rc-answer:hover,
+.rc-answer:focus-visible {
+  background: rgb(255 255 255 / 0.15);
+  border-color: rgb(255 255 255 / 0.45);
+}
+.rc-round {
+  margin: 0;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, #f3efe6 60%, transparent);
+}
+.rc-dock--quiet {
+  padding-top: var(--s-7);
+}
+.rc-votes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+.rc-votes li[data-vote="sim"] {
+  color: #6dff83;
+}
+.rc-votes li[data-vote="nao"] {
+  color: #ff6a5a;
+}
+
+/* Telas estreitas: a cena em cima, os painéis embaixo dela. */
+@media (max-width: 760px) {
+  .rc-stage {
+    aspect-ratio: auto;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+  }
+  .rc-canvas {
+    aspect-ratio: 4 / 3;
+    height: auto;
+  }
+  .rc-screen,
+  .rc-side,
+  .rc-modal,
+  .rc-dock {
+    position: static;
+    width: auto;
+    transform: none;
+    backdrop-filter: none;
+  }
+  .rc-screen--title {
+    background: #0d0b09;
+    padding-top: var(--s-5);
+  }
+  .rc-side {
+    background: #0d0b09;
+    border-radius: 0;
+  }
+  .rc-modal {
+    margin: var(--s-3);
+  }
+  .rc-dock {
+    background: #0d0b09;
+    padding-top: var(--s-4);
+  }
+  .rc-answers {
+    grid-template-columns: 1fr;
+  }
+}
