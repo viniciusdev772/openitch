@@ -5,6 +5,7 @@ import Link from "next/link";
 import { submitRemovalAppeal, type AppealState } from "@/lib/moderation/actions";
 import type { DraftRow } from "@/lib/projects/limits";
 import { FormAlert, Submit } from "@/components/auth/Fields";
+import { Reasoning } from "@/components/Reasoning";
 
 /** Aviso de jogo tirado do ar pela moderação, com o recurso (um por remoção). */
 export function RemovalAppeal({ id, title, moderated }: { id: string; title: string; moderated: NonNullable<DraftRow["moderated"]> }) {
@@ -16,8 +17,12 @@ export function RemovalAppeal({ id, title, moderated }: { id: string; title: str
         Tirado do ar pela moderação: {moderated.rule} (<Link href="/termos#regras">regras</Link>). Mude o que quebra a regra e
         publique de novo, ou recorra.
       </small>
+      {state?.ok ? null : <Reasoning text={moderated.reasoning} />}
       {state?.ok ? (
-        <FormAlert ok={state.ok} />
+        <>
+          <FormAlert ok={state.ok} />
+          <Reasoning text={state.reasoning} />
+        </>
       ) : moderated.appeal === "mantido" ? (
         <small>O recurso já foi analisado e a remoção foi mantida.</small>
       ) : moderated.appeal === "analisando" ? (
@@ -42,8 +47,8 @@ export function RemovalAppeal({ id, title, moderated }: { id: string; title: str
               aria-describedby={`${uid}-dica`}
             />
             <small className="field-hint" id={`${uid}-dica`}>
-              Os mesmos três modelos julgam o caso do zero, com o que você escrever. Um recurso por remoção. Se ele for aceito,
-              a remoção não conta mais contra a sua conta.
+              O plenário (cinco juízes de IA) julga o caso do zero, com o que você escrever. Um recurso por remoção. Se ele for
+              aceito, a remoção não conta mais contra a sua conta.
             </small>
             <Submit pendingLabel="Analisando o recurso" className="btn--sm">
               Enviar recurso

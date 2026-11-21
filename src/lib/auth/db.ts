@@ -275,7 +275,17 @@ export interface ModerationDoc {
   snapshot: string[];
   images: string[];
   contentHash: string;
-  votes: { model: string; answers: unknown; cost: number | null }[];
+  votes: { model: string; answers: unknown; cost: number | null; stage?: "turma" | "plenario" }[];
+  /** Quem decidiu: a turma (3 juízes) ou o plenário (5). */
+  stage?: "turma" | "plenario";
+  /** Parecer: as alegações (denúncias, recurso) reescritas em tom neutro, como os juízes leram. */
+  brief?: string[];
+  /** Fundamentação em português, escrita pelo relator depois da decisão (null se ele falhou). */
+  reasoning?: string | null;
+  /** O plenário queria fechar a conta, mas sem maioria qualificada: ficou a remoção. */
+  mitigated?: boolean;
+  /** Custo somado dos votos, em dólares. */
+  cost?: number;
   outcome: "arquivada" | "removido" | "banido" | "mantido" | "revertido";
   /** Desfeita por um recurso: não conta como remoção para o banimento por repetição. */
   reverted?: boolean;

@@ -4,6 +4,7 @@ import { useActionState, useId } from "react";
 import Link from "next/link";
 import { submitAppeal, type AppealState } from "@/lib/moderation/actions";
 import { FormAlert, Submit } from "@/components/auth/Fields";
+import { Reasoning } from "@/components/Reasoning";
 
 export function AppealForm() {
   const [state, action] = useActionState<AppealState, FormData>(submitAppeal, undefined);
@@ -12,6 +13,7 @@ export function AppealForm() {
     return (
       <div className="bo-sheet">
         <FormAlert ok={state.ok} />
+        <Reasoning text={state.reasoning} />
         {state.upheld === false ? (
           <p>
             <Link className="btn" href="/entrar">

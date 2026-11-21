@@ -3451,3 +3451,20 @@ p {
 .report > .bo-ok {
   margin-top: var(--s-3);
 }
+
+/* Fundamentação de uma decisão da moderação */
+.reasoning {
+  margin: var(--s-3) 0 0;
+  padding: var(--s-3) var(--s-4);
+  border-left: 4px solid var(--ink);
+  background: var(--paper-bright);
+  color: var(--ink);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  white-space: normal;
+}
+.reasoning footer {
+  margin-top: var(--s-2);
+  font-size: 0.8125rem;
+  color: var(--ink-mute);
+}

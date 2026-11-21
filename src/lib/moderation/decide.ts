@@ -1,28 +1,50 @@
 import { RULES, ruleById, type RuleId } from "./rules";
 
 /*
- * Quem decide são modelos de decisão do OpenRouter (/api/alpha/decisions):
- * em vez de texto, devolvem probabilidades para perguntas tipadas. Três
- * modelos de fabricantes diferentes julgam o mesmo caso e a decisão sai da
- * maioria, então um modelo sozinho não fecha conta de ninguém.
+ * O tribunal do Portal dos Games. Quem decide são modelos de decisão do
+ * OpenRouter (/api/alpha/decisions): em vez de texto, devolvem probabilidades
+ * para perguntas tipadas. Como num tribunal superior, há duas formações:
  *
- * Três dos mais baratos (todos cobram só a entrada, US$ 0,02 a 0,042 por
- * milhão de tokens; um caso sai por menos de US$ 0,0002), de fabricantes
- * diferentes, todos com texto e imagem. Índice de decisão da Artificial
- * Analysis v2.1 (nov/2026): Liquid d1.2-ultra 74,8 (primeiro lugar, menor
- * erro de calibração relatado), Perplexity Decider v1.2 69,8, TypeSafe Jev
- * 1.14 66,2 (estudos independentes o acham sensível à redação e
- * subconfiante; aqui ele é um voto entre três). Medidos neste site: os três
- * arquivam uma página limpa, condenam um golpe de "gerador de Robux" e
- * mantêm ou revertem um recurso como esperado. Baseten Mammoth 1 (71,4) saiu
- * por custar 2,4 vezes mais.
+ * - Turma: três juízes baratos, de fabricantes diferentes, julgam todo caso.
+ *   Placar unânime decide ali mesmo (arquivar ou tirar do ar).
+ * - Plenário: a turma mais dois juízes de outras casas. É convocado quando a
+ *   turma se divide, quando a pena seria fechar a conta, e em todo recurso.
+ *   Fechar uma conta exige maioria qualificada (4 de 5, como os 2/3 do STF
+ *   para súmula vinculante) e média alta: na dúvida, a pena mais leve.
+ *
+ * Por que assim (pesquisa de nov/2026):
+ * - Modelos de decisão são baratos e consistentes, mas enviesados: tom
+ *   emocional derruba a acurácia de 99% para 42%, e o viés vira justamente os
+ *   votos em que o modelo estava em dúvida (arXiv 2610.18122). Por isso
+ *   denúncia e recurso chegam aos juízes reescritos em tom neutro pelo relator
+ *   (tribunal.ts), e a dúvida (placar dividido) sobe para o plenário.
+ * - Juízes da mesma família erram juntos: 9 juízes valeram ~2 votos
+ *   independentes (arXiv 2605.29800). O que conta é a diversidade de origem:
+ *   Liquid (arquitetura própria), Perplexity (Qwen), TypeSafe (fechado),
+ *   Google e Microsoft.
+ *
+ * Índice de decisão da Artificial Analysis v2.1 (nov/2026) e preço de entrada
+ * por milhão de tokens (saída é grátis): Liquid d1.2-ultra 74,8 (US$ 0,042),
+ * Perplexity Decider v1.2 69,8 (US$ 0,02), TypeSafe Jev 1.14 66,2
+ * (US$ 0,042), Microsoft Decision 1.1 67,8 (US$ 0,042), Gemini Decision 1 66
+ * (US$ 0,10). Um caso na turma sai por menos de US$ 0,0002; no plenário, com
+ * parecer e fundamentação, por volta de US$ 0,001.
  */
-export const MODELS = ["liquid/d1.2-ultra", "perplexity/pplx-decider-v1.2", "typesafe/jev-1.14"] as const;
+export const TURMA = ["liquid/d1.2-ultra", "perplexity/pplx-decider-v1.2", "typesafe/jev-1.14"] as const;
+export const PLENARIO_EXTRA = ["google/gemini-decision-1", "microsoft/microsoft-decision-1.1"] as const;
+export const PLENARIO = [...TURMA, ...PLENARIO_EXTRA] as const;
+/** O relator não vota: escreve o parecer neutro e a fundamentação (modelo de raciocínio de segurança da OpenAI). */
+export const RELATOR = "openai/gpt-oss-safeguard-20b";
 
-/** Mínimo de modelos que precisam responder para valer uma decisão. */
+/** Mínimo de juízes que precisam responder para valer uma decisão. */
 export const QUORUM = 2;
+/** Fração de votos para fechar uma conta (ou manter o fechamento) no plenário. */
+export const QUALIFIED = 0.8;
+/** Média mínima de violação para fechar uma conta. */
+export const BAN_CONFIDENCE = 0.85;
 
 export type Outcome = "arquivada" | "removido" | "banido";
+export type Stage = "turma" | "plenario";
 
 /** Remoções nos últimos 180 dias que, somadas a uma nova, fecham a conta. */
 export const STRIKES_TO_BAN = 3;
@@ -94,31 +116,49 @@ export interface CaseVerdict {
   rule: RuleId | null;
   /** Média das probabilidades de violação. */
   violation: number;
-  /** Média da gravidade entre os modelos que viram violação. */
+  /** Média da gravidade entre os juízes que viram violação. */
   severity: number;
-  /** Quantos modelos viram violação. */
+  /** Quantos juízes viram violação. */
   agreeing: number;
   voters: number;
+  /** Todos votaram para o mesmo lado (todos viram violação, ou nenhum viu). */
+  unanimous: boolean;
+  /** O plenário queria fechar a conta, mas sem maioria qualificada: ficou a remoção. */
+  mitigated?: boolean;
 }
 
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
+const median = (xs: number[]) => {
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+};
+const majorityOf = (n: number) => Math.floor(n / 2) + 1;
+const qualifiedOf = (n: number) => Math.ceil(n * QUALIFIED);
+const sawViolation = (a: CaseAnswer) => a.violation >= 0.5 && a.rule !== "nenhuma";
 
 /**
- * Junta os votos. Há violação quando a maioria dos modelos vê violação (≥ 0,5)
- * e a média passa de 0,7. A gravidade decide o que acontece:
+ * Junta os votos. Há violação quando a maioria vê violação (≥ 0,5) e a
+ * mediana (o voto do meio) passa de 0,7: a mediana, e não a média, porque um
+ * ou dois juízes enviesados (tom emocional, por exemplo) arrastavam a média e
+ * derrubavam um caso claro para os outros três. A gravidade decide o que
+ * acontece:
  * - abaixo de 1,5: nada (arquivada);
  * - de 1,5: o jogo sai do ar (ou o perfil é limpo), e conta uma remoção;
  * - de 2,5, ou de 2 numa regra de tolerância zero: a conta é fechada;
  * - a terceira remoção em 180 dias também fecha a conta.
- * Sem quórum devolve null: o caso espera e é julgado de novo.
+ * No plenário, fechar a conta exige maioria qualificada e média alta (aqui a
+ * média, de propósito: qualquer dúvida forte de um juiz poupa a conta); sem
+ * isso, fica a remoção. Sem quórum devolve null: o caso espera.
  */
-export function caseVerdict(answers: CaseAnswer[], priorRemovals: number): CaseVerdict | null {
+export function caseVerdict(answers: CaseAnswer[], priorRemovals: number, opts: { plenary?: boolean } = {}): CaseVerdict | null {
   if (answers.length < QUORUM) return null;
-  const majority = Math.floor(answers.length / 2) + 1;
-  const yes = answers.filter((a) => a.violation >= 0.5 && a.rule !== "nenhuma");
+  const yes = answers.filter(sawViolation);
   const violation = mean(answers.map((a) => a.violation));
-  const base = { violation, agreeing: yes.length, voters: answers.length };
-  if (yes.length < majority || violation < 0.7) return { outcome: "arquivada", rule: null, severity: 0, ...base };
+  const unanimous = yes.length === 0 || yes.length === answers.length;
+  const base = { violation, agreeing: yes.length, voters: answers.length, unanimous };
+  const middle = median(answers.map((a) => a.violation));
+  if (yes.length < majorityOf(answers.length) || middle < 0.7) return { outcome: "arquivada", rule: null, severity: 0, ...base };
 
   // A regra mais votada entre quem viu violação; empate fica com a primeira da lista (mais grave).
   const votes = new Map<RuleId, number>();
@@ -130,18 +170,36 @@ export function caseVerdict(answers: CaseAnswer[], priorRemovals: number): CaseV
   let outcome: Outcome = "arquivada";
   if (severity >= 2.5 || (zero && severity >= 2)) outcome = "banido";
   else if (severity >= 1.5) outcome = priorRemovals + 1 >= STRIKES_TO_BAN ? "banido" : "removido";
-  return { outcome, rule: outcome === "arquivada" ? null : rule, severity, ...base };
+
+  let mitigated = false;
+  if (opts.plenary && outcome === "banido" && (yes.length < qualifiedOf(answers.length) || violation < BAN_CONFIDENCE)) {
+    outcome = "removido";
+    mitigated = true;
+  }
+  return { outcome, rule: outcome === "arquivada" ? null : rule, severity, ...base, ...(mitigated ? { mitigated } : {}) };
 }
 
-/** Recurso: o banimento cai se a maioria não o mantém. Sem quórum, null (tente de novo). */
-export function appealVerdict(keep: number[]): { upheld: boolean; keep: number } | null {
+/**
+ * A turma decide sozinha só quando é unânime e a pena não é fechar a conta.
+ * Placar dividido ou pedido de banimento sobem para o plenário.
+ */
+export function needsPlenary(v: CaseVerdict): boolean {
+  return !v.unanimous || v.outcome === "banido";
+}
+
+/**
+ * Recurso: a decisão cai se não houver votos para mantê-la. Remoção de jogo
+ * fica com maioria simples; fechamento de conta, só com maioria qualificada
+ * (na dúvida, a conta reabre). Sem quórum, null (tente de novo).
+ */
+export function appealVerdict(keep: number[], opts: { qualified?: boolean } = {}): { upheld: boolean; keep: number; votes: number } | null {
   if (keep.length < QUORUM) return null;
-  const majority = Math.floor(keep.length / 2) + 1;
-  const upheldVotes = keep.filter((p) => p >= 0.5).length;
-  return { upheld: upheldVotes >= majority, keep: mean(keep) };
+  const votes = keep.filter((p) => p >= 0.5).length;
+  const need = opts.qualified ? qualifiedOf(keep.length) : majorityOf(keep.length);
+  return { upheld: votes >= need, keep: mean(keep), votes };
 }
 
-/** Lê a resposta de um modelo para as perguntas do caso; null se veio incompleta. */
+/** Lê a resposta de um juiz para as perguntas do caso; null se veio incompleta. */
 export function readCaseAnswer(model: string, answers: unknown): CaseAnswer | null {
   const a = answers as {
     viola?: { noul?: unknown };
@@ -161,8 +219,23 @@ export function readCaseAnswer(model: string, answers: unknown): CaseAnswer | nu
   };
 }
 
-/** Lê a probabilidade de manter o banimento; null se veio incompleta. */
+/** Lê a probabilidade de manter a decisão; null se veio incompleta. */
 export function readAppealAnswer(answers: unknown): number | null {
   const p = Number((answers as { manter?: { noul?: unknown } } | null)?.manter?.noul);
   return Number.isFinite(p) ? Math.min(1, Math.max(0, p)) : null;
+}
+
+/** Nome curto de um juiz para pessoas ("liquid/d1.2-ultra-20261116" → "Liquid d1.2-ultra"). */
+export function judgeName(model: string): string {
+  const [maker, rest = ""] = model.split("/");
+  const name = rest.replace(/-\d{8}$/, "");
+  const makers: Record<string, string> = {
+    liquid: "Liquid",
+    perplexity: "Perplexity",
+    typesafe: "TypeSafe",
+    google: "Google",
+    microsoft: "Microsoft",
+    openai: "OpenAI",
+  };
+  return `${makers[maker] ?? maker} ${name}`;
 }

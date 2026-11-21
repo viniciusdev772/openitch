@@ -3,25 +3,29 @@ import { ObjectId } from "mongodb";
 import { db, type BanDoc, type ModerationDoc, type ModerationTarget, type ProjectDoc, type ReportDoc, type UserDoc } from "@/lib/auth/db";
 import { hmac, sha256 } from "@/lib/auth/crypto";
 import { revalidatePublic } from "@/lib/catalog/revalidate";
-import {
-  MODELS,
-  STRIKE_WINDOW_MS,
-  appealQuestions,
-  appealVerdict,
-  caseQuestions,
-  caseVerdict,
-  readAppealAnswer,
-  readCaseAnswer,
-} from "./decide";
-import { askAll, hasDecisionKey, imageItem, type StateItem } from "./openrouter";
+import { STRIKE_WINDOW_MS } from "./decide";
+import { imageItem, type StateItem } from "./openrouter";
 import { RULE_IDS, ruleById, type RuleId } from "./rules";
+import { judgeAppealCase, judgeCase, writeReasoning, type Claim } from "./tribunal";
 
 /*
- * Moderação feita por modelos de decisão. Ninguém aperta botão: uma denúncia
- * entra na fila, os modelos leem o conteúdo e votam, e a decisão é aplicada
- * na hora (arquivar, tirar o jogo do ar, fechar a conta). Toda decisão fica
- * guardada com o que foi lido e o voto de cada modelo.
+ * Moderação feita por um tribunal de modelos de decisão (tribunal.ts).
+ * Ninguém aperta botão: uma denúncia entra na fila, os juízes leem o conteúdo
+ * e votam, e a decisão é aplicada na hora (arquivar, tirar o jogo do ar,
+ * fechar a conta). Toda decisão fica guardada com o que foi lido, o parecer,
+ * o voto de cada juiz e a fundamentação.
  */
+
+const decisionKey = () => process.env.OPENROUTER_API_KEY ?? "";
+export const hasDecisionKey = () => Boolean(decisionKey());
+
+const OUTCOME_TEXT: Record<ModerationDoc["outcome"], string> = {
+  arquivada: "arquivar: nenhuma regra foi quebrada de forma clara",
+  removido: "tirar o jogo do ar (ou apagar o texto do perfil)",
+  banido: "fechar a conta",
+  mantido: "manter a decisão anterior",
+  revertido: "desfazer a decisão anterior",
+};
 
 const DAY = 24 * 60 * 60 * 1000;
 /** Uma denúncia por pessoa e alvo neste intervalo. */
@@ -98,12 +102,15 @@ async function caseOf(target: ModerationTarget): Promise<Case | null> {
   return { target, ownerId, text, images, hash: sha256(JSON.stringify([text, images])) };
 }
 
-function reportLines(reports: Pick<ReportDoc, "rule" | "details">[]): string[] {
-  return reports.slice(0, 5).map(
-    (r, i) =>
-      `REPORT ${i + 1} (an unverified claim by another user; judge the content, not the claim). Rule cited: ${ruleById(r.rule)?.title ?? r.rule}. Details: ${r.details}`,
-  );
+/** As denúncias como alegações para o parecer (o texto cru nunca chega aos juízes se o relator responder). */
+function reportClaims(reports: Pick<ReportDoc, "rule" | "details">[]): Claim[] {
+  return reports.slice(0, 5).map((r, i) => ({
+    label: `REPORT ${i + 1} by another user, citing the rule "${ruleById(r.rule)?.title ?? r.rule}"`,
+    text: r.details,
+  }));
 }
+
+const sumCost = (xs: (number | null)[]) => xs.reduce<number>((a, b) => a + (b ?? 0), 0);
 
 /* ------------------------------------------------------------------ */
 /* Julgar e aplicar                                                    */
@@ -119,17 +126,22 @@ async function priorRemovals(ownerId: ObjectId): Promise<number> {
   });
 }
 
-/** Pergunta aos modelos, guarda a decisão e aplica. null: sem quórum (API fora ou sem chave). */
+/** O tribunal julga, a decisão é guardada e aplicada. null: sem quórum (API fora ou sem chave). */
 async function judge(c: Case, reports: ReportDoc[], kind: "denuncia" | "publicacao"): Promise<ModerationDoc | null> {
-  const images = (await Promise.all(c.images.map(imageItem))).filter((x): x is StateItem => x !== null);
-  const state: StateItem[] = [...c.text, ...reportLines(reports), ...images];
-  const [replies, prior] = await Promise.all([askAll(MODELS, state, caseQuestions()), priorRemovals(c.ownerId)]);
-  const answers = replies.flatMap((r) => {
-    const a = r && readCaseAnswer(r.model, r.answers);
-    return a ? [a] : [];
-  });
-  const v = caseVerdict(answers, prior);
-  if (!v) return null;
+  const key = decisionKey();
+  if (!key) return null;
+  const [images, prior] = await Promise.all([
+    Promise.all(c.images.map(imageItem)).then((xs) => xs.filter((x): x is StateItem => x !== null)),
+    priorRemovals(c.ownerId),
+  ]);
+  const result = await judgeCase(key, { text: c.text, images, claims: reportClaims(reports), priorRemovals: prior });
+  if (!result) return null;
+  const v = result.verdict;
+  // Fundamentação só quando algo acontece com o conteúdo.
+  const reasoning =
+    v.outcome === "arquivada"
+      ? null
+      : await writeReasoning(key, { decision: OUTCOME_TEXT[v.outcome], rule: v.rule, material: [...c.text, ...result.brief] });
   const { moderation } = await db();
   const doc: ModerationDoc = {
     _id: new ObjectId(),
@@ -141,7 +153,12 @@ async function judge(c: Case, reports: ReportDoc[], kind: "denuncia" | "publicac
     snapshot: c.text,
     images: c.images,
     contentHash: c.hash,
-    votes: replies.flatMap((r) => (r ? [{ model: r.model, answers: r.answers, cost: r.cost }] : [])),
+    votes: result.votes,
+    stage: result.stage,
+    brief: result.brief,
+    reasoning,
+    mitigated: v.mitigated ?? false,
+    cost: sumCost(result.votes.map((x) => x.cost)),
     outcome: v.outcome,
     rule: v.rule,
     violation: v.violation,
@@ -151,7 +168,7 @@ async function judge(c: Case, reports: ReportDoc[], kind: "denuncia" | "publicac
   await moderation.insertOne(doc);
   // Uma linha por decisão nos logs da Vercel (sem conteúdo nem dados de quem denunciou).
   console.info(
-    `[moderacao] ${kind} ${doc.targetKey}: ${v.outcome}${v.rule ? ` (${v.rule})` : ""}, violação ${v.violation.toFixed(2)}, ${v.agreeing}/${v.voters} modelos`,
+    `[moderacao] ${kind} ${doc.targetKey}: ${v.outcome}${v.rule ? ` (${v.rule})` : ""}${v.mitigated ? " (banimento sem maioria qualificada)" : ""}, ${result.stage}, violação ${v.violation.toFixed(2)}, ${v.agreeing}/${v.voters} juízes`,
   );
   await enforce(doc, c);
   return doc;
@@ -358,12 +375,13 @@ export async function screenPublish(p: ProjectDoc): Promise<ScreenResult> {
     return { ok: true };
   }
   const title = ruleById(d.rule ?? "")?.title ?? "uma das regras";
+  const why = "reasoning" in d && d.reasoning ? ` ${d.reasoning}` : "";
   if (d.outcome === "banido") {
-    return { ok: false, banned: true, error: `A análise automática encontrou uma violação grave (“${title}”) e a conta foi fechada.` };
+    return { ok: false, banned: true, error: `A análise automática encontrou uma violação grave (“${title}”) e a conta foi fechada.${why}` };
   }
   return {
     ok: false,
-    error: `A análise automática encontrou conteúdo que quebra a regra “${title}”. O jogo ficou como rascunho; mude o que quebra a regra e publique de novo.`,
+    error: `A análise automática encontrou conteúdo que quebra a regra “${title}”. O jogo ficou como rascunho; recorra em Seus jogos, ou mude o que quebra a regra e publique de novo.${why}`,
   };
 }
 
@@ -371,7 +389,7 @@ export async function screenPublish(p: ProjectDoc): Promise<ScreenResult> {
 /* Recurso                                                             */
 /* ------------------------------------------------------------------ */
 
-export type AppealResult = { ok: true; upheld: boolean } | { ok: false; error: string };
+export type AppealResult = { ok: true; upheld: boolean; reasoning: string | null } | { ok: false; error: string };
 
 const APPEAL_DOWN = "A análise do recurso não está disponível agora. Tente de novo em alguns minutos.";
 
@@ -386,26 +404,28 @@ async function judgeAppeal(
   rule: RuleId,
   text: string,
   target: "conta" | "jogo",
-): Promise<{ upheld: boolean; decisionId: ObjectId } | null> {
+): Promise<{ upheld: boolean; decisionId: ObjectId; reasoning: string | null } | null> {
+  const key = decisionKey();
+  if (!key) return null;
   const { moderation } = await db();
   const orig = await moderation.findOne({ _id: origId });
-  const r = ruleById(rule);
   const images = orig ? (await Promise.all(orig.images.map(imageItem))).filter((x): x is StateItem => x !== null) : [];
-  const state: StateItem[] = [
-    `RULE CITED: ${r?.title ?? rule}. ${r?.criteria ?? ""}`,
-    `ORIGINAL DECISION: average violation probability ${Math.round((orig?.violation ?? 0) * 100)}%, severity ${(orig?.severity ?? 0).toFixed(1)} of 3.`,
-    "CONTENT THAT WAS JUDGED:",
-    ...(orig?.snapshot ?? ["(not available)"]),
-    `OWNER'S APPEAL (their own words):\n${text}`,
-    ...images,
-  ];
-  const replies = await askAll(MODELS, state, appealQuestions(target));
-  const keep = replies.flatMap((x) => {
-    const p = x && readAppealAnswer(x.answers);
-    return p === null || p === undefined ? [] : [p];
+  const res = await judgeAppealCase(key, {
+    target,
+    rule,
+    original: { violation: orig?.violation ?? null, severity: orig?.severity ?? null },
+    snapshot: orig?.snapshot ?? [],
+    images,
+    appeal: text,
   });
-  const v = appealVerdict(keep);
-  if (!v) return null;
+  if (!res) return null;
+  const outcome = res.upheld ? "mantido" : "revertido";
+  const what = target === "conta" ? "o fechamento da conta" : "a remoção do jogo";
+  const reasoning = await writeReasoning(key, {
+    decision: res.upheld ? `manter ${what}; o recurso não mostrou erro na decisão` : `desfazer ${what}; o recurso foi aceito`,
+    rule,
+    material: res.state,
+  });
   const decisionId = new ObjectId();
   await moderation.insertOne({
     _id: decisionId,
@@ -413,19 +433,23 @@ async function judgeAppeal(
     targetKey: orig?.targetKey ?? `criador:${ownerId.toHexString()}`,
     ownerId,
     reportIds: [],
-    snapshot: state.filter((s): s is string => typeof s === "string"),
+    snapshot: res.state,
     images: orig?.images ?? [],
     contentHash: orig?.contentHash ?? "",
-    votes: replies.flatMap((x) => (x ? [{ model: x.model, answers: x.answers, cost: x.cost }] : [])),
-    outcome: v.upheld ? "mantido" : "revertido",
+    votes: res.votes,
+    stage: "plenario",
+    brief: res.brief,
+    reasoning,
+    cost: sumCost(res.votes.map((x) => x.cost)),
+    outcome,
     rule,
-    violation: v.keep,
+    violation: res.keep,
     severity: null,
     at: new Date(),
   });
-  if (!v.upheld) await moderation.updateOne({ _id: origId }, { $set: { reverted: true } });
-  console.info(`[moderacao] recurso (${target}) ${orig?.targetKey ?? "?"}: ${v.upheld ? "mantido" : "revertido"}, manter ${v.keep.toFixed(2)}`);
-  return { upheld: v.upheld, decisionId };
+  if (!res.upheld) await moderation.updateOne({ _id: origId }, { $set: { reverted: true } });
+  console.info(`[moderacao] recurso (${target}) ${orig?.targetKey ?? "?"}: ${outcome}, plenario, manter ${res.keep.toFixed(2)}`);
+  return { upheld: res.upheld, decisionId, reasoning };
 }
 
 /**
@@ -469,7 +493,7 @@ export async function appealRemoval(userId: ObjectId, projectId: ObjectId, text:
       );
       if (back) refresh();
     }
-    return { ok: true, upheld: res.upheld };
+    return { ok: true, upheld: res.upheld, reasoning: res.reasoning };
   } catch (err) {
     await projects.updateOne({ _id: projectId }, { $unset: { "moderation.appealing": "" } });
     throw err;
@@ -513,7 +537,7 @@ export async function appealBan(userId: ObjectId, text: string): Promise<AppealR
       await events.insertOne({ userId, type: "conta_reaberta", at: now, ip: "", userAgent: "moderação", place: null });
       refresh();
     }
-    return { ok: true, upheld: v.upheld };
+    return { ok: true, upheld: v.upheld, reasoning: res.reasoning };
   } catch (err) {
     await unclaim();
     throw err;
@@ -526,6 +550,8 @@ export async function banDetails(userId: ObjectId) {
   const user = await users.findOne({ _id: userId }, { projection: { name: 1, ban: 1 } });
   if (!user?.ban) return null;
   const ids = [user.ban.decisionId, user.ban.appeal?.decisionId].filter((x): x is ObjectId => Boolean(x));
-  const decisions = await moderation.find({ _id: { $in: ids } }, { projection: { votes: 1, outcome: 1, violation: 1, severity: 1, kind: 1, at: 1 } }).toArray();
+  const decisions = await moderation
+    .find({ _id: { $in: ids } }, { projection: { votes: 1, outcome: 1, violation: 1, severity: 1, kind: 1, at: 1, stage: 1, reasoning: 1, mitigated: 1 } })
+    .toArray();
   return { name: user.name, ban: user.ban, decision: decisions.find((d) => d._id.equals(user.ban!.decisionId)) ?? null, appeal: decisions.find((d) => d.kind === "recurso") ?? null };
 }

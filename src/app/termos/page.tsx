@@ -4,7 +4,7 @@ import Link from "next/link";
 import { GuideHead, GuideSection } from "@/components/leitura/Guide";
 import { Contents } from "@/components/leitura/Contents";
 import { RULES } from "@/lib/moderation/rules";
-import { MODELS, STRIKES_TO_BAN } from "@/lib/moderation/decide";
+import { BAN_CONFIDENCE, PLENARIO_EXTRA, QUALIFIED, RELATOR, STRIKES_TO_BAN, TURMA, judgeName } from "@/lib/moderation/decide";
 
 export const metadata: Metadata = {
   title: "Termos de uso e regras da comunidade",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "As condições para usar o Portal dos Games, as regras do que pode ser publicado, como a moderação automática decide e o que acontece com os seus dados.",
 };
 
-const UPDATED = "20 de novembro de 2026";
+const UPDATED = "21 de novembro de 2026";
 
 const SECTIONS = [
   { id: "resumo", label: "Em resumo" },
@@ -47,8 +47,9 @@ export default function TermosPage() {
                 <li>O que você publica continua seu. Você só nos autoriza a mostrar e distribuir enquanto estiver no programa.</li>
                 <li>Algumas coisas não podem ser publicadas; a lista está em <a href="#regras">Regras da comunidade</a>.</li>
                 <li>
-                  Quem julga denúncias é uma análise automática: três modelos de IA votam, e a decisão é aplicada sem pessoa
-                  no meio. Toda decisão que tira um jogo do ar ou fecha uma conta tem direito a um recurso.
+                  Quem julga denúncias é um tribunal de modelos de IA, sem pessoa no meio: uma turma de três juízes decide os
+                  casos claros, e um plenário de cinco decide os divididos, os banimentos e os recursos. Toda decisão que tira
+                  um jogo do ar ou fecha uma conta vem fundamentada e tem direito a recurso.
                 </li>
                 <li>O serviço é gratuito, está no começo e é oferecido como está.</li>
               </ul>
@@ -126,20 +127,40 @@ export default function TermosPage() {
                 não têm página pública, então não há o que denunciar neles.
               </p>
               <p>
-                <strong>Quem decide.</strong> Três modelos de decisão, de fabricantes diferentes, acessados pelo OpenRouter:{" "}
-                {MODELS.map((m, i) => (
-                  <span key={m}>
-                    <code>{m}</code>
-                    {i < MODELS.length - 2 ? ", " : i === MODELS.length - 2 ? " e " : ""}
-                  </span>
-                ))}
-                . Eles não escrevem texto: leem o conteúdo (título, descrição, etiquetas, créditos, nomes dos arquivos, capa e
+                <strong>Quem decide.</strong> Um tribunal de modelos de decisão, acessados pelo OpenRouter. Eles não escrevem
+                texto: leem o conteúdo (título, descrição, etiquetas, créditos, nomes dos arquivos, origem no itch.io, capa e
                 até três imagens, ou o perfil) e respondem três perguntas com probabilidades: se alguma regra foi quebrada,
-                qual, e quão grave é. A denúncia entra como uma alegação, não como prova.
+                qual, e quão grave é. Os juízes vêm de empresas diferentes de propósito, porque modelos parecidos erram juntos.
               </p>
+              <dl className="principles">
+                <div>
+                  <dt>Turma</dt>
+                  <dd>
+                    {TURMA.map((m) => judgeName(m)).join(", ")}. Julga todo caso. Se os três concordam e a pena não é fechar a
+                    conta, a decisão sai ali.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Plenário</dt>
+                  <dd>
+                    A turma e mais {PLENARIO_EXTRA.map((m) => judgeName(m)).join(" e ")}. Decide quando a turma se divide,
+                    quando a pena seria fechar a conta, e todos os recursos.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Relator</dt>
+                  <dd>
+                    {judgeName(RELATOR)}, um modelo de raciocínio para segurança. Não vota. Antes do julgamento, reescreve
+                    denúncias e recursos em tom neutro (tom emocional é o que mais engana esses modelos). Depois, escreve a
+                    fundamentação da decisão em português.
+                  </dd>
+                </div>
+              </dl>
               <p>
-                <strong>Como sai a decisão.</strong> Vale a maioria. Só há violação quando a maioria dos modelos vê violação e a
-                média passa de 70%. Se menos de dois modelos responderem, nada é decidido e o caso espera.
+                <strong>Como sai a decisão.</strong> Só há violação quando a maioria dos juízes vê violação e o voto do meio
+                (a mediana) passa de 70%, para que um ou dois juízes enviesados não decidam sozinhos. Fechar uma conta pede mais: no plenário, {Math.round(QUALIFIED * 100)}% dos votos (4 de 5) e média de
+                pelo menos {Math.round(BAN_CONFIDENCE * 100)}%; sem isso, fica a pena menor. Se menos de dois juízes
+                responderem, nada é decidido e o caso espera. A denúncia entra como uma alegação, não como prova.
               </p>
               <ul>
                 <li>
@@ -155,8 +176,9 @@ export default function TermosPage() {
                 </li>
               </ul>
               <p>
-                <strong>Limites.</strong> Modelos erram, para os dois lados. Por isso são três, a régua para agir é alta, e todo
-                fechamento de conta tem recurso. Os modelos não abrem os arquivos dos jogos; um programa malicioso só é pego pelo
+                <strong>Limites.</strong> Modelos erram, para os dois lados, e têm vieses conhecidos. Por isso há dois níveis de
+                juízes, a régua para agir é alta, a dúvida sobe para o plenário, e toda pena tem recurso. A fundamentação é
+                escrita por um modelo a partir da decisão e pode ter imprecisões; o que vale é a decisão. Os modelos não abrem os arquivos dos jogos; um programa malicioso só é pego pelo
                 que a página e os nomes dos arquivos mostram, ou pela denúncia de quem jogou.
               </p>
             </div>
@@ -165,14 +187,16 @@ export default function TermosPage() {
           <GuideSection id="recurso" title="Recurso">
             <div className="guide-prose">
               <p>
-                Quem tem a conta fechada vê, ao tentar entrar, o aviso com a regra e o voto de cada modelo, e pode mandar um
-                recurso: um por decisão, com até 2.000 caracteres. Os mesmos três modelos julgam o caso do zero, com o conteúdo,
-                a regra citada e o que você escreveu. Se a maioria não mantiver a decisão, a conta reabre na hora e os jogos que
-                saíram com ela voltam ao programa.
+                Quem tem a conta fechada vê, ao tentar entrar, o aviso com a regra, a fundamentação e o voto de cada juiz, e pode
+                mandar um recurso: um por decisão, com até 2.000 caracteres. O plenário inteiro julga o caso do zero, com o
+                conteúdo, a regra citada e o que você escreveu (reescrito em tom neutro pelo relator). A conta só continua
+                fechada se 4 de 5 juízes votarem para manter; senão, reabre na hora e os jogos que saíram com ela voltam ao
+                programa.
               </p>
               <p>
                 <strong>Jogo tirado do ar.</strong> Em <Link href="/conta/projetos">Seus jogos</Link>, o jogo removido mostra a
-                regra e o link “Recorrer da remoção”: um recurso por remoção, julgado do mesmo jeito. Se cair, a remoção deixa de
+                regra, a fundamentação e o link “Recorrer da remoção”: um recurso por remoção, julgado pelo plenário, que
+                mantém a remoção por maioria simples. Se cair, a remoção deixa de
                 contar para o banimento por repetição e o jogo volta ao programa. Também dá para mudar o que quebra a regra e
                 publicar de novo, o que passa por uma nova análise.
               </p>
@@ -193,7 +217,8 @@ export default function TermosPage() {
               <p>
                 <strong>O que vai para a moderação.</strong> Só conteúdo que já é público ou que você mesmo escreve para a
                 análise: a página do jogo ou o perfil, nomes dos arquivos, capa e imagens, o texto das denúncias e o do recurso.
-                Isso é enviado ao OpenRouter e aos fabricantes dos modelos citados acima. E-mail, senha, IP e quem fez a denúncia
+                Isso é enviado ao OpenRouter e às empresas dos modelos citados acima (Liquid AI, Perplexity, TypeSafe, Google,
+                Microsoft e OpenAI, esta pelo provedor Groq). E-mail, senha, IP e quem fez a denúncia
                 nunca são enviados. Quem é denunciado não fica sabendo quem denunciou. De uma denúncia sem conta guardamos
                 só uma impressão cifrada do IP (não dá para voltar ao IP), para limitar repetições.
               </p>

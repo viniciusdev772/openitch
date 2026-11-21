@@ -217,12 +217,24 @@ export async function readDraft(userId: ObjectId, rawId: string): Promise<SavedD
 
 /** Rascunhos desta conta, o mais recente primeiro. */
 export async function listDrafts(userId: ObjectId): Promise<DraftRow[]> {
-  const { projects } = await db();
+  const { projects, moderation } = await db();
   const docs = await projects
     .find({ userId }, { projection: { title: 1, tagline: 1, track: 1, jam: 1, updatedAt: 1, status: 1, publicSlug: 1, moderation: 1 } })
     .sort({ updatedAt: -1 })
     .limit(LIMITS.drafts * 2)
     .toArray();
+  // Fundamentação da remoção e, se houve, a do recurso mantido.
+  const decisionIds = docs.flatMap((d) => (d.moderation ? [d.moderation.decisionId, ...(d.moderation.appeal ? [d.moderation.appeal.decisionId] : [])] : []));
+  const reasons = new Map(
+    decisionIds.length
+      ? (await moderation.find({ _id: { $in: decisionIds }, ownerId: userId }, { projection: { reasoning: 1 } }).toArray()).map((m) => [
+          m._id.toHexString(),
+          m.reasoning ?? null,
+        ])
+      : [],
+  );
+  const reasonOf = (m: NonNullable<(typeof docs)[number]["moderation"]>) =>
+    (m.appeal && reasons.get(m.appeal.decisionId.toHexString())) || reasons.get(m.decisionId.toHexString()) || null;
   return docs.map((d) => ({
     id: d._id.toHexString(),
     title: d.title,
@@ -236,6 +248,7 @@ export async function listDrafts(userId: ObjectId): Promise<DraftRow[]> {
       ? {
           rule: ruleById(d.moderation.rule)?.title ?? d.moderation.rule,
           appeal: d.moderation.appeal ? "mantido" : d.moderation.appealing ? "analisando" : "pode",
+          reasoning: reasonOf(d.moderation),
         }
       : null,
   }));

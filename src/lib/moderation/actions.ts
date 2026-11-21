@@ -12,7 +12,7 @@ import { toObjectId } from "@/lib/auth/session";
 import { appealBan, appealRemoval, fileReport, processPending } from "./server";
 
 export type ReportState = { ok?: string; error?: string } | undefined;
-export type AppealState = { ok?: string; upheld?: boolean; error?: string } | undefined;
+export type AppealState = { ok?: string; upheld?: boolean; error?: string; reasoning?: string | null } | undefined;
 
 const MIN = 60 * 1000;
 const SERVER_DOWN = "Não conseguimos falar com o servidor agora. Tente de novo em instantes.";
@@ -62,8 +62,8 @@ export async function submitAppeal(_prev: AppealState, form: FormData): Promise<
     const res = await appealBan(userId, text);
     if (!res.ok) return { error: res.error };
     return res.upheld
-      ? { upheld: true, ok: "Recurso analisado: a decisão foi mantida." }
-      : { upheld: false, ok: "Recurso aceito: sua conta foi reaberta e os jogos que estavam no ar voltaram. Entre de novo." };
+      ? { upheld: true, ok: "Recurso analisado pelo plenário: a decisão foi mantida.", reasoning: res.reasoning }
+      : { upheld: false, ok: "Recurso aceito pelo plenário: sua conta foi reaberta e os jogos que estavam no ar voltaram. Entre de novo.", reasoning: res.reasoning };
   } catch (err) {
     unstable_rethrow(err);
     console.error("[recurso]", err);
@@ -88,8 +88,16 @@ export async function submitRemovalAppeal(_prev: AppealState, form: FormData): P
     if (!res.ok) return { error: res.error };
     revalidatePath("/conta/projetos");
     return res.upheld
-      ? { upheld: true, ok: "Recurso analisado: a remoção foi mantida. Para voltar, mude o que quebra a regra e publique de novo." }
-      : { upheld: false, ok: "Recurso aceito: a remoção foi desfeita e não conta mais contra a sua conta. Se o jogo já tinha endereço, ele voltou ao programa." };
+      ? {
+          upheld: true,
+          ok: "Recurso analisado pelo plenário: a remoção foi mantida. Para voltar, mude o que quebra a regra e publique de novo.",
+          reasoning: res.reasoning,
+        }
+      : {
+          upheld: false,
+          ok: "Recurso aceito pelo plenário: a remoção foi desfeita e não conta mais contra a sua conta. Se o jogo já tinha endereço, ele voltou ao programa.",
+          reasoning: res.reasoning,
+        };
   } catch (err) {
     unstable_rethrow(err);
     console.error("[recurso]", err);
