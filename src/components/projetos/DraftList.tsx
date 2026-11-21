@@ -7,6 +7,7 @@ import { dayParts, formatDay, formatTime, type TrackId } from "@/data/base";
 import { TrackChip, trackStyle } from "@/components/bits-base";
 import { deleteDraft } from "@/lib/projects/actions";
 import type { DeleteResult, DraftRow } from "@/lib/projects/limits";
+import { RemovalAppeal } from "./RemovalAppeal";
 
 export interface OpenJam {
   slug: string;
@@ -168,12 +169,7 @@ function Row({ draft, jamTitle, onDeleted }: { draft: DraftRow; jamTitle?: strin
             No programa
           </span>
         ) : null}
-        {draft.moderated ? (
-          <small className="field-error">
-            Tirado do ar pela moderação: {draft.moderated}. Mude o que quebra a regra e publique de novo para uma nova análise (
-            <Link href="/termos#regras">regras</Link>).
-          </small>
-        ) : null}
+        {draft.moderated ? <RemovalAppeal id={draft.id} title={draft.title} moderated={draft.moderated} /> : null}
       </span>
       {confirming ? (
         <div className="pj-confirm" role="group" aria-label={`Confirmar exclusão de ${draft.title}`}>

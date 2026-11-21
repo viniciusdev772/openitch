@@ -176,7 +176,16 @@ export interface ProjectDoc {
   /** Capturas de tela (bucket jogável, b/capa-*), na ordem de exibição. */
   screenshots?: { bucket: string; key: string; url: string }[];
   /** Tirado do ar pela moderação: só volta depois de mudar e passar numa nova análise. */
-  moderation?: { at: Date; rule: RuleId; decisionId: ObjectId; contentHash: string } | null;
+  moderation?: {
+    at: Date;
+    rule: RuleId;
+    decisionId: ObjectId;
+    contentHash: string;
+    /** Recurso: um por remoção, julgado pelos mesmos modelos. */
+    appeal?: { at: Date; text: string; decisionId: ObjectId; upheld: boolean };
+    /** Trava enquanto o recurso está sendo julgado. */
+    appealing?: Date;
+  } | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -268,6 +277,8 @@ export interface ModerationDoc {
   contentHash: string;
   votes: { model: string; answers: unknown; cost: number | null }[];
   outcome: "arquivada" | "removido" | "banido" | "mantido" | "revertido";
+  /** Desfeita por um recurso: não conta como remoção para o banimento por repetição. */
+  reverted?: boolean;
   rule: RuleId | null;
   violation: number | null;
   severity: number | null;

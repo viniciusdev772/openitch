@@ -48,7 +48,7 @@ export default function TermosPage() {
                 <li>Algumas coisas não podem ser publicadas; a lista está em <a href="#regras">Regras da comunidade</a>.</li>
                 <li>
                   Quem julga denúncias é uma análise automática: três modelos de IA votam, e a decisão é aplicada sem pessoa
-                  no meio. Toda decisão que fecha uma conta tem direito a um recurso.
+                  no meio. Toda decisão que tira um jogo do ar ou fecha uma conta tem direito a um recurso.
                 </li>
                 <li>O serviço é gratuito, está no começo e é oferecido como está.</li>
               </ul>
@@ -147,7 +147,7 @@ export default function TermosPage() {
                 </li>
                 <li>
                   <strong>Tirado do ar:</strong> violação séria. O jogo volta a ser rascunho (ou o texto do perfil é apagado).
-                  Você muda o que quebra a regra e publica de novo; a nova versão passa por outra análise.
+                  Você recorre, ou muda o que quebra a regra e publica de novo; a nova versão passa por outra análise.
                 </li>
                 <li>
                   <strong>Conta fechada:</strong> violação gravíssima, violação séria de uma regra de tolerância zero, ou a{" "}
@@ -171,8 +171,14 @@ export default function TermosPage() {
                 saíram com ela voltam ao programa.
               </p>
               <p>
+                <strong>Jogo tirado do ar.</strong> Em <Link href="/conta/projetos">Seus jogos</Link>, o jogo removido mostra a
+                regra e o link “Recorrer da remoção”: um recurso por remoção, julgado do mesmo jeito. Se cair, a remoção deixa de
+                contar para o banimento por repetição e o jogo volta ao programa. Também dá para mudar o que quebra a regra e
+                publicar de novo, o que passa por uma nova análise.
+              </p>
+              <p>
                 Isso atende ao direito de pedir a revisão de uma decisão tomada só por tratamento automatizado (Lei Geral de
-                Proteção de Dados, art. 20). Para um jogo tirado do ar, o caminho é mudar o conteúdo e publicar de novo.
+                Proteção de Dados, art. 20).
               </p>
             </div>
           </GuideSection>

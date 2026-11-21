@@ -1,13 +1,15 @@
 "use server";
 
 import { after } from "next/server";
+import { revalidatePath } from "next/cache";
 import { unstable_rethrow } from "next/navigation";
 import { getSession, readSuspended } from "@/lib/auth/session";
 import { hit, waitText } from "@/lib/auth/ratelimit";
 import { str } from "@/lib/auth/validate";
 import { requestInfo } from "@/lib/auth/request";
 import { stripInvisible } from "@/lib/projects/limits";
-import { appealBan, fileReport, processPending } from "./server";
+import { toObjectId } from "@/lib/auth/session";
+import { appealBan, appealRemoval, fileReport, processPending } from "./server";
 
 export type ReportState = { ok?: string; error?: string } | undefined;
 export type AppealState = { ok?: string; upheld?: boolean; error?: string } | undefined;
@@ -62,6 +64,32 @@ export async function submitAppeal(_prev: AppealState, form: FormData): Promise<
     return res.upheld
       ? { upheld: true, ok: "Recurso analisado: a decisão foi mantida." }
       : { upheld: false, ok: "Recurso aceito: sua conta foi reaberta e os jogos que estavam no ar voltaram. Entre de novo." };
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("[recurso]", err);
+    return { error: SERVER_DOWN };
+  }
+}
+
+/** Recurso contra a remoção de um jogo, a partir de /conta/projetos. */
+export async function submitRemovalAppeal(_prev: AppealState, form: FormData): Promise<AppealState> {
+  const text = stripInvisible(str(form, "recurso", 2200)).trim();
+  const id = toObjectId(str(form, "id", 40));
+  if (!id) return { error: "Pedido inválido." };
+  if (text.length < 20) return { error: "Explique por que a decisão está errada (pelo menos 20 letras)." };
+  if (text.length > 2000) return { error: "Use no máximo 2.000 caracteres." };
+  try {
+    const session = await getSession();
+    if (!session) return { error: "Sua sessão terminou. Entre de novo para recorrer." };
+    const userId = session.user._id;
+    const limit = await hit(`recurso:${userId.toHexString()}`, 5, 60 * MIN);
+    if (!limit.allowed) return { error: `Muitas tentativas. Espere ${waitText(limit.retryAfterMs)}.` };
+    const res = await appealRemoval(userId, id, text);
+    if (!res.ok) return { error: res.error };
+    revalidatePath("/conta/projetos");
+    return res.upheld
+      ? { upheld: true, ok: "Recurso analisado: a remoção foi mantida. Para voltar, mude o que quebra a regra e publique de novo." }
+      : { upheld: false, ok: "Recurso aceito: a remoção foi desfeita e não conta mais contra a sua conta. Se o jogo já tinha endereço, ele voltou ao programa." };
   } catch (err) {
     unstable_rethrow(err);
     console.error("[recurso]", err);

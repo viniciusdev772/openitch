@@ -103,8 +103,8 @@ export interface DraftRow {
   state: "rascunho" | "publicado";
   /** Endereço público, quando publicado. */
   publicSlug: string | null;
-  /** Regra pela qual a moderação tirou o jogo do ar (título), ou null. */
-  moderated: string | null;
+  /** Tirado do ar pela moderação: a regra (título) e em que pé está o recurso; ou null. */
+  moderated: { rule: string; appeal: "pode" | "mantido" | "analisando" } | null;
 }
 
 /** Campos do formulário que podem voltar com erro. */

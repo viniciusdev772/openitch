@@ -63,16 +63,18 @@ export function caseQuestions() {
   };
 }
 
-/** Pergunta do recurso: manter ou desfazer um banimento. */
-export function appealQuestions() {
+/** Pergunta do recurso: manter ou desfazer um banimento ("conta") ou a remoção de um jogo ("jogo"). */
+export function appealQuestions(target: "conta" | "jogo" = "conta") {
+  const what = target === "conta" ? "An account on Portal dos Games was closed" : "A game on Portal dos Games was taken down";
+  const stay = target === "conta" ? "Should the account stay closed?" : "Should the game stay taken down?";
+  const enough = target === "conta" ? "serious enough to close an account" : "serious enough to take the game down";
   return {
     manter: {
       type: "noul",
-      instructions:
-        "An account on Portal dos Games was closed by an automated decision. The state holds the content that was judged, the rule that was cited, and the owner's appeal. Re-examine the case from scratch. Should the account stay closed?",
+      instructions: `${what} by an automated decision. The state holds the content that was judged, the rule that was cited, and the owner's appeal. Re-examine the case from scratch. ${stay}`,
       criteria: {
         true: "The content clearly and seriously breaks the cited rule, and the appeal does not show a mistake.",
-        false: "The content does not clearly break the rule, the violation is not serious enough to close an account, or the appeal shows the decision was a mistake.",
+        false: `The content does not clearly break the rule, the violation is not ${enough}, or the appeal shows the decision was a mistake.`,
       },
     },
   };

@@ -986,3 +986,14 @@
   background: var(--ink);
   color: var(--paper);
 }
+
+/* Jogo tirado do ar pela moderação: aviso e recurso na linha do rascunho. */
+.pj-moderated {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+.pj-moderated .report {
+  margin-top: 0;
+}

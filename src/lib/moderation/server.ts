@@ -111,7 +111,12 @@ function reportLines(reports: Pick<ReportDoc, "rule" | "details">[]): string[] {
 
 async function priorRemovals(ownerId: ObjectId): Promise<number> {
   const { moderation } = await db();
-  return moderation.countDocuments({ ownerId, outcome: "removido", at: { $gte: new Date(Date.now() - STRIKE_WINDOW_MS) } });
+  return moderation.countDocuments({
+    ownerId,
+    outcome: "removido",
+    reverted: { $ne: true },
+    at: { $gte: new Date(Date.now() - STRIKE_WINDOW_MS) },
+  });
 }
 
 /** Pergunta aos modelos, guarda a decisão e aplica. null: sem quórum (API fora ou sem chave). */
@@ -334,13 +339,15 @@ export async function screenPublish(p: ProjectDoc): Promise<ScreenResult> {
     };
   }
   const { moderation, projects } = await db();
+  // Já liberado com este mesmo conteúdo (arquivado, ou remoção desfeita por recurso): não julga de novo.
   const last = await moderation.findOne(
-    { targetKey: targetKey(c.target), contentHash: c.hash, kind: { $ne: "recurso" } },
+    { targetKey: targetKey(c.target), contentHash: c.hash },
     { sort: { at: -1 }, projection: { outcome: 1 } },
   );
-  if (last?.outcome === "arquivada" && !removed) return { ok: true };
+  const cleared = last?.outcome === "arquivada" || last?.outcome === "revertido";
+  if (cleared && !removed) return { ok: true };
 
-  const d = last?.outcome === "arquivada" ? last : hasDecisionKey() ? await judge(c, [], "publicacao") : null;
+  const d = cleared ? { outcome: "arquivada" as const, rule: null } : hasDecisionKey() ? await judge(c, [], "publicacao") : null;
   if (!d) {
     return removed
       ? { ok: false, error: "A nova análise do jogo não está disponível agora. Tente publicar de novo em alguns minutos." }
@@ -366,9 +373,112 @@ export async function screenPublish(p: ProjectDoc): Promise<ScreenResult> {
 
 export type AppealResult = { ok: true; upheld: boolean } | { ok: false; error: string };
 
+const APPEAL_DOWN = "A análise do recurso não está disponível agora. Tente de novo em alguns minutos.";
+
+/**
+ * Julga um recurso do zero: a regra citada, a decisão original, o conteúdo
+ * que foi lido e o texto do dono. Guarda a decisão (e marca a original como
+ * desfeita, se cair). null: sem quórum.
+ */
+async function judgeAppeal(
+  ownerId: ObjectId,
+  origId: ObjectId,
+  rule: RuleId,
+  text: string,
+  target: "conta" | "jogo",
+): Promise<{ upheld: boolean; decisionId: ObjectId } | null> {
+  const { moderation } = await db();
+  const orig = await moderation.findOne({ _id: origId });
+  const r = ruleById(rule);
+  const images = orig ? (await Promise.all(orig.images.map(imageItem))).filter((x): x is StateItem => x !== null) : [];
+  const state: StateItem[] = [
+    `RULE CITED: ${r?.title ?? rule}. ${r?.criteria ?? ""}`,
+    `ORIGINAL DECISION: average violation probability ${Math.round((orig?.violation ?? 0) * 100)}%, severity ${(orig?.severity ?? 0).toFixed(1)} of 3.`,
+    "CONTENT THAT WAS JUDGED:",
+    ...(orig?.snapshot ?? ["(not available)"]),
+    `OWNER'S APPEAL (their own words):\n${text}`,
+    ...images,
+  ];
+  const replies = await askAll(MODELS, state, appealQuestions(target));
+  const keep = replies.flatMap((x) => {
+    const p = x && readAppealAnswer(x.answers);
+    return p === null || p === undefined ? [] : [p];
+  });
+  const v = appealVerdict(keep);
+  if (!v) return null;
+  const decisionId = new ObjectId();
+  await moderation.insertOne({
+    _id: decisionId,
+    kind: "recurso",
+    targetKey: orig?.targetKey ?? `criador:${ownerId.toHexString()}`,
+    ownerId,
+    reportIds: [],
+    snapshot: state.filter((s): s is string => typeof s === "string"),
+    images: orig?.images ?? [],
+    contentHash: orig?.contentHash ?? "",
+    votes: replies.flatMap((x) => (x ? [{ model: x.model, answers: x.answers, cost: x.cost }] : [])),
+    outcome: v.upheld ? "mantido" : "revertido",
+    rule,
+    violation: v.keep,
+    severity: null,
+    at: new Date(),
+  });
+  if (!v.upheld) await moderation.updateOne({ _id: origId }, { $set: { reverted: true } });
+  console.info(`[moderacao] recurso (${target}) ${orig?.targetKey ?? "?"}: ${v.upheld ? "mantido" : "revertido"}, manter ${v.keep.toFixed(2)}`);
+  return { upheld: v.upheld, decisionId };
+}
+
+/**
+ * Recurso contra a remoção de um jogo: um por remoção. Se cair, a remoção
+ * deixa de contar para o banimento e o jogo volta ao programa (se já tinha
+ * endereço e número; senão fica pronto para publicar).
+ */
+export async function appealRemoval(userId: ObjectId, projectId: ObjectId, text: string): Promise<AppealResult> {
+  const { projects } = await db();
+  const claim = await projects.findOneAndUpdate(
+    {
+      _id: projectId,
+      userId,
+      status: "rascunho",
+      moderation: { $type: "object" },
+      "moderation.appeal": { $exists: false },
+      "moderation.appealing": { $exists: false },
+    },
+    { $set: { "moderation.appealing": new Date() } },
+    { returnDocument: "after" },
+  );
+  const m = claim?.moderation;
+  if (!claim || !m) return { ok: false, error: "Esta remoção já teve recurso, ou o jogo não está mais fora do ar pela moderação." };
+  try {
+    const res = await judgeAppeal(userId, m.decisionId, m.rule, text, "jogo");
+    if (!res) {
+      await projects.updateOne({ _id: projectId }, { $unset: { "moderation.appealing": "" } });
+      return { ok: false, error: APPEAL_DOWN };
+    }
+    const now = new Date();
+    if (res.upheld) {
+      await projects.updateOne(
+        { _id: projectId },
+        { $set: { "moderation.appeal": { at: now, text, decisionId: res.decisionId, upheld: true } }, $unset: { "moderation.appealing": "" } },
+      );
+    } else {
+      const back = Boolean(claim.publicSlug && claim.number);
+      await projects.updateOne(
+        { _id: projectId },
+        { $set: { moderation: null, updatedAt: now, ...(back ? { status: "publicado" as const } : {}) } },
+      );
+      if (back) refresh();
+    }
+    return { ok: true, upheld: res.upheld };
+  } catch (err) {
+    await projects.updateOne({ _id: projectId }, { $unset: { "moderation.appealing": "" } });
+    throw err;
+  }
+}
+
 /** Um recurso por banimento, julgado do zero pelos mesmos modelos. */
 export async function appealBan(userId: ObjectId, text: string): Promise<AppealResult> {
-  const { users, moderation, projects, events } = await db();
+  const { users, projects, events } = await db();
   // Trava: só um recurso por vez (e só um por banimento).
   const claim = await users.findOneAndUpdate(
     { _id: userId, ban: { $exists: true }, "ban.revokedAt": { $exists: false }, "ban.appeal": { $exists: false }, "ban.appealing": { $exists: false } },
@@ -379,45 +489,14 @@ export async function appealBan(userId: ObjectId, text: string): Promise<AppealR
   if (!claim || !ban) return { ok: false, error: "Este banimento já teve recurso, ou não está mais valendo." };
   const unclaim = () => users.updateOne({ _id: userId }, { $unset: { "ban.appealing": "" } });
   try {
-    const orig = await moderation.findOne({ _id: ban.decisionId });
-    const rule = ruleById(ban.rule);
-    const images = orig ? (await Promise.all(orig.images.map(imageItem))).filter((x): x is StateItem => x !== null) : [];
-    const state: StateItem[] = [
-      `RULE CITED: ${rule?.title ?? ban.rule}. ${rule?.criteria ?? ""}`,
-      `ORIGINAL DECISION: average violation probability ${Math.round((orig?.violation ?? 0) * 100)}%, severity ${(orig?.severity ?? 0).toFixed(1)} of 3.`,
-      "CONTENT THAT WAS JUDGED:",
-      ...(orig?.snapshot ?? ["(not available)"]),
-      `OWNER'S APPEAL (their own words):\n${text}`,
-      ...images,
-    ];
-    const replies = await askAll(MODELS, state, appealQuestions());
-    const keep = replies.flatMap((r) => {
-      const p = r && readAppealAnswer(r.answers);
-      return p === null || p === undefined ? [] : [p];
-    });
-    const v = appealVerdict(keep);
-    if (!v) {
+    const res = await judgeAppeal(userId, ban.decisionId, ban.rule, text, "conta");
+    if (!res) {
       await unclaim();
-      return { ok: false, error: "A análise do recurso não está disponível agora. Tente de novo em alguns minutos." };
+      return { ok: false, error: APPEAL_DOWN };
     }
+    const v = res;
+    const decisionId = res.decisionId;
     const now = new Date();
-    const decisionId = new ObjectId();
-    await moderation.insertOne({
-      _id: decisionId,
-      kind: "recurso",
-      targetKey: orig?.targetKey ?? `criador:${userId.toHexString()}`,
-      ownerId: userId,
-      reportIds: [],
-      snapshot: state.filter((s): s is string => typeof s === "string"),
-      images: orig?.images ?? [],
-      contentHash: orig?.contentHash ?? "",
-      votes: replies.flatMap((r) => (r ? [{ model: r.model, answers: r.answers, cost: r.cost }] : [])),
-      outcome: v.upheld ? "mantido" : "revertido",
-      rule: ban.rule,
-      violation: v.keep,
-      severity: null,
-      at: now,
-    });
     await users.updateOne(
       { _id: userId },
       {

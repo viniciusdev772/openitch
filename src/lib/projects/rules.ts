@@ -232,6 +232,11 @@ export async function listDrafts(userId: ObjectId): Promise<DraftRow[]> {
     updatedAt: d.updatedAt.toISOString(),
     state: d.status === "publicado" ? "publicado" : "rascunho",
     publicSlug: d.status === "publicado" ? (d.publicSlug ?? null) : null,
-    moderated: d.moderation ? (ruleById(d.moderation.rule)?.title ?? d.moderation.rule) : null,
+    moderated: d.moderation
+      ? {
+          rule: ruleById(d.moderation.rule)?.title ?? d.moderation.rule,
+          appeal: d.moderation.appeal ? "mantido" : d.moderation.appealing ? "analisando" : "pode",
+        }
+      : null,
   }));
 }

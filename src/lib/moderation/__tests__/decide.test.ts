@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { appealVerdict, caseQuestions, caseVerdict, readCaseAnswer, type CaseAnswer } from "../decide";
+import { appealQuestions, appealVerdict, caseQuestions, caseVerdict, readCaseAnswer, type CaseAnswer } from "../decide";
 import { RULES } from "../rules";
 
 const vote = (violation: number, rule: CaseAnswer["rule"], severity: number, model = "m"): CaseAnswer => ({ model, violation, rule, severity });
@@ -46,4 +46,9 @@ test("as perguntas cobrem todas as regras", () => {
   const q = caseQuestions();
   assert.deepEqual(Object.keys(q.regra.criteria).sort(), ["nenhuma", ...RULES.map((r) => r.id)].sort());
   assert.equal(q.gravidade.criteria.length, 4);
+});
+
+test("o recurso pergunta sobre o alvo certo", () => {
+  assert.match(appealQuestions("jogo").manter.instructions, /game .*taken down/);
+  assert.match(appealQuestions("conta").manter.instructions, /account .*closed/);
 });
