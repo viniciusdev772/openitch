@@ -141,6 +141,10 @@ async function judge(c: Case, reports: ReportDoc[], kind: "denuncia" | "publicac
     at: new Date(),
   };
   await moderation.insertOne(doc);
+  // Uma linha por decisão nos logs da Vercel (sem conteúdo nem dados de quem denunciou).
+  console.info(
+    `[moderacao] ${kind} ${doc.targetKey}: ${v.outcome}${v.rule ? ` (${v.rule})` : ""}, violação ${v.violation.toFixed(2)}, ${v.agreeing}/${v.voters} modelos`,
+  );
   await enforce(doc, c);
   return doc;
 }
@@ -276,6 +280,7 @@ export async function processPending(maxTargets = 5): Promise<void> {
       );
       if (reuse) {
         await done(reuse._id);
+        console.info(`[moderacao] denuncia ${first.targetKey}: decisão recente reaproveitada (conteúdo igual)`);
         continue;
       }
       const d = await judge(c, group, "denuncia");
