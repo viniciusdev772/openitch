@@ -140,7 +140,7 @@ export async function decisionPdf(d: DecisionPdfData, logoPng: Uint8Array | null
   let y = A4[1];
 
   // Cabeçalho: faixa ultramar com o logotipo (o fundo do logotipo é o mesmo azul).
-  const band = 118;
+  const band = 100;
   page.drawRectangle({ x: 0, y: A4[1] - band, width: A4[0], height: band, color: ULTRA });
   if (logo) {
     const h = band;
@@ -149,14 +149,14 @@ export async function decisionPdf(d: DecisionPdfData, logoPng: Uint8Array | null
   } else {
     page.drawText("portal dos games", { x: M, y: A4[1] - band / 2 - 10, size: 28, font: bold, color: LIME });
   }
-  y = A4[1] - band - 40;
+  y = A4[1] - band - 32;
 
   const newPage = () => {
     page = doc.addPage(A4);
     y = A4[1] - M;
   };
   const need = (h: number) => {
-    if (y - h < M + 40) newPage();
+    if (y - h < M + 28) newPage();
   };
   const lines = (text: string, opts: { font?: PDFFont; size?: number; color?: ReturnType<typeof rgb>; gap?: number; indent?: number } = {}) => {
     const font = opts.font ?? regular;
@@ -171,7 +171,7 @@ export async function decisionPdf(d: DecisionPdfData, logoPng: Uint8Array | null
   };
   const heading = (text: string) => {
     need(40);
-    y -= 8;
+    y -= 5;
     page.drawLine({ start: { x: M, y: y + 14 }, end: { x: M + width, y: y + 14 }, thickness: 1.5, color: INK });
     lines(text.toUpperCase(), { font: bold, size: 9, color: INK, gap: 4 });
   };

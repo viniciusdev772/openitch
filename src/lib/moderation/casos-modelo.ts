@@ -397,6 +397,16 @@ const GOLPE = page(
 
 export const RECURSOS: RecursoModelo[] = [
   {
+    id: "recurso-era-teste",
+    sobre: "Golpe defendido como 'era só um teste' (caso real da conta de teste)",
+    target: "conta",
+    rule: "golpe",
+    snapshot: GOLPE,
+    appeal:
+      "Esta é uma conta de teste da equipe do Portal dos Games. A página do gerador de Robux foi escrita de propósito para testar a moderação: não havia nenhum arquivo malicioso, só a versão de navegador de outro jogo, e ninguém chegou a ver a página, porque ela foi barrada antes de publicar.",
+    mantem: true,
+  },
+  {
     id: "recurso-credito-sem-permissao",
     sobre: "Recurso que só alega crédito e gratuidade, sem permissão do autor (caso Lantern Rock)",
     target: "jogo",
