@@ -253,8 +253,12 @@ export async function fileReport(
 
 /** Julga a fila de denúncias, alvo por alvo (todas as denúncias de um alvo num julgamento só). */
 export async function processPending(maxTargets = 5): Promise<void> {
-  if (!hasDecisionKey()) return;
+  if (!hasDecisionKey()) {
+    console.error("[moderacao] OPENROUTER_API_KEY ausente: denúncias ficam na fila");
+    return;
+  }
   const { reports, users, moderation } = await db();
+  console.info(`[moderacao] fila: ${await reports.countDocuments({ status: { $ne: "decidida" } })} denúncia(s) aberta(s)`);
   for (let i = 0; i < maxTargets; i++) {
     const claimedAt = new Date();
     const first = await reports.findOneAndUpdate(
