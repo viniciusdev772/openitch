@@ -5,9 +5,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 /**
- * Julga a fila de denúncias. Chamado pelo cron da Vercel (vercel.json) como
- * reserva, caso o julgamento disparado pela própria denúncia não tenha rodado.
- * Aberto: só adianta o que já está na fila, e há um limite global de chamadas.
+ * Julga a fila de denúncias na hora (o normal é a própria denúncia disparar o
+ * julgamento). Aberto: só adianta o que já está na fila, com limite global.
  */
 export async function GET() {
   const limit = await hit("moderacao:fila", 20, 60 * 60 * 1000);
