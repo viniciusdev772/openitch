@@ -21,8 +21,13 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["mongodb"],
   // Links antigos da lista de criadores em ordem alfabética: a página estática é /criadores/az.
+  // beforeFiles porque /criadores também existe; um rewrite comum só roda quando nenhuma página bate.
   async rewrites() {
-    return [{ source: "/criadores", has: [{ type: "query", key: "ordem", value: "az" }], destination: "/criadores/az" }];
+    return {
+      beforeFiles: [{ source: "/criadores", has: [{ type: "query", key: "ordem", value: "az" }], destination: "/criadores/az" }],
+      afterFiles: [],
+      fallback: [],
+    };
   },
   async headers() {
     return [
