@@ -10,6 +10,7 @@ import { getCatalog } from "@/lib/catalog/server";
 import { LIMITS, suggestSlug } from "@/lib/projects/limits";
 import { COVER_TYPES, coverBucket, coverUrl, magicMatches, newCoverKey, type CoverType } from "@/lib/projects/cover-store";
 import { s3Fetch, storageConfigured } from "@/lib/storage/s3";
+import { uploadWait } from "@/lib/uploads/novato";
 import { ensureStorage } from "@/lib/storage/setup";
 import { ItchError, fetchItchHtml, fetchItchImage, fetchItchJson } from "./fetch";
 import { parseItch, parseItchUrl } from "./parse";
@@ -80,6 +81,9 @@ async function storeImage(raw: string): Promise<{ bucket: string; key: string; u
 async function importCore(userId: ObjectId, start: URL): Promise<ImportResult> {
   const limit = await hit(`itch:${userId.toHexString()}`, PER_HOUR, 60 * 60 * 1000);
   if (!limit.allowed) return { ok: false, error: `Você já trouxe ${PER_HOUR} jogos na última hora. Espere ${waitText(limit.retryAfterMs)}.` };
+  // Trazer do itch grava capa e imagens no armazenamento: conta nova espera como em qualquer envio.
+  const wait = await uploadWait(userId);
+  if (wait) return { ok: false, error: wait };
 
   const { projects } = await db();
   const { base, json } = await fetchItchJson(start);

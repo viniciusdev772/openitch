@@ -68,6 +68,12 @@ export default function TermosPage() {
                 verificação em duas etapas. Uma pessoa banida não pode abrir outra conta para voltar.
               </p>
               <p>
+                <strong>Conta nova.</strong> Nas primeiras horas, a conta ainda não envia arquivos (jogos, builds, capas e
+                imagens, inclusive trazidos do itch.io). A espera é sorteada para cada conta, entre 3 horas e 3 dias, e a data
+                aparece em Publicar. É uma defesa contra contas criadas só para espalhar vírus, golpes ou spam: quem cria contas
+                em série não sabe quando poderá enviar. Escrever e salvar o rascunho vale desde o primeiro minuto.
+              </p>
+              <p>
                 <strong>O que você publica.</strong> Jogos, textos, imagens e arquivos continuam seus. Ao publicar, você dá ao
                 Portal dos Games uma licença gratuita e não exclusiva para guardar, mostrar e distribuir esse material dentro do
                 site enquanto ele estiver no programa. Tirou do ar ou excluiu, a licença acaba (os arquivos são apagados na
@@ -195,7 +201,8 @@ export default function TermosPage() {
                 programa.
               </p>
               <p>
-                <strong>Jogo tirado do ar.</strong> Em <Link href="/conta/projetos">Seus jogos</Link>, o jogo removido mostra a
+                <strong>Jogo tirado do ar.</strong> Os endereços do build jogável e das imagens mudam na hora: um link
+                copiado antes deixa de abrir. Em <Link href="/conta/projetos">Seus jogos</Link>, o jogo removido mostra a
                 regra, a fundamentação e o link “Recorrer da remoção”: um recurso por remoção, julgado pelo plenário, que
                 mantém a remoção por maioria simples. Se cair, a remoção deixa de
                 contar para o banimento por repetição e o jogo volta ao programa. Também dá para mudar o que quebra a regra e

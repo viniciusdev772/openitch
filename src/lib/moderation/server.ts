@@ -5,6 +5,7 @@ import { hmac, sha256 } from "@/lib/auth/crypto";
 import { revalidatePublic } from "@/lib/catalog/revalidate";
 import { STRIKE_WINDOW_MS } from "./decide";
 import { imageItem, type StateItem } from "./openrouter";
+import { rotateLinks } from "./rotate";
 import { RULE_IDS, ruleById, type RuleId } from "./rules";
 import { judgeAppealCase, judgeCase, provenanceNote, writeReasoning, type Claim } from "./tribunal";
 
@@ -188,6 +189,7 @@ async function enforce(d: ModerationDoc, c: Case) {
       { _id: c.target.projectId, status: { $in: ["rascunho", "publicado"] } },
       { $set: { status: "rascunho", updatedAt: new Date(), moderation: { at: d.at, rule: d.rule, decisionId: d._id, contentHash: c.hash } } },
     );
+    await rotateLinks(c.target.projectId);
   } else {
     // Perfil: o texto que quebrou a regra sai; nome e jogos ficam.
     await users.updateOne({ _id: d.ownerId }, { $unset: { bio: "", city: "" }, $set: { updatedAt: new Date() } });
@@ -216,6 +218,7 @@ async function banUser(userId: ObjectId, rule: RuleId, decisionId: ObjectId) {
     mfa.deleteMany({ userId }),
     events.insertOne({ userId, type: "conta_suspensa", at: now, ip: "", userAgent: "moderação", place: null }),
   ]);
+  for (const p of live) await rotateLinks(p._id);
 }
 
 /* ------------------------------------------------------------------ */

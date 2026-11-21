@@ -255,6 +255,14 @@ export async function deleteObject(bucket: string, key: string) {
   if (!res.ok && res.status !== 404) await ok(res);
 }
 
+/** Cópia dentro do bucket, no próprio servidor (até 5 GB), com metadados e etiquetas. */
+export async function copyObject(bucket: string, from: string, to: string) {
+  const res = await s3Fetch("PUT", bucket, to, { headers: { "x-amz-copy-source": `/${enc(bucket)}/${enc(from, true)}` } });
+  // O S3 pode responder 200 com <Error> no corpo de uma cópia.
+  const text = await ok(res);
+  if (text.includes("<Error>")) throw new S3Error(500, xmlTag(text, "Code") ?? "CopyFailed", from);
+}
+
 /** Apaga até 1000 chaves por chamada (DeleteObjects). */
 export async function deleteObjects(bucket: string, keys: string[]) {
   for (let i = 0; i < keys.length; i += 1000) {

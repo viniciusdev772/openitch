@@ -23,6 +23,7 @@ import {
   storageConfigured,
 } from "@/lib/storage/s3";
 import { ensureStorage } from "@/lib/storage/setup";
+import { uploadWait } from "./novato";
 import { DOWNLOAD_URL_TTL, MAX_FILE_BYTES, UPLOAD_URL_TTL, USER_QUOTA_BYTES } from "@/lib/storage/limits";
 import {
   cleanFilename,
@@ -260,6 +261,8 @@ export async function startUpload(userId: ObjectId, input: StartInput) {
   if (mode === "single" && checksum && !sha256) throw new UploadError(400, "checksum", "Falta a soma de verificação do arquivo.");
 
   await limit(`envios:iniciar:${userId.toHexString()}`, 40);
+  const wait = await uploadWait(userId);
+  if (wait) throw new UploadError(403, "conta_nova", wait);
   const project = await ownProject(userId, input.projectId);
   if (!project.platforms.includes(platform)) {
     throw new UploadError(400, "plataforma", "Marque essa plataforma no rascunho antes de enviar o arquivo dela.");

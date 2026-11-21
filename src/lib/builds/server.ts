@@ -18,6 +18,7 @@ import {
 import { ensureStorage } from "@/lib/storage/setup";
 import { revalidateIfLive } from "@/lib/catalog/revalidate";
 import { usageOf } from "@/lib/uploads/server";
+import { uploadWait } from "@/lib/uploads/novato";
 import { MAX_WEB_BUILD_BYTES, MAX_WEB_BUILD_FILES, USER_QUOTA_BYTES, formatBytes } from "@/lib/storage/limits";
 import { cleanBuildPath, COI_FILE, dirOf } from "./paths";
 import { headersFor } from "./mime";
@@ -161,6 +162,8 @@ export async function createBuild(userId: ObjectId, input: CreateInput) {
   const project = await projects.findOne({ _id: input.projectId, userId, status: { $ne: "excluindo" } }, { projection: { _id: 1 } });
   if (!project) throw new BuildError(404, "Esse rascunho não existe ou não é da sua conta.");
   await rate("criar", userId);
+  const wait = await uploadWait(userId);
+  if (wait) throw new BuildError(403, wait);
   // Buckets, política pública de GetObject em b/* do jogável e ciclo de vida (src/lib/storage/setup.ts).
   await ensureStorage();
 

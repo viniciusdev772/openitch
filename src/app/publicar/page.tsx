@@ -5,6 +5,7 @@ import { JAMS, jamBySlug } from "@/data/catalog";
 import { jamState, pickNow } from "@/components/jams/clock";
 import { getSession } from "@/lib/auth/session";
 import { readDraft } from "@/lib/projects/rules";
+import { uploadWaitFor } from "@/lib/uploads/novato";
 import type { SavedDraft } from "@/lib/projects/limits";
 import { ImportItch } from "@/components/projetos/ImportItch";
 import { PublishFormHost, type Account, type JamOption } from "./PublishForm";
@@ -25,10 +26,12 @@ export default async function PublishPage({ searchParams }: { searchParams: SP }
 
   let account: Account = "visitante";
   let draft: SavedDraft | null = null;
+  let wait: string | null = null;
   try {
     const session = await getSession();
     if (session) {
       account = "dentro";
+      wait = uploadWaitFor(session.user);
       if (projeto) draft = await readDraft(session.user._id, projeto);
     }
   } catch (err) {
@@ -69,6 +72,13 @@ export default async function PublishPage({ searchParams }: { searchParams: SP }
           </p>
         </div>
       </header>
+      {wait ? (
+        <div className="wrap">
+          <p className="bo-alert pj-note" role="status">
+            {wait}
+          </p>
+        </div>
+      ) : null}
       {account === "dentro" && !draft && !missing ? <ImportItch /> : null}
       {draft && itch ? <ItchNotice flag={itch} /> : null}
       <PublishFormHost

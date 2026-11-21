@@ -8,6 +8,7 @@ import { str } from "@/lib/auth/validate";
 import { headObject, presign, s3Fetch, storageConfigured } from "@/lib/storage/s3";
 import { ensureStorage } from "@/lib/storage/setup";
 import { revalidateIfLive } from "@/lib/catalog/revalidate";
+import { uploadWait } from "@/lib/uploads/novato";
 import {
   COVER_KEY_RE,
   COVER_MAX_BYTES,
@@ -54,6 +55,8 @@ export async function signCover(form: FormData): Promise<CoverResult> {
     if (!storageConfigured()) return { ok: false, error: "O envio de arquivos ainda não está ligado neste site." };
     const who = await owner(form);
     if ("error" in who) return { ok: false, error: who.error! };
+    const wait = await uploadWait(who.p.userId);
+    if (wait) return { ok: false, error: wait };
     const type = str(form, "tipo", 20) as CoverType;
     const size = Number(str(form, "tamanho", 12));
     if (!(type in COVER_TYPES)) return { ok: false, error: "Use uma imagem PNG, JPEG ou WebP." };
