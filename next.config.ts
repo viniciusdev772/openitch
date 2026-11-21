@@ -16,10 +16,24 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
 ];
 
+/*
+ * Capas e capturas de tela ficam no bucket jogável, sob b/capa-<aleatório>/ (mesma URL de
+ * publicUrl em src/lib/storage/s3.ts). O next/image só otimiza essa pasta, nunca arquivos de jogo.
+ * Cada envio ganha uma chave nova, então o cache longo é seguro; quando uma imagem é apagada,
+ * forgetOptimized (src/lib/projects/cover-store.ts) tira as versões otimizadas do cache na hora.
+ */
+const storage = (process.env.S3_PLAY_PUBLIC_URL || process.env.S3_ENDPOINT || "").replace(/\/+$/, "");
+const coverImages = storage ? [new URL(`${storage}/${process.env.S3_BUCKET_PLAY || "vibegames-play"}/b/capa-*/**`)] : [];
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   serverExternalPackages: ["mongodb"],
+  images: {
+    remotePatterns: coverImages,
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2678400, // 31 dias
+  },
   // Links antigos da lista de criadores em ordem alfabética: a página estática é /criadores/az.
   // beforeFiles porque /criadores também existe; um rewrite comum só roda quando nenhuma página bate.
   async rewrites() {

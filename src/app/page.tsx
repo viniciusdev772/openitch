@@ -67,7 +67,7 @@ export default async function Home() {
                 tabIndex={-1}
                 aria-hidden
               >
-                <Cover game={featured} label="" fit="meet" />
+                <Cover game={featured} label="" fit="meet" preload />
               </Link>
               <div className="screening-foot">
                 <div>

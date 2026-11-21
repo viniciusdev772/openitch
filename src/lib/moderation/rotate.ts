@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import type { ObjectId } from "mongodb";
 import { db } from "@/lib/auth/db";
 import { sha256 } from "@/lib/auth/crypto";
-import { COVER_KEY_RE, coverUrl } from "@/lib/projects/cover-store";
+import { COVER_KEY_RE, coverUrl, forgetOptimized } from "@/lib/projects/cover-store";
 import { copyObject, deleteObject, listKeys, purgePrefix, storageConfigured } from "@/lib/storage/s3";
 
 /*
@@ -80,10 +80,9 @@ async function rotateImages(projectId: ObjectId) {
     { _id: projectId, updatedAt: p.updatedAt },
     { $set: { coverImage, screenshots: screenshots.filter((x): x is Img => x !== null) } },
   );
-  for (const m of moved) {
-    const gone = res.modifiedCount ? m.from : m.to;
-    await deleteObject(gone.bucket, gone.key).catch(() => undefined);
-  }
+  const gone = moved.map((m) => (res.modifiedCount ? m.from : m.to));
+  for (const g of gone) await deleteObject(g.bucket, g.key).catch(() => undefined);
+  await forgetOptimized(gone.map((g) => coverUrl(g.key)));
   if (!res.modifiedCount) return;
 
   // As decisões guardam as URLs e o hash do conteúdo: atualiza, para o recurso ainda ver as imagens

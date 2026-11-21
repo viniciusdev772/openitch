@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Anybody, Schibsted_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Masthead } from "@/components/Masthead";
 import { Colophon } from "@/components/Colophon";
@@ -18,9 +19,14 @@ export const viewport: Viewport = {
   themeColor: "#2b2fe3",
 };
 
+// Servidas pelo próprio site, com preload e fonte reserva de métrica ajustada (sem salto de layout).
+// O latin cobre o português; a Anybody leva o eixo de largura (font-stretch 50–150%).
+const display = Anybody({ subsets: ["latin"], axes: ["wdth"], variable: "--font-display" });
+const text = Schibsted_Grotesk({ subsets: ["latin"], variable: "--font-text" });
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={`${display.variable} ${text.variable}`}>
       <body>
         <a className="skip" href="#conteudo">
           Pular para o conteúdo

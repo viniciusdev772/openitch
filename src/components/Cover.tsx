@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Game } from "@/data/catalog";
 
 /**
@@ -583,18 +584,23 @@ function Art({ game }: { game: Game }) {
   }
 }
 
-export function Cover({ game, label, fit = "slice" }: { game: Game; label?: string; fit?: "slice" | "meet" }) {
+/**
+ * `preload`: a capa grande do topo da página (destaque da home, página do jogo), que costuma
+ * ser o maior elemento da tela; as outras são cards e carregam só quando aparecem.
+ */
+export function Cover({ game, label, fit = "slice", preload = false }: { game: Game; label?: string; fit?: "slice" | "meet"; preload?: boolean }) {
   // A imagem enviada por quem fez ocupa o mesmo quadro (5:4) que a capa desenhada.
+  // Passa pelo next/image: redimensionada e em AVIF/WebP, em vez do arquivo original de até 4 MB.
   if (game.coverImage) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- servida direto do armazenamento, sem otimização da Vercel
-      <img
+      <Image
         src={game.coverImage}
         alt={label === "" ? "" : (label ?? `Capa de ${game.title}`)}
         aria-hidden={label === "" ? true : undefined}
-        loading="lazy"
-        decoding="async"
-        referrerPolicy="no-referrer"
+        width={W}
+        height={H}
+        sizes={preload ? "(max-width: 900px) 100vw, 640px" : "(max-width: 640px) 50vw, 320px"}
+        preload={preload}
         style={{ display: "block", width: "100%", height: "auto", aspectRatio: `${W} / ${H}`, objectFit: fit === "meet" ? "contain" : "cover" }}
       />
     );

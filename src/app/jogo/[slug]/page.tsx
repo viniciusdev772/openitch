@@ -3,6 +3,7 @@ import "@/styles/jogo.css";
 import "@/styles/comentarios.css";
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { tagHref } from "@/components/etiquetas/slug";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ArrowRight, Check, Play, TriangleAlert } from "lucide-react";
@@ -75,7 +76,7 @@ export default async function GamePage({ params }: Props) {
           </nav>
             <div className="stage-frame stage-frame--art">
               <div className="stage-art" style={{ "--g": `var(${game.palette[0]})` } as React.CSSProperties}>
-                <Cover game={game} fit="meet" />
+                <Cover game={game} fit="meet" preload />
               </div>
               <div className="stage-launch">
                 <p>
@@ -134,8 +135,7 @@ export default async function GamePage({ params }: Props) {
                 {game.screenshots.map((src, i) => (
                   <li key={src}>
                     <a href={src} target="_blank" rel="noopener">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={src} alt={`Imagem ${i + 1} de ${game.title}`} loading="lazy" decoding="async" />
+                      <Image src={src} alt={`Imagem ${i + 1} de ${game.title}`} width={640} height={400} sizes="(max-width: 640px) 80vw, 360px" />
                     </a>
                   </li>
                 ))}

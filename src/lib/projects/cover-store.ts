@@ -1,5 +1,6 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
+import { dangerouslyDeleteBySrcImage } from "@vercel/functions";
 import type { ProjectDoc } from "@/lib/auth/db";
 import { deleteObject, publicUrl, s3Config, storageConfigured } from "@/lib/storage/s3";
 
@@ -44,4 +45,15 @@ export async function deleteCoverObjects(
   if (!storageConfigured()) return;
   const keys = [p.coverImage?.key, p.pendingCover?.key, ...(p.screenshots ?? []).map((x) => x.key)].filter((k): k is string => Boolean(k && COVER_KEY_RE.test(k)));
   for (const key of keys) await deleteObject(coverBucket(), key).catch(() => undefined);
+  await forgetOptimized(keys.map(coverUrl));
+}
+
+/**
+ * Apaga do cache de imagens da Vercel as versões que o next/image gerou destas
+ * imagens. Sem isso, uma capa removida (pela moderação, inclusive) continuaria
+ * servida por /_next/image até o cache vencer. Fora da Vercel não há o que apagar.
+ */
+export async function forgetOptimized(urls: string[]) {
+  if (!urls.length || !process.env.VERCEL) return;
+  await dangerouslyDeleteBySrcImage(urls).catch((err) => console.error("[capa] cache de imagem", err));
 }
