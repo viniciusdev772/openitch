@@ -30,8 +30,9 @@ export function pdfDataOf(
     const a = readCaseAnswer(v.model, v.answers);
     if (!a) return [];
     const saw = a.violation >= 0.5 && a.rule !== "nenhuma";
-    const rule = saw ? (ruleById(a.rule)?.title ?? a.rule) : "nenhuma regra";
-    return [{ judge: judgeName(v.model), vote: `violação ${pct(a.violation)} · ${rule} · gravidade ${a.severity.toFixed(1).replace(".", ",")} de 3` }];
+    // A regra só aparece quando o juiz viu outra, diferente da decidida (ou nenhuma).
+    const other = !saw ? " · nenhuma regra" : a.rule !== d.rule ? ` · ${ruleById(a.rule)?.title ?? a.rule}` : "";
+    return [{ judge: judgeName(v.model), vote: `violação ${pct(a.violation)} · gravidade ${a.severity.toFixed(1).replace(".", ",")} de 3${other}` }];
   });
   const outcome = OUTCOME[d.outcome] + (d.mitigated ? " O plenário pediu o fechamento da conta, mas sem a maioria qualificada; ficou a pena menor." : "");
   const next =
@@ -218,7 +219,7 @@ export async function decisionPdf(d: DecisionPdfData, logoPng: Uint8Array | null
   for (const v of d.votes) {
     need(16);
     page.drawText(safeText(v.judge), { x: M, y, size: 10, font: bold, color: INK });
-    lines(v.vote, { size: 10, indent: 190, gap: 1 });
+    lines(v.vote, { size: 10, indent: 175, gap: 1 });
   }
 
   heading("E agora");
