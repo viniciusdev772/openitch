@@ -1,5 +1,5 @@
 import type { RuleId } from "./rules";
-import type { Claim } from "./tribunal";
+import { provenanceNote, type Claim } from "./tribunal";
 
 /*
  * Casos-modelo do tribunal: páginas e alegações com a decisão esperada,
@@ -31,12 +31,22 @@ export interface RecursoModelo {
   mantem: boolean;
 }
 
-const page = (fields: Record<string, string>, by: string, extra: string[] = []) => [
-  "GAME PAGE on Portal dos Games",
-  ...Object.entries(fields).map(([k, v]) => `${k}: ${v}`),
-  `Published on Portal dos Games by the account: ${by}`,
-  ...extra,
-];
+/** Monta a página como o servidor monta (server.ts, caseOf), inclusive a checagem de origem do itch.io. */
+const page = (fields: Record<string, string>, by: string, extra: string[] = []) => {
+  const itch = extra.join(" ").match(/https:\/\/[a-z0-9-]+\.itch\.io\/\S+/)?.[0];
+  const credits = (fields.Credits ?? "")
+    .split(";")
+    .map((c) => c.split(":").slice(1).join(":").trim())
+    .filter(Boolean);
+  const note = provenanceNote(by, itch, credits);
+  return [
+    "GAME PAGE on Portal dos Games",
+    ...Object.entries(fields).map(([k, v]) => `${k}: ${v}`),
+    `Published on Portal dos Games by the account: ${by}`,
+    ...extra,
+    ...(note ? [note] : []),
+  ];
+};
 
 const report = (rule: string, text: string): Claim => ({ label: `REPORT 1 by another user, citing the rule "${rule}"`, text });
 
@@ -249,6 +259,13 @@ export const CASOS: CasoModelo[] = [
         "QUE ABSURDO!!! roubaram o jogo da minha amiga Mara Quint (maraquint.itch.io), ela tá chorando, isso é crime, BANEM ESSE LADRÃO JÁ",
       ),
     ],
+    espera: "acao",
+  },
+  {
+    id: "copia-creditada-sem-denuncia",
+    sobre: "O mesmo caso na triagem da publicação, sem denúncia",
+    text: CREDITADA,
+    claims: [],
     espera: "acao",
   },
   {

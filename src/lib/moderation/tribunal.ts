@@ -23,6 +23,37 @@ import { ruleById, type RuleId } from "./rules";
  * turma, plenário quando preciso, e a fundamentação escrita pelo relator.
  */
 
+const norm = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+/**
+ * Um fato sobre a origem, sem julgamento: o nome da conta que publica bate com
+ * a conta do itch.io de onde o jogo veio, ou com alguém nos créditos? Sem essa
+ * linha os juízes viam "Criação: fulano" e não percebiam que quem publicou é
+ * outra pessoa (calibração de 21/11/2026).
+ */
+export function provenanceNote(account: string, itchUrl: string | undefined, credits: string[]): string | null {
+  if (!itchUrl) return null;
+  let sub = "";
+  try {
+    sub = new URL(itchUrl).hostname.split(".")[0] ?? "";
+  } catch {
+    return null;
+  }
+  const a = norm(account);
+  const s = norm(sub);
+  const names = credits.map(norm).filter((x) => x.length >= 3);
+  const matches =
+    a.length >= 3 && (a === s || (s.length >= 4 && (a.includes(s) || s.includes(a))) || names.some((n) => n === a || n.includes(a) || a.includes(n)));
+  return matches
+    ? `Provenance check: the publishing account name "${account}" matches the itch.io account "${sub}" or a person in the credits.`
+    : `Provenance check: the publishing account name "${account}" does NOT match the itch.io account "${sub}" nor anyone in the credits${credits.length ? ` (${credits.join("; ")})` : ""}. Unless the page shows permission, this is someone else's game.`;
+}
+
 export interface Vote {
   model: string;
   answers: unknown;

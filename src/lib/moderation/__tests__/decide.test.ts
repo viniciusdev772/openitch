@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { appealQuestions, appealVerdict, caseQuestions, caseVerdict, judgeName, needsPlenary, readCaseAnswer, type CaseAnswer } from "../decide";
 import { RULES } from "../rules";
+import { provenanceNote } from "../tribunal";
 
 const vote = (violation: number, rule: CaseAnswer["rule"], severity: number, model = "m"): CaseAnswer => ({ model, violation, rule, severity });
 
@@ -96,6 +97,13 @@ test("recurso de conta só mantém o banimento com maioria qualificada", () => {
   assert.equal(appealVerdict([0.9, 0.9, 0.9, 0.2, 0.1], { qualified: true })!.upheld, false); // 3 de 5
   assert.equal(appealVerdict([0.9, 0.9, 0.9, 0.8, 0.1], { qualified: true })!.upheld, true); // 4 de 5
   assert.equal(appealVerdict([0.9, 0.9, 0.9, 0.2, 0.1])!.upheld, true); // remoção de jogo: maioria simples
+});
+
+test("checagem de origem do itch.io: conta, subdomínio e créditos", () => {
+  assert.match(provenanceNote("Ana Lima", "https://analima.itch.io/tide-pools", ["Ana Lima"])!, /matches/);
+  assert.match(provenanceNote("Vinícius Eduardo", "https://vaula.itch.io/deepsong", ["Bruno Werneck"])!, /does NOT match/);
+  assert.match(provenanceNote("Bruno Werneck", "https://vaula.itch.io/deepsong", ["Bruno Werneck"])!, /matches/);
+  assert.equal(provenanceNote("Ana", undefined, []), null);
 });
 
 test("nome curto dos juízes", () => {

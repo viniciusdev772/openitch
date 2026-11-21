@@ -6,7 +6,7 @@ import { revalidatePublic } from "@/lib/catalog/revalidate";
 import { STRIKE_WINDOW_MS } from "./decide";
 import { imageItem, type StateItem } from "./openrouter";
 import { RULE_IDS, ruleById, type RuleId } from "./rules";
-import { judgeAppealCase, judgeCase, writeReasoning, type Claim } from "./tribunal";
+import { judgeAppealCase, judgeCase, provenanceNote, writeReasoning, type Claim } from "./tribunal";
 
 /*
  * Moderação feita por um tribunal de modelos de decisão (tribunal.ts).
@@ -81,7 +81,11 @@ async function caseOf(target: ModerationTarget): Promise<Case | null> {
       `Published on Portal dos Games by the account: ${owner?.name ?? "?"}${owner?.bio ? ` (bio: ${owner.bio})` : ""}`,
     ];
     // De onde veio: quem publica pode ter trazido a página de outra pessoa.
-    if (p.source?.itchUrl) text.push(`Imported from this itch.io page: ${p.source.itchUrl} (the itch.io subdomain is the original author's account)`);
+    if (p.source?.itchUrl) {
+      text.push(`Imported from this itch.io page: ${p.source.itchUrl} (the itch.io subdomain is the original author's account)`);
+      const note = provenanceNote(owner?.name ?? "", p.source.itchUrl, (p.credits ?? []).map((c) => c.name));
+      if (note) text.push(note);
+    }
     if (images.length) text.push("Images follow: the cover first, then screenshots.");
   } else {
     const u = await users.findOne({ _id: target.userId }, { projection: { name: 1, bio: 1, city: 1 } });
