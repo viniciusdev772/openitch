@@ -88,7 +88,7 @@ export default async function ContaSuspensaPage() {
               <ul>
                 {votes.map((v) => (
                   <li key={v.model}>
-                    {judgeName(v.model)}: violação {pct(v.violation)}, gravidade {v.severity.toFixed(1)} de 3
+                    {judgeName(v.model)}: violação {pct(v.violation)}, gravidade {v.severity.toFixed(1).replace(".", ",")} de 3
                   </li>
                 ))}
               </ul>
