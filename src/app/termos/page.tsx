@@ -43,7 +43,7 @@ export default function TermosPage() {
           <GuideSection id="resumo" title="Em resumo">
             <div className="guide-prose">
               <ul>
-                <li>Para olhar e jogar, você não precisa de conta. Para publicar, guardar jogos ou denunciar, precisa.</li>
+                <li>Para olhar, jogar e denunciar, você não precisa de conta. Para publicar e guardar jogos, precisa.</li>
                 <li>O que você publica continua seu. Você só nos autoriza a mostrar e distribuir enquanto estiver no programa.</li>
                 <li>Algumas coisas não podem ser publicadas; a lista está em <a href="#regras">Regras da comunidade</a>.</li>
                 <li>
@@ -111,7 +111,8 @@ export default function TermosPage() {
             <div className="guide-prose">
               <p>
                 Também não pode: driblar um banimento com outra conta, nem fazer denúncias falsas ou em massa para prejudicar
-                alguém (as denúncias têm limite por conta e não decidem nada sozinhas, porque os modelos julgam o conteúdo).
+                alguém (as denúncias têm limite por rede e por conta, uma por pessoa a cada 30 dias para o mesmo alvo, e não decidem
+                nada sozinhas, porque os modelos julgam o conteúdo).
               </p>
             </div>
           </GuideSection>
@@ -119,8 +120,10 @@ export default function TermosPage() {
           <GuideSection id="moderacao" title="Moderação por IA">
             <div className="guide-prose">
               <p>
-                <strong>Quando acontece.</strong> Quando alguém com conta denuncia um jogo ou um perfil (o link “Denunciar” fica
-                na página), e quando um jogo vai entrar no programa: antes de publicar, a página é lida pela mesma análise.
+                <strong>Quando acontece.</strong> Quando alguém denuncia um jogo publicado ou um perfil de criador (o link
+                “Denunciar” fica na página), e quando um jogo vai entrar no programa: antes de publicar, a página é lida pela
+                mesma análise. Qualquer pessoa denuncia, com ou sem conta, menos o que é dela. Jogadores sem jogo publicado
+                não têm página pública, então não há o que denunciar neles.
               </p>
               <p>
                 <strong>Quem decide.</strong> Três modelos de decisão, de fabricantes diferentes, acessados pelo OpenRouter:{" "}
@@ -185,7 +188,8 @@ export default function TermosPage() {
                 <strong>O que vai para a moderação.</strong> Só conteúdo que já é público ou que você mesmo escreve para a
                 análise: a página do jogo ou o perfil, nomes dos arquivos, capa e imagens, o texto das denúncias e o do recurso.
                 Isso é enviado ao OpenRouter e aos fabricantes dos modelos citados acima. E-mail, senha, IP e quem fez a denúncia
-                nunca são enviados. Quem é denunciado não fica sabendo quem denunciou.
+                nunca são enviados. Quem é denunciado não fica sabendo quem denunciou. De uma denúncia sem conta guardamos
+                só uma impressão cifrada do IP (não dá para voltar ao IP), para limitar repetições.
               </p>
               <p>
                 <strong>Por quanto tempo.</strong> Denúncias ficam guardadas por 1 ano. Decisões de moderação (com o que foi

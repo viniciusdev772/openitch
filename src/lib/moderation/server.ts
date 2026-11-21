@@ -1,7 +1,7 @@
 import "server-only";
 import { ObjectId } from "mongodb";
 import { db, type BanDoc, type ModerationDoc, type ModerationTarget, type ProjectDoc, type ReportDoc, type UserDoc } from "@/lib/auth/db";
-import { sha256 } from "@/lib/auth/crypto";
+import { hmac, sha256 } from "@/lib/auth/crypto";
 import { revalidatePublic } from "@/lib/catalog/revalidate";
 import {
   MODELS,
@@ -191,9 +191,12 @@ async function banUser(userId: ObjectId, rule: RuleId, decisionId: ObjectId) {
 
 export type ReportResult = { ok: true; repeated?: boolean } | { ok: false; error: string };
 
-/** Registra uma denúncia contra um jogo publicado ou um perfil de criador. */
+/** Quem denuncia: uma conta, ou alguém sem conta identificado só pelo HMAC do IP. */
+export type Reporter = { userId: ObjectId | null; ip: string };
+
+/** Registra uma denúncia contra um jogo publicado ou um perfil de criador. Com ou sem conta. */
 export async function fileReport(
-  reporterId: ObjectId,
+  reporter: Reporter,
   kind: string,
   slug: string,
   rule: string,
@@ -216,16 +219,20 @@ export async function fileReport(
   } else {
     return { ok: false, error: "Pedido inválido." };
   }
-  if (ownerId.equals(reporterId)) return { ok: false, error: "Isto é seu: para tirar do ar, use o painel do projeto." };
+  if (reporter.userId && ownerId.equals(reporter.userId)) {
+    return { ok: false, error: "Isto é seu: para tirar do ar, use o painel do projeto." };
+  }
   const key = targetKey(target);
+  const reporterKey = reporter.userId ? `conta:${reporter.userId.toHexString()}` : `ip:${hmac("denuncia", reporter.ip)}`;
   const recent = await reports.findOne(
-    { reporterId, targetKey: key, createdAt: { $gte: new Date(Date.now() - REPORT_REPEAT_MS) } },
+    { reporterKey, targetKey: key, createdAt: { $gte: new Date(Date.now() - REPORT_REPEAT_MS) } },
     { projection: { _id: 1 } },
   );
   if (recent) return { ok: true, repeated: true };
   await reports.insertOne({
     _id: new ObjectId(),
-    reporterId,
+    ...(reporter.userId ? { reporterId: reporter.userId } : {}),
+    reporterKey,
     target,
     targetKey: key,
     ownerId,

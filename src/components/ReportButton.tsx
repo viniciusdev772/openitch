@@ -11,7 +11,6 @@ import { FormAlert, Submit } from "@/components/auth/Fields";
 export function ReportButton({ kind, slug, name }: { kind: "jogo" | "criador"; slug: string; name: string }) {
   const [state, action] = useActionState<ReportState, FormData>(reportContent, undefined);
   const id = useId();
-  const here = kind === "jogo" ? `/jogo/${slug}` : `/criador/${slug}`;
   return (
     <details className="report">
       <summary>
@@ -26,16 +25,10 @@ export function ReportButton({ kind, slug, name }: { kind: "jogo" | "criador"; s
           <p className="report-lead">
             Quem julga é uma análise automática com três modelos de IA, que lê {kind === "jogo" ? "a página do jogo" : "o perfil"} de{" "}
             <strong>{name}</strong>. Veja as <Link href="/termos#regras">regras</Link> e{" "}
-            <Link href="/termos#moderacao">como a decisão é tomada</Link>.
+            <Link href="/termos#moderacao">como a decisão é tomada</Link>. Não precisa de conta, e quem é denunciado não sabe quem
+            denunciou.
           </p>
           <FormAlert error={state?.error} />
-          {state?.login ? (
-            <p>
-              <Link className="btn btn--sm" href={`/entrar?de=${encodeURIComponent(here)}`}>
-                Entrar para denunciar
-              </Link>
-            </p>
-          ) : null}
           <label className="field-label" htmlFor={`${id}-regra`}>
             Qual regra foi quebrada?
           </label>

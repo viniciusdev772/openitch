@@ -236,7 +236,10 @@ export type ModerationTarget = { kind: "jogo"; projectId: ObjectId } | { kind: "
 
 export interface ReportDoc {
   _id: ObjectId;
-  reporterId: ObjectId;
+  /** Conta de quem denunciou, ou ausente (denúncia anônima). */
+  reporterId?: ObjectId;
+  /** Quem denunciou, para limitar repetição: "conta:<id>" ou HMAC do IP (o IP nunca é gravado). */
+  reporterKey: string;
   target: ModerationTarget;
   /** "jogo:<id>" ou "criador:<id>", para agrupar e limitar. */
   targetKey: string;
@@ -421,7 +424,8 @@ async function ensureIndexes(db: Db): Promise<void> {
         db.collection("builds").createIndex({ projectId: 1, createdAt: -1 }),
         db.collection("builds").createIndex({ userId: 1, status: 1 }),
         db.collection("reports").createIndex({ status: 1, createdAt: 1 }),
-        db.collection("reports").createIndex({ reporterId: 1, targetKey: 1, createdAt: -1 }),
+        db.collection("reports").createIndex({ reporterKey: 1, targetKey: 1, createdAt: -1 }),
+        db.collection("reports").createIndex({ reporterId: 1 }, { partialFilterExpression: { reporterId: { $type: "objectId" } } }),
         db.collection("moderation").createIndex({ ownerId: 1, at: -1 }),
         db.collection("moderation").createIndex({ targetKey: 1, at: -1 }),
         // Retenção: denúncias por 1 ano, decisões por 5 anos (prometido em /termos#privacidade).

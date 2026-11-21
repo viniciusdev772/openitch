@@ -5,16 +5,17 @@ import { unstable_rethrow } from "next/navigation";
 import { getSession, readSuspended } from "@/lib/auth/session";
 import { hit, waitText } from "@/lib/auth/ratelimit";
 import { str } from "@/lib/auth/validate";
+import { requestInfo } from "@/lib/auth/request";
 import { stripInvisible } from "@/lib/projects/limits";
 import { appealBan, fileReport, processPending } from "./server";
 
-export type ReportState = { ok?: string; error?: string; login?: boolean } | undefined;
+export type ReportState = { ok?: string; error?: string } | undefined;
 export type AppealState = { ok?: string; upheld?: boolean; error?: string } | undefined;
 
 const MIN = 60 * 1000;
 const SERVER_DOWN = "Não conseguimos falar com o servidor agora. Tente de novo em instantes.";
 
-/** Denunciar um jogo ou um perfil. Só com conta, e com limite por conta. */
+/** Denunciar um jogo ou um perfil. Com ou sem conta; limite por rede e, com conta, por conta. */
 export async function reportContent(_prev: ReportState, form: FormData): Promise<ReportState> {
   const kind = str(form, "tipo", 10);
   const slug = str(form, "alvo", 80);
@@ -24,12 +25,14 @@ export async function reportContent(_prev: ReportState, form: FormData): Promise
   if (details.length < 10) return { error: "Conte em poucas palavras o que está errado (pelo menos 10 letras)." };
   if (details.length > 1000) return { error: "Use no máximo 1.000 caracteres." };
   try {
-    const session = await getSession();
-    if (!session) return { login: true, error: "Entre na sua conta para denunciar." };
-    const userId = session.user._id;
-    const limit = await hit(`denuncia:${userId.toHexString()}`, 10, 60 * MIN);
-    if (!limit.allowed) return { error: `Muitas denúncias seguidas. Espere ${waitText(limit.retryAfterMs)}.` };
-    const res = await fileReport(userId, kind, slug, rule, details);
+    const [session, info] = await Promise.all([getSession(), requestInfo()]);
+    const userId = session?.user._id ?? null;
+    // Sem conta, o limite é mais curto: cada denúncia nova custa uma análise.
+    const limits = [hit(`denuncia:ip:${info.ip}`, userId ? 20 : 5, 60 * MIN)];
+    if (userId) limits.push(hit(`denuncia:${userId.toHexString()}`, 10, 60 * MIN));
+    const blocked = (await Promise.all(limits)).find((l) => !l.allowed);
+    if (blocked) return { error: `Muitas denúncias seguidas. Espere ${waitText(blocked.retryAfterMs)}.` };
+    const res = await fileReport({ userId, ip: info.ip }, kind, slug, rule, details);
     if (!res.ok) return { error: res.error };
     after(() => processPending().catch((err) => console.error("[moderacao]", err)));
     return {
