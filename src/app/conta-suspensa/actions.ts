@@ -5,6 +5,7 @@ import { hit } from "@/lib/auth/ratelimit";
 import { requestInfo } from "@/lib/auth/request";
 import { chat } from "@/lib/moderation/openrouter";
 import { CASES, JUDGES } from "./casos";
+import { REAL_ID, realCase } from "./real";
 
 /*
  * Os juízes do jogo "O Recurso" falando em tempo real. Um modelo barato do
@@ -70,9 +71,23 @@ function json(text: string): Record<string, unknown> | null {
   }
 }
 
-function caseBrief(caseId: string) {
-  const c = CASES.find((x) => x.id === caseId);
+/** O caso como os juízes leem. O real é montado no servidor pelo cookie, nunca pelo que o navegador manda. */
+async function caseBrief(caseId: string) {
+  const c = caseId === REAL_ID ? await realCase() : CASES.find((x) => x.id === caseId);
   if (!c) return null;
+  if (c.id === REAL_ID) {
+    return {
+      c,
+      text: [
+        `CASO REAL (a conta de quem joga foi fechada por esta decisão): "${c.game}". Regra citada: "${c.rule}".`,
+        `Fundamentação da decisão: ${c.accusation}`,
+        ...c.evidence.filter((e) => e.id !== "decisao").map((e) => `${e.title}: ${e.text}`),
+        "Neste caso não há provas prontas: julgue só pelo que a pessoa escreve. Fato específico e conferível que contesta a fundamentação ajuda;",
+        "reconhecer o que errou e dizer o que muda ajuda um pouco; desculpa genérica, raiva e negar sem fatos não ajudam.",
+        "Seja justo e respeitoso: é uma pessoa de verdade lendo. O resultado é só um treino e não muda a decisão real.",
+      ].join("\n"),
+    };
+  }
   const evidence = c.evidence
     .map(
       (e) =>
@@ -107,7 +122,7 @@ const SYSTEM = [
 /** Um turno: a reação do juiz que perguntou, o efeito em cada juiz (resposta livre) e a réplica para a próxima pergunta. */
 export async function judgeTurn(input: TurnInput): Promise<TurnResult> {
   try {
-    const brief = caseBrief(clip(input?.caseId, 40));
+    const brief = await caseBrief(clip(input?.caseId, 40));
     const round = Number(input?.round);
     if (!brief || !Number.isInteger(round) || round < 0 || round >= brief.c.questions.length) return { ok: false };
     const answer = clip(input.answer, MAX_ANSWER);
@@ -161,7 +176,7 @@ export async function judgeTurn(input: TurnInput): Promise<TurnResult> {
 /** Uma linha por juiz explicando o voto, no fim da audiência. */
 export async function judgeVerdict(input: VerdictInput): Promise<VerdictResult> {
   try {
-    const brief = caseBrief(clip(input?.caseId, 40));
+    const brief = await caseBrief(clip(input?.caseId, 40));
     const votes = Array.isArray(input?.votes) ? input.votes.map(Boolean) : [];
     if (!brief || votes.length !== JUDGES.length) return { ok: false };
     if (!(await allowed())) return { ok: false };

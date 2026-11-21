@@ -132,7 +132,7 @@ class Foley {
   }
 }
 
-export function RecursoGame({ realAppeal }: { realAppeal: boolean }) {
+export function RecursoGame({ realAppeal, realCase }: { realAppeal: boolean; realCase: Case | null }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const view = useRef<TribunalView | null>(null);
@@ -142,7 +142,7 @@ export function RecursoGame({ realAppeal }: { realAppeal: boolean }) {
   const [phase, setPhase] = useState<Phase>("title");
   const [ready, setReady] = useState(false);
   const [broken, setBroken] = useState(false);
-  const [caseIdx, setCaseIdx] = useState(0);
+  const [kase, setKase] = useState<Case>(() => realCase ?? CASES[0]);
   const [picked, setPicked] = useState<string[]>([]);
   const [examining, setExamining] = useState<string | null>(null);
   const [round, setRound] = useState(0);
@@ -162,7 +162,8 @@ export function RecursoGame({ realAppeal }: { realAppeal: boolean }) {
   const [offline, setOffline] = useState(false);
   const verdictAi = useRef<Promise<VerdictResult> | null>(null);
 
-  const c: Case = CASES[caseIdx];
+  const c = kase;
+  const isReal = Boolean(realCase && c.id === realCase.id);
   const question = c.questions[round];
   const answers = useMemo(() => shuffle(question?.answers ?? []), [question]);
   const ev = (id: string | null) => c.evidence.find((e) => e.id === id) ?? null;
@@ -244,11 +245,17 @@ export function RecursoGame({ realAppeal }: { realAppeal: boolean }) {
     view.current?.setVotes(shownVotes);
   }, [shownVotes, ready]);
 
-  const begin = () => {
-    let i = Math.floor(Math.random() * CASES.length);
-    if (CASES.length > 1 && i === lastCase.current) i = (i + 1) % CASES.length;
-    lastCase.current = i;
-    setCaseIdx(i);
+  /** Começa uma audiência: o caso real da conta (`own`) ou um de treino, sorteado sem repetir o último. */
+  const begin = (own = false) => {
+    let next: Case;
+    if (own && realCase) next = realCase;
+    else {
+      let i = Math.floor(Math.random() * CASES.length);
+      if (CASES.length > 1 && i === lastCase.current) i = (i + 1) % CASES.length;
+      lastCase.current = i;
+      next = CASES[i];
+    }
+    setKase(next);
     setPicked([]);
     setExamining(null);
     setRound(0);
@@ -261,12 +268,12 @@ export function RecursoGame({ realAppeal }: { realAppeal: boolean }) {
     setAiLines(null);
     setOffline(false);
     setShownVotes(JUDGES.map(() => null));
-    view.current?.setEvidence(CASES[i].evidence);
+    view.current?.setEvidence(next.evidence);
     view.current?.focusJudge(null);
     view.current?.setSpeaking(null);
     void view.current?.goTo("intro", false);
     setPhase("brief");
-    setLive(`Caso: ${CASES[i].game}. Leia a ficha.`);
+    setLive(`Caso: ${next.game}. Leia a ficha.`);
   };
 
   const toTable = async () => {
@@ -451,9 +458,26 @@ export function RecursoGame({ realAppeal }: { realAppeal: boolean }) {
               Cada um pesa uma coisa. O visor deles muda de cor conforme o voto: são precisos {NEEDED} de 5 para
               reverter.
             </p>
-            <button type="button" className="btn rc-go" onClick={begin} disabled={!ready}>
-              <Gavel aria-hidden /> {ready ? "Entrar no tribunal" : "Montando o tribunal…"}
-            </button>
+            {realCase ? (
+              <div className="rc-row rc-row--center">
+                <button type="button" className="btn rc-go" onClick={() => begin(true)} disabled={!ready}>
+                  <Gavel aria-hidden /> {ready ? "Defender o meu caso" : "Montando o tribunal…"}
+                </button>
+                <button type="button" className="btn btn--ghost rc-alt" onClick={() => begin(false)} disabled={!ready}>
+                  Caso de treino
+                </button>
+              </div>
+            ) : (
+              <button type="button" className="btn rc-go" onClick={() => begin(false)} disabled={!ready}>
+                <Gavel aria-hidden /> {ready ? "Entrar no tribunal" : "Montando o tribunal…"}
+              </button>
+            )}
+            {realCase ? (
+              <p className="rc-keys">
+                “Defender o meu caso” usa a decisão real que fechou a sua conta. É um treino: o resultado do jogo não
+                muda a decisão.
+              </p>
+            ) : null}
             <p className="rc-keys">
               Arraste (ou use as setas) para olhar em volta. Os juízes respondem em tempo real com IA: o que você
               escrever vai para um modelo de linguagem, então não coloque dados pessoais.
@@ -464,11 +488,13 @@ export function RecursoGame({ realAppeal }: { realAppeal: boolean }) {
         {phase === "brief" ? (
           <div className="rc-screen rc-screen--brief">
             <div className="rc-file">
-              <p className="rc-kicker">Ficha do caso · regra “{c.rule}”</p>
+              <p className="rc-kicker">
+                {isReal ? "O seu caso de verdade" : "Caso de treino"} · regra “{c.rule}”
+              </p>
               <h3>{c.game}</h3>
               <dl className="rc-facts">
                 <div>
-                  <dt>Acusação</dt>
+                  <dt>{isReal ? "O que a decisão diz" : "Acusação"}</dt>
                   <dd>{c.accusation}</dd>
                 </div>
                 <div>
@@ -495,7 +521,9 @@ export function RecursoGame({ realAppeal }: { realAppeal: boolean }) {
           <aside className="rc-side" aria-label="Provas na mesa">
             <p className="rc-kicker">Mesa da defesa</p>
             <p className="rc-side-help">
-              Examine as provas e leve até {MAX_CARRY} para a tribuna. Nem tudo ajuda.
+              {isReal
+                ? `Os documentos do seu caso. Leia antes de responder; leve até ${MAX_CARRY} para citar na tribuna.`
+                : `Examine as provas e leve até ${MAX_CARRY} para a tribuna. Nem tudo ajuda.`}
             </p>
             <ul className="rc-evidence">
               {c.evidence.map((e) => (
@@ -589,7 +617,7 @@ export function RecursoGame({ realAppeal }: { realAppeal: boolean }) {
                     ))}
                   </div>
                 ) : null}
-                <p className="rc-round">Ou escolha uma resposta pronta:</p>
+                {answers.length ? <p className="rc-round">Ou escolha uma resposta pronta:</p> : null}
                 <ul className="rc-answers">
                   {answers.map((a) => (
                     <li key={a.text}>
@@ -601,7 +629,11 @@ export function RecursoGame({ realAppeal }: { realAppeal: boolean }) {
                 </ul>
                 <p className="rc-round">
                   Pergunta {round + 1} de {c.questions.length}
-                  {offline ? " · juízes sem IA agora: valem as respostas prontas e a pontuação fixa" : ""}
+                  {offline
+                    ? isReal
+                      ? " · juízes sem IA agora: no seu caso só a IA consegue avaliar a resposta, tente de novo daqui a pouco"
+                      : " · juízes sem IA agora: valem as respostas prontas e a pontuação fixa"
+                    : ""}
                 </p>
               </>
             ) : null}
@@ -641,10 +673,22 @@ export function RecursoGame({ realAppeal }: { realAppeal: boolean }) {
                 <li>Mostre prova que dá para conferir: um código na página, um contrato com número, um histórico público.</li>
                 <li>Deixe a raiva de fora. O tribunal reescreve o texto em tom neutro, e o que sobra são os fatos.</li>
               </ul>
+              {isReal ? <p>Foi um treino com o seu caso: a decisão real não mudou.</p> : null}
               {realAppeal ? <p>O formulário de recurso de verdade fica logo abaixo desta área.</p> : null}
-              <button type="button" className="btn rc-go" onClick={begin}>
-                <Gavel aria-hidden /> Outro caso
-              </button>
+              <div className="rc-row">
+                {realCase ? (
+                  <button type="button" className="btn rc-go" onClick={() => begin(true)}>
+                    <Gavel aria-hidden /> {isReal ? "Treinar o meu caso de novo" : "Defender o meu caso"}
+                  </button>
+                ) : null}
+                <button type="button" className={realCase ? "btn btn--ghost rc-alt" : "btn rc-go"} onClick={() => begin(false)}>
+                  {realCase ? "Caso de treino" : (
+                    <>
+                      <Gavel aria-hidden /> Outro caso
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         ) : null}

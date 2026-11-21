@@ -8,6 +8,7 @@ import { judgeName, readAppealAnswer, readCaseAnswer } from "@/lib/moderation/de
 import { ruleById } from "@/lib/moderation/rules";
 import { AppealForm } from "./AppealForm";
 import { RecursoGame } from "./RecursoGame";
+import { realCase } from "./real";
 import "@/styles/recurso.css";
 
 export const metadata: Metadata = { title: "Conta suspensa", robots: { index: false } };
@@ -28,7 +29,7 @@ export default async function ContaSuspensaPage() {
           <p>Para ver o aviso de uma conta suspensa, entre com ela de novo.</p>
         </BoxHead>
         <div className="wrap">
-          <RecursoGame realAppeal={false} />
+          <RecursoGame realAppeal={false} realCase={null} />
         </div>
         <BoxBody>
           <p>
@@ -43,6 +44,8 @@ export default async function ContaSuspensaPage() {
 
   const { ban, decision, appeal } = info;
   const rule = ruleById(ban.rule);
+  // O caso de verdade vira a primeira audiência do jogo (só enquanto a conta está fechada).
+  const real = ban.revokedAt ? null : await realCase();
   const votes = (decision?.votes ?? []).flatMap((v) => {
     const a = readCaseAnswer(v.model, v.answers);
     return a ? [a] : [];
@@ -62,7 +65,7 @@ export default async function ContaSuspensaPage() {
         </p>
       </BoxHead>
       <div className="wrap">
-        <RecursoGame realAppeal={!ban.revokedAt && !ban.appeal} />
+        <RecursoGame realAppeal={!ban.revokedAt && !ban.appeal} realCase={real} />
       </div>
       <BoxBody
         notes={
