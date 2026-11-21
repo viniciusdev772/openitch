@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   serverExternalPackages: ["mongodb"],
+  // Links antigos da lista de criadores em ordem alfabética: a página estática é /criadores/az.
+  async rewrites() {
+    return [{ source: "/criadores", has: [{ type: "query", key: "ordem", value: "az" }], destination: "/criadores/az" }];
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

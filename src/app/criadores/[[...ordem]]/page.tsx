@@ -12,7 +12,16 @@ export const metadata: Metadata = {
   description: "Quem publica no programa, com a cidade e os jogos de cada um.",
 };
 
-type Props = { searchParams: Promise<{ ordem?: string | string[] }> };
+/*
+ * As duas ordens são páginas estáticas (/criadores e /criadores/az),
+ * regeneradas como o resto do catálogo. ?ordem=az, dos links antigos, é
+ * reescrito para /criadores/az no next.config.
+ */
+export const revalidate = 60;
+export const dynamicParams = false;
+export const generateStaticParams = () => [{ ordem: [] }, { ordem: ["az"] }];
+
+type Props = { params: Promise<{ ordem?: string[] }> };
 type Order = "recentes" | "az";
 
 type Row = {
@@ -48,12 +57,11 @@ function dayMonth(iso: string) {
 
 const ORDERS: { id: Order; label: string; href: string }[] = [
   { id: "recentes", label: "Mais recentes", href: "/criadores" },
-  { id: "az", label: "A-Z", href: "/criadores?ordem=az" },
+  { id: "az", label: "A-Z", href: "/criadores/az" },
 ];
 
-export default async function CreatorsPage({ searchParams }: Props) {
-  const sp = await searchParams;
-  const order: Order = sp.ordem === "az" ? "az" : "recentes";
+export default async function CreatorsPage({ params }: Props) {
+  const order: Order = (await params).ordem?.[0] === "az" ? "az" : "recentes";
   const catalog = await getCatalog();
   if (catalog.creators.length === 0) {
     return (
