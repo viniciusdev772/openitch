@@ -157,6 +157,20 @@
   font-size: 0.875rem;
   white-space: nowrap;
 }
+.pj-itch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+  flex: 1 1 100%;
+}
+.pj-itch .pj-hint {
+  margin: 0;
+}
+.pj-itch code {
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
 .pj-ready {
   display: flex;
   align-items: center;

@@ -3,7 +3,8 @@
 import { ObjectId } from "mongodb";
 import { unstable_rethrow } from "next/navigation";
 import { db } from "@/lib/auth/db";
-import { getSession } from "@/lib/auth/session";
+import { getSession, toObjectId } from "@/lib/auth/session";
+import { itchCode } from "@/lib/projects/publish";
 import { hit, waitText } from "@/lib/auth/ratelimit";
 import { str } from "@/lib/auth/validate";
 import { getCatalog } from "@/lib/catalog/server";
@@ -45,16 +46,47 @@ export async function importFromItch(form: FormData): Promise<ImportResult> {
   });
 }
 
-async function guard(fn: (userId: ObjectId) => Promise<ImportResult>): Promise<ImportResult> {
+export type VerifyResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Confere se a página do itch.io de onde o rascunho veio mostra o código desta
+ * conta (itchCode). Achou: o rascunho fica marcado como do autor, ou com a
+ * permissão dele, e pode ser publicado.
+ */
+export async function verifyItchPage(form: FormData): Promise<VerifyResult> {
+  if (!(form instanceof FormData)) return { ok: false, error: "Pedido inválido." };
+  return guard(async (userId) => {
+    const id = toObjectId(str(form, "id", 40));
+    const { projects } = await db();
+    const p = id && (await projects.findOne({ _id: id, userId, status: { $ne: "excluindo" } }, { projection: { source: 1 } }));
+    const url = p ? p.source?.itchUrl : undefined;
+    if (!p || !url) return { ok: false, error: "Esse rascunho não existe, não é da sua conta ou não veio do itch.io." };
+    if (p.source?.verifiedAt) return { ok: true };
+    const limit = await hit(`itch-conferir:${userId.toHexString()}`, 20, 60 * 60 * 1000);
+    if (!limit.allowed) return { ok: false, error: `Você conferiu muitas vezes seguidas. Espere ${waitText(limit.retryAfterMs)}.` };
+    const code = itchCode(userId);
+    if (!(await fetchItchHtml(url)).includes(code)) {
+      return {
+        ok: false,
+        error: `Ainda não achamos o código ${code} na página ${url}. Cole o código na descrição do jogo no itch.io, salve lá e confira de novo. Se acabou de salvar, espere um minuto.`,
+      };
+    }
+    const now = new Date();
+    await projects.updateOne({ _id: p._id, userId }, { $set: { "source.verifiedAt": now, updatedAt: now } });
+    return { ok: true };
+  });
+}
+
+async function guard<T extends { ok: boolean }>(fn: (userId: ObjectId) => Promise<T | { ok: false; error: string }>): Promise<T | { ok: false; error: string }> {
   try {
     const session = await getSession();
-    if (!session) return { ok: false, error: "Sua sessão terminou. Entre de novo para trazer um jogo." };
+    if (!session) return { ok: false, error: "Sua sessão terminou. Entre de novo para continuar." };
     return await fn(session.user._id);
   } catch (err) {
     unstable_rethrow(err);
     if (err instanceof ItchError) return { ok: false, error: err.message };
     console.error("[itch]", err);
-    return { ok: false, error: "Não conseguimos trazer o jogo agora. Tente de novo em instantes." };
+    return { ok: false, error: "Não conseguimos falar com o itch.io agora. Tente de novo em instantes." };
   }
 }
 

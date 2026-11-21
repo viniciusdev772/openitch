@@ -99,11 +99,10 @@ test("recurso de conta só mantém o banimento com maioria qualificada", () => {
   assert.equal(appealVerdict([0.9, 0.9, 0.9, 0.2, 0.1])!.upheld, true); // remoção de jogo: maioria simples
 });
 
-test("checagem de origem do itch.io: conta, subdomínio e créditos", () => {
-  assert.match(provenanceNote("Ana Lima", "https://analima.itch.io/tide-pools", ["Ana Lima"])!, /matches/);
-  assert.match(provenanceNote("Vinícius Eduardo", "https://vaula.itch.io/deepsong", ["Bruno Werneck"])!, /does NOT match/);
-  assert.match(provenanceNote("Bruno Werneck", "https://vaula.itch.io/deepsong", ["Bruno Werneck"])!, /matches/);
-  assert.equal(provenanceNote("Ana", undefined, []), null);
+test("checagem de origem do itch.io: só o código na página conta", () => {
+  assert.match(provenanceNote("https://vaula.itch.io/deepsong", true)!, /showed a verification code/);
+  assert.match(provenanceNote("https://vaula.itch.io/deepsong", false)!, /has not shown/);
+  assert.equal(provenanceNote(undefined, true), null);
 });
 
 test("nome curto dos juízes", () => {

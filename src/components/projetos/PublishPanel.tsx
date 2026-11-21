@@ -7,6 +7,7 @@ import { entryNumber } from "@/data/base";
 import { useRouter } from "next/navigation";
 import { checkPublish, deleteDraft, publishProject, unpublishProject } from "@/lib/projects/actions";
 import { FILES_CHANGED } from "@/lib/projects/events";
+import { verifyItchPage } from "@/lib/itch/actions";
 import {
   publishFieldProblems,
   type DraftFields,
@@ -19,6 +20,9 @@ import {
 type Live = { state: PublishState; slug: string | null; number: number | null };
 
 const OFFLINE = "Sem conexão com o servidor. Nada mudou: tente de novo em instantes.";
+
+/** O que só o servidor sabe: arquivos, a página do itch e a moderação (os campos, o formulário já mostra). */
+const serverOnly = (ps: PublishProblem[] | undefined) => (ps ?? []).filter((p) => p.file || !p.field);
 
 /**
  * O último passo da sequência: entrar no programa. Mostra o que falta (o que
@@ -72,7 +76,7 @@ export function PublishPanel({
     try {
       const res = await checkPublish(fd);
       if (res.ok) setFiles([]);
-      else if (res.code === "pendencias") setFiles((res.problems ?? []).filter((p) => p.file));
+      else if (res.code === "pendencias") setFiles(serverOnly(res.problems));
     } catch {
       /* sem rede: a lista do formulário continua valendo; publicar confere de novo */
     } finally {
@@ -120,7 +124,7 @@ export function PublishPanel({
         setMessage({ ok: true, text: done(res) });
         return;
       }
-      if (res.code === "pendencias") setFiles((res.problems ?? []).filter((p) => p.file));
+      if (res.code === "pendencias") setFiles(serverOnly(res.problems));
       setMessage({ ok: false, text: res.error });
     });
   };
@@ -178,7 +182,7 @@ export function PublishPanel({
           <ul>
             {problems.map((p) => (
               <li key={p.text}>
-                <span>{p.text}</span>
+                {p.itch ? <ItchCheck draftId={draftId} {...p.itch} text={p.text} onDone={check} /> : <span>{p.text}</span>}
                 {p.field ? (
                   <button type="button" className="bo-link" onClick={() => onFocusField(p.field!)}>
                     Ir ao campo
@@ -253,6 +257,53 @@ export function PublishPanel({
       ) : null}
 
       <DeleteGame draftId={draftId} live={isLive} />
+    </div>
+  );
+}
+
+/**
+ * Prova de autoria do jogo trazido do itch.io: o código desta conta colado na
+ * descrição do jogo lá. Quem tem a permissão do autor pede para ele colar.
+ */
+function ItchCheck({ draftId, url, code, text, onDone }: { draftId: string; url: string; code: string; text: string; onDone: () => void }) {
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const confirm = () => {
+    if (pending) return;
+    const fd = new FormData();
+    fd.set("id", draftId);
+    setError(null);
+    startTransition(async () => {
+      try {
+        const res = await verifyItchPage(fd);
+        if (res.ok) onDone();
+        else setError(res.error);
+      } catch {
+        setError(OFFLINE);
+      }
+    });
+  };
+
+  return (
+    <div className="pj-itch">
+      <span>{text}</span>
+      <p className="pj-hint">
+        Cole <code>{code}</code> em qualquer lugar da descrição do jogo na{" "}
+        <a href={url} className="bo-link" target="_blank" rel="noreferrer">
+          página do itch.io
+        </a>{" "}
+        e salve lá. Se o jogo é de outra pessoa, peça para ela colar. Depois de conferido, o código pode sair de lá.
+      </p>
+      <button type="button" className="btn btn--sm" onClick={confirm} aria-disabled={pending || undefined}>
+        {pending ? <LoaderCircle aria-hidden className="bo-spin" /> : null}
+        {pending ? "Conferindo" : "Já colei, conferir"}
+      </button>
+      {error ? (
+        <p className="field-error" role="alert">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

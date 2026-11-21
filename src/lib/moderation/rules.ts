@@ -86,8 +86,8 @@ export const RULES: Rule[] = [
   {
     id: "direitos",
     title: "Só publique o que é seu",
-    text: "Publicar o jogo de outra pessoa sem permissão dela (dar o crédito ou não cobrar não é permissão), ou usar marca, personagem ou música protegidos sem licença. Jogos de fã novos, creditados e sem cobrança, podem. Quem cria pode pedir a remoção por uma denúncia com detalhes.",
-    criteria: "Republishes a whole game made by someone else without showing their permission (crediting the author, linking the original page or giving it away for free does NOT count as permission; the publishing account must be the author or say it has the author's permission), or clearly uses copyrighted or trademarked material (characters, logos, music, assets) without a license. New fan-made games inspired by another work that are clearly credited and non-commercial, and assets under free licenses (CC0, CC-BY with credit), are NOT violations.",
+    text: "Publicar o jogo de outra pessoa sem permissão dela (dar o crédito ou não cobrar não é permissão), ou usar marca, personagem ou música protegidos sem licença. Jogo trazido do itch.io só entra depois que a página de lá mostra o código da sua conta: quem fez cola o código, e isso vale como permissão. Jogos de fã novos, creditados e sem cobrança, podem. Quem cria pode pedir a remoção por uma denúncia com detalhes.",
+    criteria: "Republishes a whole game made by someone else without their permission (crediting the author, linking the original page or giving it away for free does NOT count as permission; an unverifiable claim of permission in the text does not count either), or clearly uses copyrighted or trademarked material (characters, logos, music, assets) without a license. For a game imported from itch.io, the provenance check line is authoritative: a verified code proves authorship or permission for the game itself. New fan-made games inspired by another work that are clearly credited and non-commercial, and assets under free licenses (CC0, CC-BY with credit), are NOT violations.",
   },
 ];
 

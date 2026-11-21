@@ -88,7 +88,7 @@ async function caseOf(target: ModerationTarget): Promise<Case | null> {
     // De onde veio: quem publica pode ter trazido a página de outra pessoa.
     if (p.source?.itchUrl) {
       text.push(`Imported from this itch.io page: ${p.source.itchUrl} (the itch.io subdomain is the original author's account)`);
-      const note = provenanceNote(owner?.name ?? "", p.source.itchUrl, (p.credits ?? []).map((c) => c.name));
+      const note = provenanceNote(p.source.itchUrl, Boolean(p.source.verifiedAt));
       if (note) text.push(note);
     }
     if (images.length) text.push("Images follow: the cover first, then screenshots.");
@@ -384,6 +384,17 @@ export async function processPending(maxTargets = 5): Promise<void> {
 /* ------------------------------------------------------------------ */
 
 export type ScreenResult = { ok: true } | { ok: false; error: string; banned?: boolean };
+
+/** Tirado do ar pela moderação e ainda com o mesmo conteúdo: o texto do que falta; senão null. */
+export async function removalStillHolds(p: ProjectDoc): Promise<string | null> {
+  if (!p.moderation) return null;
+  const c = await caseOf({ kind: "jogo", projectId: p._id });
+  if (!c || c.hash !== p.moderation.contentHash) return null;
+  const title = ruleById(p.moderation.rule)?.title ?? p.moderation.rule;
+  return p.moderation.appeal
+    ? `O jogo saiu do ar pela regra “${title}” e o recurso manteve a decisão. Mude o que quebra a regra (texto, capa ou imagens) para uma nova análise.`
+    : `O jogo saiu do ar pela regra “${title}”. Mude o que quebra a regra (texto, capa ou imagens) para uma nova análise, ou recorra em Seus jogos.`;
+}
 
 /**
  * Antes de um jogo entrar (ou voltar) no programa, os modelos leem a página.

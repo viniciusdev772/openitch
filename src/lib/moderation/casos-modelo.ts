@@ -32,13 +32,9 @@ export interface RecursoModelo {
 }
 
 /** Monta a página como o servidor monta (server.ts, caseOf), inclusive a checagem de origem do itch.io. */
-const page = (fields: Record<string, string>, by: string, extra: string[] = []) => {
+const page = (fields: Record<string, string>, by: string, extra: string[] = [], itchVerified = false) => {
   const itch = extra.join(" ").match(/https:\/\/[a-z0-9-]+\.itch\.io\/\S+/)?.[0];
-  const credits = (fields.Credits ?? "")
-    .split(";")
-    .map((c) => c.split(":").slice(1).join(":").trim())
-    .filter(Boolean);
-  const note = provenanceNote(by, itch, credits);
+  const note = provenanceNote(itch, itchVerified);
   return [
     "GAME PAGE on Portal dos Games",
     ...Object.entries(fields).map(([k, v]) => `${k}: ${v}`),
@@ -138,7 +134,7 @@ export const CASOS: CasoModelo[] = [
   },
   {
     id: "limpo-autor-itch",
-    sobre: "Importado do itch.io pelo próprio autor (mesmo nome)",
+    sobre: "Importado do itch.io pelo próprio autor (código conferido na página)",
     text: page(
       {
         Title: "Tide Pools",
@@ -148,6 +144,7 @@ export const CASOS: CasoModelo[] = [
       },
       "Ana Lima",
       ["Imported from this itch.io page: https://analima.itch.io/tide-pools (the itch.io subdomain is the original author's account)"],
+      true,
     ),
     claims: [],
     espera: "arquivada",

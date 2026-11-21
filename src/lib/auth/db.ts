@@ -172,7 +172,12 @@ export interface ProjectDoc {
   contentNotes?: string[];
   credits?: { role: string; name: string }[];
   /** De onde o rascunho foi trazido (itch.io), para não importar o mesmo jogo duas vezes. */
-  source?: { itchUrl: string; itchId: number };
+  source?: {
+    itchUrl: string;
+    itchId: number;
+    /** A página do itch mostrou o código desta conta: quem publica é o autor ou tem a permissão dele. */
+    verifiedAt?: Date;
+  };
   /** Capturas de tela (bucket jogável, b/capa-*), na ordem de exibição. */
   screenshots?: { bucket: string; key: string; url: string }[];
   /** Tirado do ar pela moderação: só volta depois de mudar e passar numa nova análise. */

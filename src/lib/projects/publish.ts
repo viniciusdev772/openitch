@@ -2,6 +2,8 @@ import "server-only";
 import { MongoServerError, type ObjectId } from "mongodb";
 import { PLATFORMS, type Platform } from "@/data/base";
 import { db, type ProjectDoc } from "@/lib/auth/db";
+import { hmac } from "@/lib/auth/crypto";
+import { removalStillHolds } from "@/lib/moderation/server";
 import { slugify } from "@/lib/slug";
 import { publishFieldProblems, suggestSlug, type PublishProblem } from "./limits";
 
@@ -36,8 +38,24 @@ export async function publishProblems(p: ProjectDoc): Promise<PublishProblem[]> 
       out.push({ field: "platforms", file: true, text: `Envie o arquivo de ${PLATFORMS[x].name}, ou desmarque essa plataforma.` });
     }
   }
+  // Trazido do itch.io: a página de lá precisa mostrar o código desta conta (autoria ou permissão).
+  if (p.source?.itchUrl && !p.source.verifiedAt) {
+    out.push({
+      itch: { url: p.source.itchUrl, code: itchCode(p.userId) },
+      text: "Confirme no itch.io que o jogo é seu, ou que quem fez deixou você publicar.",
+    });
+  }
+  const held = await removalStillHolds(p);
+  if (held) out.push({ text: held });
   return out;
 }
+
+/**
+ * Código que prova a ligação entre esta conta e uma página do itch.io: quem
+ * controla a página cola o código na descrição de lá. Serve para o autor e
+ * para quem tem a permissão dele (o autor cola o código da outra conta).
+ */
+export const itchCode = (userId: ObjectId) => `portaldosgames-${hmac("itch", userId.toHexString()).slice(0, 10)}`;
 
 /** Tenta `base`, depois `base-2`, `base-3`…: o primeiro que o índice único aceitar fica. */
 async function claim(base: string, max: number, tryOne: (slug: string) => Promise<boolean>): Promise<string> {

@@ -47,7 +47,7 @@ function masterSecret(): Buffer {
   return master;
 }
 
-type Purpose = "pepper" | "totp" | "recovery" | "ratelimit" | "suspensa" | "denuncia" | "novato";
+type Purpose = "pepper" | "totp" | "recovery" | "ratelimit" | "suspensa" | "denuncia" | "novato" | "itch";
 const derived = new Map<Purpose, Buffer>();
 function key(purpose: Purpose): Buffer {
   let k = derived.get(purpose);

@@ -254,6 +254,8 @@ export interface PublishProblem {
   text: string;
   /** Pendência de arquivo (vem do armazenamento, não do formulário). */
   file?: true;
+  /** Falta conferir a página do itch.io: o código desta conta tem que aparecer nela. */
+  itch?: { url: string; code: string };
 }
 
 export type PublishResult =

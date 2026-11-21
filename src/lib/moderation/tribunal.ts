@@ -23,35 +23,17 @@ import { ruleById, type RuleId } from "./rules";
  * turma, plenário quando preciso, e a fundamentação escrita pelo relator.
  */
 
-const norm = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
-
 /**
- * Um fato sobre a origem, sem julgamento: o nome da conta que publica bate com
- * a conta do itch.io de onde o jogo veio, ou com alguém nos créditos? Sem essa
- * linha os juízes viam "Criação: fulano" e não percebiam que quem publicou é
- * outra pessoa (calibração de 21/11/2026).
+ * Um fato sobre a origem: a página do itch.io mostrou o código da conta que
+ * publica (lib/projects/publish.ts, itchCode)? Só o dono da página consegue
+ * pôr o código lá, então isso prova autoria ou permissão. Comparar nomes não
+ * prova nada (qualquer um troca o nome da conta) e não entra mais.
  */
-export function provenanceNote(account: string, itchUrl: string | undefined, credits: string[]): string | null {
+export function provenanceNote(itchUrl: string | undefined, verified: boolean): string | null {
   if (!itchUrl) return null;
-  let sub = "";
-  try {
-    sub = new URL(itchUrl).hostname.split(".")[0] ?? "";
-  } catch {
-    return null;
-  }
-  const a = norm(account);
-  const s = norm(sub);
-  const names = credits.map(norm).filter((x) => x.length >= 3);
-  const matches =
-    a.length >= 3 && (a === s || (s.length >= 4 && (a.includes(s) || s.includes(a))) || names.some((n) => n === a || n.includes(a) || a.includes(n)));
-  return matches
-    ? `Provenance check: the publishing account name "${account}" matches the itch.io account "${sub}" or a person in the credits.`
-    : `Provenance check: the publishing account name "${account}" does NOT match the itch.io account "${sub}" nor anyone in the credits${credits.length ? ` (${credits.join("; ")})` : ""}. Unless the page shows permission, this is someone else's game.`;
+  return verified
+    ? `Provenance check: the itch.io page ${itchUrl} showed a verification code issued to the publishing account. Only whoever controls that itch.io page can put it there, so the publishing account is the author or has the author's permission.`
+    : `Provenance check: the itch.io page ${itchUrl} has not shown the publishing account's verification code, so nothing confirms that the publishing account is the author or has the author's permission. Names on the page or on the account do not confirm it either.`;
 }
 
 export interface Vote {
