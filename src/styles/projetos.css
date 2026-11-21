@@ -366,6 +366,20 @@
 .pj-page .bo-back {
   margin-bottom: var(--s-6);
 }
+.pj-space {
+  display: grid;
+  gap: var(--s-2);
+  max-width: 62ch;
+  margin-bottom: var(--s-6);
+}
+.pj-space .dl-quota {
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+.pj-space .pj-hint {
+  margin: 0;
+}
 .pj-list-section .acc-head h2:focus,
 .pj-start h2:focus {
   outline: none;

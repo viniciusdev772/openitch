@@ -116,8 +116,6 @@ export default function DownloadFiles({ projectId, platforms }: Props) {
     if (running || !projectId) return;
     const next = rows.find((r) => r.queued);
     if (!next) return;
-    // O envio aberto já conta no espaço da conta: atualiza a linha de espaço uma vez.
-    let counted = false;
     const up = new Uploader({
       projectId,
       platform: next.platform,
@@ -125,10 +123,6 @@ export default function DownloadFiles({ projectId, platforms }: Props) {
       resumeId: next.resumeId,
       onChange: (snap) => {
         setRows((rs) => rs.map((r) => (r.localId === next.localId ? { ...r, snap } : r)));
-        if (snap.phase === "enviando" && !counted) {
-          counted = true;
-          void refresh();
-        }
         if (snap.phase === "pronto") {
           setAnnounce(`${snap.name} enviado.`);
           void refresh().then(() => {
@@ -252,32 +246,10 @@ export default function DownloadFiles({ projectId, platforms }: Props) {
     );
   }
 
-  const usedPct = list ? pct(list.used, list.quota) : 0;
-
   return (
     <section className="dl" aria-labelledby={`${uid}-t`}>
       <div className="dl-head">
         <h3 id={`${uid}-t`}>Arquivos para baixar</h3>
-        {list ? (
-          <p className="dl-quota">
-            <span className="dl-quota-text">
-              Espaço da conta: <span className="num">{formatSize(list.used)}</span> de{" "}
-              <span className="num">{formatSize(list.quota)}</span>
-            </span>
-            <span
-              className="dl-meter"
-              role="meter"
-              aria-label="Espaço usado"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={usedPct}
-              aria-valuetext={`${usedPct}% usado`}
-              data-full={usedPct >= 90 ? "true" : undefined}
-            >
-              <span style={{ width: `${Math.max(usedPct, list.used > 0 ? 1 : 0)}%` }} />
-            </span>
-          </p>
-        ) : null}
       </div>
 
       {loadError ? (

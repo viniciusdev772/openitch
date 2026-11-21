@@ -1,4 +1,5 @@
 import "@/styles/projetos.css";
+import "@/styles/envios.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect, unstable_rethrow } from "next/navigation";
@@ -10,16 +11,19 @@ import { DraftList, type OpenJam } from "@/components/projetos/DraftList";
 import { getSession } from "@/lib/auth/session";
 import { listDrafts } from "@/lib/projects/rules";
 import { LIMITS, type DraftRow } from "@/lib/projects/limits";
+import { USER_QUOTA_BYTES, formatBytes } from "@/lib/storage/limits";
+import { usageOf } from "@/lib/uploads/server";
 
 export const metadata: Metadata = { title: "Seus jogos", robots: { index: false } };
 
 export default async function ProjetosPage() {
   // null: o banco não respondeu. A página abre do mesmo jeito, dizendo isso e oferecendo tentar de novo.
   let drafts: DraftRow[] | null = null;
+  let used: number | null = null;
   let signedIn = true;
   try {
     const session = await getSession();
-    if (session) drafts = await listDrafts(session.user._id);
+    if (session) [drafts, used] = await Promise.all([listDrafts(session.user._id), usageOf(session.user._id)]);
     else signedIn = false;
   } catch (err) {
     unstable_rethrow(err);
@@ -53,6 +57,7 @@ export default async function ProjetosPage() {
           <ArrowLeft aria-hidden size={18} />
           Sua conta
         </Link>
+        {used !== null ? <AccountSpace used={used} /> : null}
         {drafts ? (
           <DraftList drafts={drafts} jamTitles={jamTitles} openJams={openJams} max={LIMITS.drafts} />
         ) : (
@@ -70,5 +75,37 @@ export default async function ProjetosPage() {
         )}
       </div>
     </>
+  );
+}
+
+/** Quanto da conta os arquivos dos jogos ocupam, somados. */
+function AccountSpace({ used }: { used: number }) {
+  const pct = Math.min(100, Math.floor((used / USER_QUOTA_BYTES) * 100));
+  return (
+    <div className="pj-space">
+      <p className="dl-quota">
+        <span className="dl-quota-text">
+          Espaço da conta: <span className="num">{formatBytes(used)}</span> de{" "}
+          <span className="num">{formatBytes(USER_QUOTA_BYTES)}</span>
+        </span>
+        <span
+          className="dl-meter"
+          role="meter"
+          aria-label="Espaço usado"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={pct}
+          aria-valuetext={`${pct}% usado`}
+          data-full={pct >= 90 ? "true" : undefined}
+        >
+          <span style={{ width: `${Math.max(pct, used > 0 ? 1 : 0)}%` }} />
+        </span>
+      </p>
+      <p className="pj-hint">
+        É a soma dos arquivos para baixar e dos builds de navegador de todos os seus jogos, rascunhos e publicados.
+        Capa e imagens não contam. Quando o espaço acaba, novos envios param; para liberar, abra um jogo e exclua os
+        arquivos ou builds que não usa mais.
+      </p>
+    </div>
   );
 }

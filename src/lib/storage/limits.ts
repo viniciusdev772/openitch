@@ -26,4 +26,4 @@ export const UPLOAD_URL_TTL = 60 * 60;
 export const DOWNLOAD_URL_TTL = 10 * 60;
 
 export const formatBytes = (n: number) =>
-  n >= GiB ? `${(n / GiB).toFixed(2).replace(".", ",")} GB` : n >= MiB ? `${Math.round(n / MiB)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
+  n <= 0 ? "0 MB" : n >= GiB ? `${(n / GiB).toFixed(2).replace(".", ",")} GB` : n >= MiB ? `${Math.round(n / MiB)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
