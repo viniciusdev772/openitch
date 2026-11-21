@@ -147,7 +147,7 @@ export interface AppealResult {
 export async function judgeAppealCase(
   key: string,
   input: {
-    target: "conta" | "jogo";
+    target: "conta" | "jogo" | "comentario";
     rule: RuleId;
     original: { violation: number | null; severity: number | null };
     snapshot: string[];

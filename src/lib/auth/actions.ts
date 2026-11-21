@@ -22,6 +22,7 @@ import { deleteBuildsOfUser } from "@/lib/builds/cleanup";
 import { revalidatePublic } from "@/lib/catalog/revalidate";
 import { stripInvisible } from "@/lib/projects/limits";
 import { deleteCoverObjects } from "@/lib/projects/cover-store";
+import { deleteSocialOfProject, deleteSocialOfUser } from "@/lib/comments/server";
 import {
   clearMfaChallenge,
   createMfaChallenge,
@@ -629,7 +630,10 @@ async function deleteAccountInner(_prev: FormState, form: FormData): Promise<For
     const { users, sessions, mfa, events, saves, follows, projects } = await db();
     for (const p of await projects.find({ userId: user._id }, { projection: { coverImage: 1, pendingCover: 1, screenshots: 1 } }).toArray()) {
       await deleteCoverObjects(p);
+      await deleteSocialOfProject(p._id);
     }
+    // Comentários e curtidas da conta em jogos de outras pessoas.
+    await deleteSocialOfUser(user._id);
     await sessions.deleteMany({ userId: user._id });
     await mfa.deleteMany({ userId: user._id });
     await events.deleteMany({ userId: user._id });

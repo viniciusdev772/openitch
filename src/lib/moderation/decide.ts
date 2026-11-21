@@ -79,7 +79,7 @@ export function caseQuestions() {
     viola: {
       type: "noul",
       instructions:
-        "You are the moderator of Portal dos Games, an open storefront for independent games. The state holds a game page or a creator profile, and possibly a report someone filed about it. Reports can be wrong or made in bad faith: judge the content itself. Does the content break any community rule?",
+        "You are the moderator of Portal dos Games, an open storefront for independent games. The state holds a game page, a creator profile or a comment left on a game page, and possibly a report someone filed about it. Harsh but honest criticism of a game is allowed in comments. Reports can be wrong or made in bad faith: judge the content itself. Does the content break any community rule?",
       criteria: {
         true: "The content clearly breaks at least one of the community rules.",
         false: "The content breaks no rule, or the report is unfounded, or the evidence is too weak.",
@@ -102,10 +102,11 @@ export function caseQuestions() {
 }
 
 /** Pergunta do recurso: manter ou desfazer um banimento ("conta") ou a remoção de um jogo ("jogo"). */
-export function appealQuestions(target: "conta" | "jogo" = "conta") {
-  const what = target === "conta" ? "An account on Portal dos Games was closed" : "A game on Portal dos Games was taken down";
-  const stay = target === "conta" ? "Should the account stay closed?" : "Should the game stay taken down?";
-  const enough = target === "conta" ? "serious enough to close an account" : "serious enough to take the game down";
+export function appealQuestions(target: "conta" | "jogo" | "comentario" = "conta") {
+  const thing = { conta: "account", jogo: "game", comentario: "comment" }[target];
+  const what = target === "conta" ? "An account on Portal dos Games was closed" : `A ${thing} on Portal dos Games was taken down`;
+  const stay = target === "conta" ? "Should the account stay closed?" : `Should the ${thing} stay taken down?`;
+  const enough = target === "conta" ? "serious enough to close an account" : `serious enough to take the ${thing} down`;
   return {
     manter: {
       type: "noul",

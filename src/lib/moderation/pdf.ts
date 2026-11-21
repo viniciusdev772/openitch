@@ -15,7 +15,7 @@ const OUTCOME: Record<ModerationDoc["outcome"], string> = {
 
 /** Os dados do PDF a partir de uma decisão guardada. `target` diz o que foi julgado ('Jogo "X"'). */
 export function pdfDataOf(
-  d: Pick<ModerationDoc, "_id" | "at" | "kind" | "stage" | "rule" | "outcome" | "reasoning" | "votes" | "mitigated">,
+  d: Pick<ModerationDoc, "_id" | "at" | "kind" | "stage" | "rule" | "outcome" | "reasoning" | "votes" | "mitigated"> & { targetKey?: string },
   target: string,
   /** Nas decisões de recurso: o texto que a pessoa escreveu. */
   appealText?: string,
@@ -34,9 +34,14 @@ export function pdfDataOf(
     const other = !saw ? " · nenhuma regra" : a.rule !== d.rule ? ` · ${ruleById(a.rule)?.title ?? a.rule}` : "";
     return [{ judge: judgeName(v.model), vote: `violação ${pct(a.violation)} · gravidade ${a.severity.toFixed(1).replace(".", ",")} de 3${other}` }];
   });
-  const outcome = OUTCOME[d.outcome] + (d.mitigated ? " O plenário pediu o fechamento da conta, mas sem a maioria qualificada; ficou a pena menor." : "");
+  const comment = d.targetKey?.startsWith("comentario:") ?? false;
+  const outcome =
+    (comment && d.outcome === "removido" ? "O comentário foi tirado da página." : OUTCOME[d.outcome]) +
+    (d.mitigated ? " O plenário pediu o fechamento da conta, mas sem a maioria qualificada; ficou a pena menor." : "");
   const next =
-    d.outcome === "removido"
+    d.outcome === "removido" && comment
+      ? "Você pode recorrer uma vez, no próprio comentário, na página do jogo (só você o vê enquanto estiver removido)."
+      : d.outcome === "removido"
       ? "Você pode recorrer uma vez, em Seus jogos (/conta/projetos), ou mudar o que quebra a regra e publicar de novo, o que passa por uma nova análise."
       : d.outcome === "banido"
         ? "Você pode recorrer uma vez, na página que aparece ao tentar entrar. A conta só continua fechada se 4 de 5 juízes votarem para manter."

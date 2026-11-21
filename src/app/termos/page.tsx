@@ -43,7 +43,10 @@ export default function TermosPage() {
           <GuideSection id="resumo" title="Em resumo">
             <div className="guide-prose">
               <ul>
-                <li>Para olhar, jogar e denunciar, você não precisa de conta. Para publicar e guardar jogos, precisa.</li>
+                <li>
+                  Para olhar, jogar, ler comentários e denunciar, você não precisa de conta. Para publicar, guardar jogos,
+                  comentar e curtir, precisa.
+                </li>
                 <li>O que você publica continua seu. Você só nos autoriza a mostrar e distribuir enquanto estiver no programa.</li>
                 <li>Algumas coisas não podem ser publicadas; a lista está em <a href="#regras">Regras da comunidade</a>.</li>
                 <li>
@@ -80,6 +83,13 @@ export default function TermosPage() {
                 exclusão). Você declara que tem o direito de publicar tudo o que envia.
               </p>
               <p>
+                <strong>Comentários e curtidas.</strong> Com conta, você comenta na página de um jogo publicado, responde a
+                outros comentários e curte jogos e comentários (menos os seus). Comentários são públicos, com o seu nome. Você
+                edita ou apaga os seus quando quiser; quem criou o jogo pode ocultar comentários da própria página. Contas novas,
+                no período de espera acima, não podem pôr links nos comentários. Crítica dura a um jogo pode; ataque a pessoas
+                e o resto das <a href="#regras">regras</a>, não.
+              </p>
+              <p>
                 <strong>Jogos de outras pessoas.</strong> Os jogos são feitos e enviados por quem publica, não pelo Portal dos
                 Games. Baixar e rodar um arquivo é decisão sua. Os jogos de Windows abertos no navegador rodam num emulador
                 experimental, isolado do seu computador, e podem não funcionar.
@@ -102,7 +112,7 @@ export default function TermosPage() {
           <GuideSection
             id="regras"
             title="Regras da comunidade"
-            intro="Vale para tudo o que fica público: página do jogo, capa, imagens, arquivos e perfil de criador. Temas difíceis e violência de ficção podem; o que segue, não."
+            intro="Vale para tudo o que fica público: página do jogo, capa, imagens, arquivos, perfil de criador e comentários. Temas difíceis e violência de ficção podem; o que segue, não."
           >
             <dl className="principles">
               {RULES.map((r) => (
@@ -127,15 +137,15 @@ export default function TermosPage() {
           <GuideSection id="moderacao" title="Moderação por IA">
             <div className="guide-prose">
               <p>
-                <strong>Quando acontece.</strong> Quando alguém denuncia um jogo publicado ou um perfil de criador (o link
-                “Denunciar” fica na página), e quando um jogo vai entrar no programa: antes de publicar, a página é lida pela
+                <strong>Quando acontece.</strong> Quando alguém denuncia um jogo publicado, um perfil de criador ou um
+                comentário (o link “Denunciar” fica na página e em cada comentário), e quando um jogo vai entrar no programa: antes de publicar, a página é lida pela
                 mesma análise. Qualquer pessoa denuncia, com ou sem conta, menos o que é dela. Jogadores sem jogo publicado
                 não têm página pública, então não há o que denunciar neles.
               </p>
               <p>
                 <strong>Quem decide.</strong> Um tribunal de modelos de decisão, acessados pelo OpenRouter. Eles não escrevem
                 texto: leem o conteúdo (título, descrição, etiquetas, créditos, nomes dos arquivos, origem no itch.io, capa e
-                até três imagens, ou o perfil) e respondem três perguntas com probabilidades: se alguma regra foi quebrada,
+                até três imagens; o perfil; ou o comentário, com o jogo e o comentário a que ele responde) e respondem três perguntas com probabilidades: se alguma regra foi quebrada,
                 qual, e quão grave é. Os juízes vêm de empresas diferentes de propósito, porque modelos parecidos erram juntos.
               </p>
               <dl className="principles">
@@ -174,8 +184,9 @@ export default function TermosPage() {
                   <strong>Arquivada:</strong> nenhuma regra quebrada, ou algo leve demais para agir. Nada muda.
                 </li>
                 <li>
-                  <strong>Tirado do ar:</strong> violação séria. O jogo volta a ser rascunho (ou o texto do perfil é apagado).
-                  Você recorre, ou muda o que quebra a regra e publica de novo; a nova versão passa por outra análise.
+                  <strong>Tirado do ar:</strong> violação séria. O jogo volta a ser rascunho, o texto do perfil é apagado ou o
+                  comentário sai da página (só quem escreveu continua vendo, com o motivo). Você recorre, ou, num jogo, muda o
+                  que quebra a regra e publica de novo; a nova versão passa por outra análise.
                 </li>
                 <li>
                   <strong>Conta fechada:</strong> violação gravíssima, violação séria de uma regra de tolerância zero, ou a{" "}
@@ -209,6 +220,11 @@ export default function TermosPage() {
                 publicar de novo, o que passa por uma nova análise.
               </p>
               <p>
+                <strong>Comentário removido.</strong> Na página do jogo, só quem escreveu vê o comentário removido, com a regra,
+                a fundamentação e o link “Recorrer da remoção”, nas mesmas condições do jogo: um recurso, plenário, maioria
+                simples. Se cair, o comentário volta e a remoção deixa de contar.
+              </p>
+              <p>
                 Isso atende ao direito de pedir a revisão de uma decisão tomada só por tratamento automatizado (Lei Geral de
                 Proteção de Dados, art. 20).
               </p>
@@ -220,11 +236,11 @@ export default function TermosPage() {
               <p>
                 <strong>O que guardamos.</strong> Nome, e-mail, a senha só como hash (nunca o texto), as sessões abertas (com
                 IP, navegador e local aproximado), um registro de segurança da conta (180 dias), seus rascunhos, jogos,
-                arquivos e a estante. Se você entra pelo Google ou pelo Resumestre, guardamos o identificador da conta lá.
+                arquivos, a estante, seus comentários e suas curtidas. Se você entra pelo Google ou pelo Resumestre, guardamos o identificador da conta lá.
               </p>
               <p>
                 <strong>O que vai para a moderação.</strong> Só conteúdo que já é público ou que você mesmo escreve para a
-                análise: a página do jogo ou o perfil, nomes dos arquivos, capa e imagens, o texto das denúncias e o do recurso.
+                análise: a página do jogo, o perfil ou o comentário, nomes dos arquivos, capa e imagens, o texto das denúncias e o do recurso.
                 Isso é enviado ao OpenRouter e às empresas dos modelos citados acima (Liquid AI, Perplexity, TypeSafe, Google,
                 Microsoft e Anthropic). E-mail, senha, IP e quem fez a denúncia
                 nunca são enviados. Quem é denunciado não fica sabendo quem denunciou. De uma denúncia sem conta guardamos
@@ -233,8 +249,9 @@ export default function TermosPage() {
               <p>
                 <strong>Por quanto tempo.</strong> Denúncias ficam guardadas por 1 ano. Decisões de moderação (com o que foi
                 lido e os votos) ficam por 5 anos, para responder a recursos, cumprir a lei e impedir a volta de contas banidas.
-                Ao excluir a conta, apagamos conta, sessões, registro, estante, rascunhos, jogos, arquivos e as denúncias que
-                você fez.
+                Ao excluir a conta, apagamos conta, sessões, registro, estante, rascunhos, jogos, arquivos, curtidas,
+                comentários e as denúncias que você fez. Um comentário seu que já tem respostas de outras pessoas vira
+                “apagado”, sem texto nem nome, para o fio delas continuar.
               </p>
               <p>
                 <strong>Onde fica.</strong> O site roda na Vercel; os dados ficam num banco MongoDB; os arquivos, num

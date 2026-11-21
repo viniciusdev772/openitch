@@ -1,5 +1,6 @@
 import "@/styles/estante.css";
 import "@/styles/jogo.css";
+import "@/styles/comentarios.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { tagHref } from "@/components/etiquetas/slug";
@@ -14,6 +15,7 @@ import { LibraryButton } from "@/components/library/LibraryButton";
 import { LibraryState } from "@/components/library/LibraryState";
 import { OwnerBar } from "@/components/library/OwnerBar";
 import { ReportButton } from "@/components/ReportButton";
+import { Comments } from "@/components/comments/Comments";
 import { BuyCard } from "./BuyCard";
 import { Controls, DayNumeral, gameLog } from "./parts";
 
@@ -278,6 +280,8 @@ export default async function GamePage({ params }: Props) {
           )}
         </div>
       )}
+
+      <Comments slug={game.slug} />
 
       {related.length > 0 && (
         <section className="wrap more" aria-labelledby="mais">

@@ -8,7 +8,7 @@ import { str } from "@/lib/auth/validate";
 import { requestInfo } from "@/lib/auth/request";
 import { stripInvisible } from "@/lib/projects/limits";
 import { toObjectId } from "@/lib/auth/session";
-import { appealBan, appealRemoval, fileReport, processPending } from "./server";
+import { appealBan, appealComment, appealRemoval, fileReport, processPending } from "./server";
 
 export type ReportState = { ok?: string; error?: string } | undefined;
 export type AppealState = { ok?: string; upheld?: boolean; error?: string; reasoning?: string | null } | undefined;
@@ -20,6 +20,7 @@ const SERVER_DOWN = "Não conseguimos falar com o servidor agora. Tente de novo 
 export async function reportContent(_prev: ReportState, form: FormData): Promise<ReportState> {
   const kind = str(form, "tipo", 10);
   const slug = str(form, "alvo", 80);
+  const isComment = kind === "comentario";
   const rule = str(form, "regra", 30);
   const details = stripInvisible(str(form, "detalhes", 1200)).trim();
   if (!rule) return { error: "Escolha a regra que foi quebrada." };
@@ -39,7 +40,7 @@ export async function reportContent(_prev: ReportState, form: FormData): Promise
     return {
       ok: res.repeated
         ? "Você já denunciou isto há pouco. A análise já foi pedida."
-        : "Denúncia recebida. A análise automática leva alguns minutos; se a regra foi quebrada, o conteúdo sai do ar.",
+        : `Denúncia recebida. A análise automática leva alguns minutos; se a regra foi quebrada, ${isComment ? "o comentário sai da página" : "o conteúdo sai do ar"}.`,
     };
   } catch (err) {
     unstable_rethrow(err);
@@ -63,6 +64,31 @@ export async function submitAppeal(_prev: AppealState, form: FormData): Promise<
     return res.upheld
       ? { upheld: true, ok: "Recurso analisado pelo plenário: a decisão foi mantida.", reasoning: res.reasoning }
       : { upheld: false, ok: "Recurso aceito pelo plenário: sua conta foi reaberta e os jogos que estavam no ar voltaram. Entre de novo.", reasoning: res.reasoning };
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("[recurso]", err);
+    return { error: SERVER_DOWN };
+  }
+}
+
+/** Recurso contra a remoção de um comentário, no próprio comentário (página do jogo). */
+export async function submitCommentAppeal(_prev: AppealState, form: FormData): Promise<AppealState> {
+  const text = stripInvisible(str(form, "recurso", 2200)).trim();
+  const id = toObjectId(str(form, "id", 40));
+  if (!id) return { error: "Pedido inválido." };
+  if (text.length < 20) return { error: "Explique por que a decisão está errada (pelo menos 20 letras)." };
+  if (text.length > 2000) return { error: "Use no máximo 2.000 caracteres." };
+  try {
+    const session = await getSession();
+    if (!session) return { error: "Sua sessão terminou. Entre de novo para recorrer." };
+    const userId = session.user._id;
+    const limit = await hit(`recurso:${userId.toHexString()}`, 5, 60 * MIN);
+    if (!limit.allowed) return { error: `Muitas tentativas. Espere ${waitText(limit.retryAfterMs)}.` };
+    const res = await appealComment(userId, id, text);
+    if (!res.ok) return { error: res.error };
+    return res.upheld
+      ? { upheld: true, ok: "Recurso analisado pelo plenário: a remoção do comentário foi mantida.", reasoning: res.reasoning }
+      : { upheld: false, ok: "Recurso aceito pelo plenário: o comentário voltou à página e a remoção não conta mais contra a sua conta.", reasoning: res.reasoning };
   } catch (err) {
     unstable_rethrow(err);
     console.error("[recurso]", err);

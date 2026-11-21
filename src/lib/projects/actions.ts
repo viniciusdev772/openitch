@@ -24,6 +24,7 @@ import { deleteUploadsOfProject } from "@/lib/uploads/server";
 import { deleteBuildsOfProject } from "@/lib/builds/cleanup";
 import { deleteCoverObjects } from "./cover-store";
 import { screenPublish } from "@/lib/moderation/server";
+import { deleteSocialOfProject } from "@/lib/comments/server";
 
 /*
  * Rascunhos de jogos. Cada ação é um endpoint público: confere sozinha quem
@@ -156,6 +157,7 @@ export async function deleteDraft(form: FormData): Promise<DeleteResult> {
     await deleteUploadsOfProject(userId, id);
     await deleteBuildsOfProject(userId, id);
     await deleteCoverObjects(marked);
+    await deleteSocialOfProject(id);
     const res = await projects.deleteOne({ _id: id, userId });
     if (res.deletedCount !== 1) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
     revalidatePath("/conta/projetos");

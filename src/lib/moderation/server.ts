@@ -40,7 +40,11 @@ export const activeBan = (u: Pick<UserDoc, "ban"> | null | undefined): BanDoc | 
   u?.ban && !u.ban.revokedAt ? u.ban : null;
 
 export const targetKey = (t: ModerationTarget) =>
-  t.kind === "jogo" ? `jogo:${t.projectId.toHexString()}` : `criador:${t.userId.toHexString()}`;
+  t.kind === "jogo"
+    ? `jogo:${t.projectId.toHexString()}`
+    : t.kind === "comentario"
+      ? `comentario:${t.commentId.toHexString()}`
+      : `criador:${t.userId.toHexString()}`;
 
 /* ------------------------------------------------------------------ */
 /* O caso: o que os modelos leem                                       */
@@ -88,6 +92,23 @@ async function caseOf(target: ModerationTarget): Promise<Case | null> {
       if (note) text.push(note);
     }
     if (images.length) text.push("Images follow: the cover first, then screenshots.");
+  } else if (target.kind === "comentario") {
+    const { comments } = await db();
+    const cm = await comments.findOne({ _id: target.commentId, status: "visivel" });
+    if (!cm) return null;
+    ownerId = cm.authorId;
+    const [author, p, parent] = await Promise.all([
+      users.findOne({ _id: cm.authorId }, { projection: { name: 1 } }),
+      projects.findOne({ _id: cm.projectId }, { projection: { title: 1, tagline: 1, userId: 1 } }),
+      cm.parentId ? comments.findOne({ _id: cm.parentId }, { projection: { body: 1, status: 1 } }) : null,
+    ]);
+    text = [
+      "COMMENT left by a user on a game page on Portal dos Games",
+      `Game: ${p?.title ?? "?"}${p?.tagline ? ` (${p.tagline})` : ""}`,
+      ...(parent?.status === "visivel" ? [`It replies to this earlier comment: ${parent.body}`] : []),
+      `Comment by the account: ${author?.name ?? "?"}${p?.userId.equals(cm.authorId) ? " (the game's creator)" : ""}`,
+      `Comment text:\n${cm.body}`,
+    ];
   } else {
     const u = await users.findOne({ _id: target.userId }, { projection: { name: 1, bio: 1, city: 1 } });
     if (!u) return null;
@@ -146,7 +167,11 @@ async function judge(c: Case, reports: ReportDoc[], kind: "denuncia" | "publicac
   const reasoning =
     v.outcome === "arquivada"
       ? null
-      : await writeReasoning(key, { decision: OUTCOME_TEXT[v.outcome], rule: v.rule, material: [...c.text, ...result.brief] });
+      : await writeReasoning(key, {
+          decision: c.target.kind === "comentario" && v.outcome === "removido" ? "apagar o comentário" : OUTCOME_TEXT[v.outcome],
+          rule: v.rule,
+          material: [...c.text, ...result.brief],
+        });
   const { moderation } = await db();
   const doc: ModerationDoc = {
     _id: new ObjectId(),
@@ -190,6 +215,12 @@ async function enforce(d: ModerationDoc, c: Case) {
       { $set: { status: "rascunho", updatedAt: new Date(), moderation: { at: d.at, rule: d.rule, decisionId: d._id, contentHash: c.hash } } },
     );
     await rotateLinks(c.target.projectId);
+  } else if (c.target.kind === "comentario") {
+    await (await db()).comments.updateOne(
+      { _id: c.target.commentId, status: "visivel" },
+      { $set: { status: "removido", moderation: { at: d.at, rule: d.rule, decisionId: d._id } } },
+    );
+    return; // a página do jogo não muda: os comentários são lidos na hora
   } else {
     // Perfil: o texto que quebrou a regra sai; nome e jogos ficam.
     await users.updateOne({ _id: d.ownerId }, { $unset: { bio: "", city: "" }, $set: { updatedAt: new Date() } });
@@ -252,11 +283,19 @@ export async function fileReport(
     if (!u) return { ok: false, error: "Este perfil não existe mais." };
     target = { kind: "criador", userId: u._id };
     ownerId = u._id;
+  } else if (kind === "comentario") {
+    const id = /^[a-f0-9]{24}$/.test(slug) ? new ObjectId(slug) : null;
+    const { comments } = await db();
+    const cm = id ? await comments.findOne({ _id: id, status: "visivel" }, { projection: { authorId: 1, projectId: 1 } }) : null;
+    const live = cm && (await projects.countDocuments({ _id: cm.projectId, status: "publicado" }, { limit: 1 }));
+    if (!cm || !live) return { ok: false, error: "Este comentário não está mais na página." };
+    target = { kind: "comentario", commentId: cm._id };
+    ownerId = cm.authorId;
   } else {
     return { ok: false, error: "Pedido inválido." };
   }
   if (reporter.userId && ownerId.equals(reporter.userId)) {
-    return { ok: false, error: "Isto é seu: para tirar do ar, use o painel do projeto." };
+    return { ok: false, error: kind === "comentario" ? "Este comentário é seu: para tirar, apague-o." : "Isto é seu: para tirar do ar, use o painel do projeto." };
   }
   const key = targetKey(target);
   const reporterKey = reporter.userId ? `conta:${reporter.userId.toHexString()}` : `ip:${hmac("denuncia", reporter.ip)}`;
@@ -410,7 +449,7 @@ async function judgeAppeal(
   origId: ObjectId,
   rule: RuleId,
   text: string,
-  target: "conta" | "jogo",
+  target: "conta" | "jogo" | "comentario",
 ): Promise<{ upheld: boolean; decisionId: ObjectId; reasoning: string | null } | null> {
   const key = decisionKey();
   if (!key) return null;
@@ -427,7 +466,7 @@ async function judgeAppeal(
   });
   if (!res) return null;
   const outcome = res.upheld ? "mantido" : "revertido";
-  const what = target === "conta" ? "o fechamento da conta" : "a remoção do jogo";
+  const what = target === "conta" ? "o fechamento da conta" : target === "comentario" ? "a remoção do comentário" : "a remoção do jogo";
   const reasoning = await writeReasoning(key, {
     decision: res.upheld ? `manter ${what}; o recurso não mostrou erro na decisão` : `desfazer ${what}; o recurso foi aceito`,
     rule,
@@ -504,6 +543,42 @@ export async function appealRemoval(userId: ObjectId, projectId: ObjectId, text:
     return { ok: true, upheld: res.upheld, reasoning: res.reasoning };
   } catch (err) {
     await projects.updateOne({ _id: projectId }, { $unset: { "moderation.appealing": "" } });
+    throw err;
+  }
+}
+
+/** Recurso contra a remoção de um comentário: um por remoção. Se cair, o comentário volta e a remoção deixa de contar. */
+export async function appealComment(userId: ObjectId, commentId: ObjectId, text: string): Promise<AppealResult> {
+  const { comments } = await db();
+  const claim = await comments.findOneAndUpdate(
+    {
+      _id: commentId,
+      authorId: userId,
+      status: "removido",
+      moderation: { $type: "object" },
+      "moderation.appeal": { $exists: false },
+      "moderation.appealing": { $exists: false },
+    },
+    { $set: { "moderation.appealing": new Date() } },
+    { returnDocument: "after" },
+  );
+  const m = claim?.moderation;
+  if (!claim || !m) return { ok: false, error: "Esta remoção já teve recurso, ou o comentário não está mais fora do ar pela moderação." };
+  try {
+    const res = await judgeAppeal(userId, m.decisionId, m.rule, text, "comentario");
+    if (!res) {
+      await comments.updateOne({ _id: commentId }, { $unset: { "moderation.appealing": "" } });
+      return { ok: false, error: APPEAL_DOWN };
+    }
+    await comments.updateOne(
+      { _id: commentId },
+      res.upheld
+        ? { $set: { "moderation.appeal": { at: new Date(), decisionId: res.decisionId, upheld: true } }, $unset: { "moderation.appealing": "" } }
+        : { $set: { status: "visivel", moderation: null } },
+    );
+    return { ok: true, upheld: res.upheld, reasoning: res.reasoning };
+  } catch (err) {
+    await comments.updateOne({ _id: commentId }, { $unset: { "moderation.appealing": "" } });
     throw err;
   }
 }

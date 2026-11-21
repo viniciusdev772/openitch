@@ -16,14 +16,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const viewer = session?.user._id ?? suspended;
   if (!viewer) return new Response("Entre na sua conta para baixar a decisão.", { status: 401 });
 
-  const { moderation, projects, users } = await db();
+  const { moderation, projects, users, comments } = await db();
   const d = await moderation.findOne({ _id, ownerId: viewer });
   if (!d) return new Response("Decisão não encontrada.", { status: 404 });
 
   const [kind, raw] = d.targetKey.split(":");
   const targetId = toObjectId(raw ?? "");
-  let target = kind === "jogo" ? "Jogo (excluído)" : "Perfil de criador";
-  if (targetId && kind === "jogo") {
+  let target = kind === "jogo" ? "Jogo (excluído)" : kind === "comentario" ? "Comentário" : "Perfil de criador";
+  if (targetId && kind === "comentario") {
+    const c = await comments.findOne({ _id: targetId }, { projection: { projectId: 1 } });
+    const p = c && (await projects.findOne({ _id: c.projectId }, { projection: { title: 1 } }));
+    if (p) target = `Comentário na página do jogo "${p.title}"`;
+  } else if (targetId && kind === "jogo") {
     const p = await projects.findOne({ _id: targetId }, { projection: { title: 1 } });
     if (p) target = `Jogo "${p.title}"`;
   } else if (targetId) {

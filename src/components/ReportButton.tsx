@@ -7,14 +7,16 @@ import { reportContent, type ReportState } from "@/lib/moderation/actions";
 import { RULES } from "@/lib/moderation/rules";
 import { FormAlert, Submit } from "@/components/auth/Fields";
 
-/** Denunciar um jogo ou um perfil. A página é estática; o formulário fala com o servidor só ao enviar. */
-export function ReportButton({ kind, slug, name }: { kind: "jogo" | "criador"; slug: string; name: string }) {
+const WHAT = { jogo: ["este jogo", "a página do jogo"], criador: ["este perfil", "o perfil"], comentario: ["", "o comentário"] } as const;
+
+/** Denunciar um jogo, um perfil ou um comentário. O formulário fala com o servidor só ao enviar. */
+export function ReportButton({ kind, slug, name }: { kind: "jogo" | "criador" | "comentario"; slug: string; name: string }) {
   const [state, action] = useActionState<ReportState, FormData>(reportContent, undefined);
   const id = useId();
   return (
-    <details className="report">
+    <details className={kind === "comentario" ? "report report--inline" : "report"}>
       <summary>
-        <Flag aria-hidden /> Denunciar {kind === "jogo" ? "este jogo" : "este perfil"}
+        <Flag aria-hidden /> Denunciar {WHAT[kind][0]}
       </summary>
       {state?.ok ? (
         <FormAlert ok={state.ok} />
@@ -23,7 +25,7 @@ export function ReportButton({ kind, slug, name }: { kind: "jogo" | "criador"; s
           <input type="hidden" name="tipo" value={kind} />
           <input type="hidden" name="alvo" value={slug} />
           <p className="report-lead">
-            Quem julga é uma análise automática com três modelos de IA, que lê {kind === "jogo" ? "a página do jogo" : "o perfil"} de{" "}
+            Quem julga é uma análise automática com três modelos de IA, que lê {WHAT[kind][1]} de{" "}
             <strong>{name}</strong>. Veja as <Link href="/termos#regras">regras</Link> e{" "}
             <Link href="/termos#moderacao">como a decisão é tomada</Link>. Não precisa de conta, e quem é denunciado não sabe quem
             denunciou.

@@ -373,7 +373,42 @@ export const CASOS: CasoModelo[] = [
     claims: [],
     espera: "acao",
   },
+  {
+    id: "comentario-critica-dura",
+    sobre: "Comentário com crítica dura ao jogo, denunciado pelo criador",
+    text: comment("Pulo do Gato", "Rafa M.", "Joguei 20 minutos e larguei. Os controles são horríveis, o pulo não responde e a fase 3 é impossível de propósito. Do jeito que está, não recomendo."),
+    claims: [report("Nada de assédio", "Esse comentário está destruindo a reputação do meu jogo. É perseguição, ele quer me prejudicar.")],
+    espera: "arquivada",
+  },
+  {
+    id: "comentario-ataque-pessoal",
+    sobre: "Comentário que ataca a pessoa que criou o jogo, não o jogo",
+    text: comment(
+      "Pulo do Gato",
+      "zeroum",
+      "Luiza, você é uma burra inútil, devia parar de fazer jogo e sumir. Todo mundo sabe onde você mora, cuidado na rua.",
+    ),
+    claims: [report("Nada de assédio", "Ameaça e xingamento contra a criadora.")],
+    espera: "acao",
+  },
+  {
+    id: "comentario-spam",
+    sobre: "Comentário de spam com link de golpe",
+    text: comment("Pulo do Gato", "promo-robux", "GANHE 10.000 ROBUX GRÁTIS!!! Acesse robux-gratis-agora.xyz e coloque seu login do Roblox. Só hoje!"),
+    claims: [report("Nada de golpe, spam ou se passar por outra pessoa", "Spam de golpe nos comentários.")],
+    espera: "acao",
+  },
 ];
+
+/** Monta um comentário como o servidor monta (server.ts, caseOf). */
+function comment(game: string, by: string, body: string): string[] {
+  return [
+    "COMMENT left by a user on a game page on Portal dos Games",
+    `Game: ${game}`,
+    `Comment by the account: ${by}`,
+    `Comment text:\n${body}`,
+  ];
+}
 
 const AUTORA = page(
   {

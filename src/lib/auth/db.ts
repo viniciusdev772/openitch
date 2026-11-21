@@ -240,8 +240,48 @@ export interface UploadDoc {
 /* Moderação (ver src/lib/moderation)                                  */
 /* ------------------------------------------------------------------ */
 
-/** Alvo de uma denúncia: um jogo publicado ou o perfil de quem cria. */
-export type ModerationTarget = { kind: "jogo"; projectId: ObjectId } | { kind: "criador"; userId: ObjectId };
+/** Alvo de uma denúncia: um jogo publicado, o perfil de quem cria ou um comentário. */
+export type ModerationTarget =
+  | { kind: "jogo"; projectId: ObjectId }
+  | { kind: "criador"; userId: ObjectId }
+  | { kind: "comentario"; commentId: ObjectId };
+
+/* ------------------------------------------------------------------ */
+/* Comentários e curtidas (ver src/lib/comments)                       */
+/* ------------------------------------------------------------------ */
+
+export interface CommentDoc {
+  _id: ObjectId;
+  projectId: ObjectId;
+  authorId: ObjectId;
+  /** Resposta a outro comentário (um nível só: a resposta de uma resposta vai para o mesmo fio). */
+  parentId: ObjectId | null;
+  body: string;
+  createdAt: Date;
+  editedAt?: Date;
+  /** Curtidas (contador; a curtida de cada conta mora em "likes"). */
+  likes: number;
+  /**
+   * visivel; apagado: pela própria pessoa, mas com respostas (o fio fica);
+   * oculto: por quem criou o jogo; removido: pela moderação.
+   */
+  status: "visivel" | "apagado" | "oculto" | "removido";
+  moderation?: {
+    at: Date;
+    rule: RuleId;
+    decisionId: ObjectId;
+    appeal?: { at: Date; decisionId: ObjectId; upheld: boolean };
+    appealing?: Date;
+  } | null;
+}
+
+/** Uma curtida: target é "jogo:<projectId>" ou "comentario:<commentId>". */
+export interface LikeDoc {
+  _id?: ObjectId;
+  userId: ObjectId;
+  target: string;
+  createdAt: Date;
+}
 
 export interface ReportDoc {
   _id: ObjectId;
@@ -453,6 +493,10 @@ async function ensureIndexes(db: Db): Promise<void> {
         db.collection("reports").createIndex({ reporterId: 1 }, { partialFilterExpression: { reporterId: { $type: "objectId" } } }),
         db.collection("moderation").createIndex({ ownerId: 1, at: -1 }),
         db.collection("moderation").createIndex({ targetKey: 1, at: -1 }),
+        db.collection("comments").createIndex({ projectId: 1, parentId: 1, createdAt: -1 }),
+        db.collection("comments").createIndex({ authorId: 1, createdAt: -1 }),
+        db.collection("likes").createIndex({ userId: 1, target: 1 }, { unique: true }),
+        db.collection("likes").createIndex({ target: 1 }),
         // Retenção: denúncias por 1 ano, decisões por 5 anos (prometido em /termos#privacidade).
         db.collection("reports").createIndex({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 }),
         db.collection("moderation").createIndex({ at: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 * 5 }),
@@ -485,5 +529,7 @@ export async function db() {
     counters: database.collection<CounterDoc>("counters"),
     reports: database.collection<ReportDoc>("reports"),
     moderation: database.collection<ModerationDoc>("moderation"),
+    comments: database.collection<CommentDoc>("comments"),
+    likes: database.collection<LikeDoc>("likes"),
   };
 }
