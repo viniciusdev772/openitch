@@ -150,7 +150,7 @@ export default function TermosPage() {
                 <div>
                   <dt>Relator</dt>
                   <dd>
-                    {judgeName(RELATOR)}, um modelo de raciocínio para segurança. Não vota. Antes do julgamento, reescreve
+                    {judgeName(RELATOR)}, um modelo de linguagem pequeno e rápido. Não vota. Antes do julgamento, reescreve
                     denúncias e recursos em tom neutro (tom emocional é o que mais engana esses modelos). Depois, escreve a
                     fundamentação da decisão em português.
                   </dd>
@@ -219,7 +219,7 @@ export default function TermosPage() {
                 <strong>O que vai para a moderação.</strong> Só conteúdo que já é público ou que você mesmo escreve para a
                 análise: a página do jogo ou o perfil, nomes dos arquivos, capa e imagens, o texto das denúncias e o do recurso.
                 Isso é enviado ao OpenRouter e às empresas dos modelos citados acima (Liquid AI, Perplexity, TypeSafe, Google,
-                Microsoft e OpenAI, esta pelo provedor Groq). E-mail, senha, IP e quem fez a denúncia
+                Microsoft e Anthropic). E-mail, senha, IP e quem fez a denúncia
                 nunca são enviados. Quem é denunciado não fica sabendo quem denunciou. De uma denúncia sem conta guardamos
                 só uma impressão cifrada do IP (não dá para voltar ao IP), para limitar repetições.
               </p>

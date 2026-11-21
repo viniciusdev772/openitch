@@ -33,8 +33,17 @@ import { RULES, ruleById, type RuleId } from "./rules";
 export const TURMA = ["liquid/d1.2-ultra", "perplexity/pplx-decider-v1.2", "typesafe/jev-1.14"] as const;
 export const PLENARIO_EXTRA = ["google/gemini-decision-1", "microsoft/microsoft-decision-1.1"] as const;
 export const PLENARIO = [...TURMA, ...PLENARIO_EXTRA] as const;
-/** O relator não vota: escreve o parecer neutro e a fundamentação (modelo de raciocínio de segurança da OpenAI). */
-export const RELATOR = "openai/gpt-oss-safeguard-20b";
+/**
+ * O relator não vota: escreve o parecer neutro e a fundamentação. Escolhido
+ * em 21/11/2026 entre cinco modelos baratos nas duas tarefas reais (parecer
+ * de denúncia raivosa; fundamentação de cópia, menores e ódio): Claude Haiku
+ * 5.5 tirou toda a emoção e as ordens do parecer, escreveu o português mais
+ * claro e foi o mais rápido (0,8–1,9 s), a US$ 0,10/0,50 por milhão de
+ * tokens. O gpt-oss-safeguard-20b, anterior, falhou no parecer e truncou a
+ * fundamentação; GLM 5.3 Flash (3x mais barato) e GPT-6 Luna deixavam
+ * emoção no parecer.
+ */
+export const RELATOR = "anthropic/claude-haiku-5.5";
 
 /** Mínimo de juízes que precisam responder para valer uma decisão. */
 export const QUORUM = 2;
@@ -243,6 +252,7 @@ export function judgeName(model: string): string {
     google: "Google",
     microsoft: "Microsoft",
     openai: "OpenAI",
+    anthropic: "Anthropic",
   };
   return `${makers[maker] ?? maker} ${name}`;
 }
