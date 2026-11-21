@@ -2,6 +2,7 @@
 
 import { useActionState, useCallback, useEffect, useId, useState, useTransition } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Heart, MessageSquare } from "lucide-react";
 import type { CommentView, ThreadView } from "@/lib/comments/server";
 import { changeComment, deleteComment, like, sendComment } from "@/lib/comments/actions";
@@ -12,14 +13,14 @@ import { Reasoning } from "@/components/Reasoning";
 import { ReportButton } from "@/components/ReportButton";
 
 /*
- * Comentários e curtidas da página de um jogo. A página é estática; esta ilha
- * lê /api/comentarios depois de hidratar e fala com o servidor por Server
- * Actions. Curtir muda na hora e desfaz se o servidor recusar.
+ * Comentários e curtidas de um jogo publicado, em qualquer página que o mostre
+ * (/jogo/<slug>, /jogar/<build>). A página pode ser estática; esta ilha lê
+ * /api/comentarios depois de hidratar e fala com o servidor por Server
+ * Actions. Curtir muda na hora e desfaz se o servidor recusar. Entrar na
+ * conta volta para a página onde a ilha está.
  */
 
 type Load = "loading" | "ready" | "down";
-
-const loginHref = (slug: string) => `/entrar?de=${encodeURIComponent(`/jogo/${slug}#comentarios`)}`;
 
 async function fetchThread(slug: string, before?: string): Promise<ThreadView | null> {
   const q = new URLSearchParams({ jogo: slug });
@@ -29,6 +30,7 @@ async function fetchThread(slug: string, before?: string): Promise<ThreadView | 
 }
 
 export function Comments({ slug }: { slug: string }) {
+  const login = `/entrar?de=${encodeURIComponent(`${usePathname()}#comentarios`)}`;
   const [data, setData] = useState<ThreadView | null>(null);
   const [status, setStatus] = useState<Load>("loading");
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +110,7 @@ export function Comments({ slug }: { slug: string }) {
               <span className="num">{data.game.likes}</span>
             </button>
           ) : (
-            <Link className="btn btn--sm btn--ghost" href={loginHref(slug)}>
+            <Link className="btn btn--sm btn--ghost" href={login}>
               <Heart aria-hidden /> Curtir · <span className="num">{data.game.likes}</span>
             </Link>
           )
@@ -132,7 +134,7 @@ export function Comments({ slug }: { slug: string }) {
             />
           ) : (
             <p className="cm-gate">
-              <Link href={loginHref(slug)}>Entre na sua conta</Link> para comentar e
+              <Link href={login}>Entre na sua conta</Link> para comentar e
               curtir. Ler e denunciar não pedem conta.
             </p>
           )}
@@ -146,7 +148,7 @@ export function Comments({ slug }: { slug: string }) {
                   key={c.id}
                   c={c}
                   viewer={data.viewer}
-                  slug={slug}
+                  login={login}
                   onLike={toggleLike}
                   onDone={after}
                   reply={(texto) => sendComment({ jogo: slug, texto, resposta: c.id }).then(after)}
@@ -158,7 +160,7 @@ export function Comments({ slug }: { slug: string }) {
                           key={r.id}
                           c={r}
                           viewer={data.viewer}
-                          slug={slug}
+                          login={login}
                           onLike={toggleLike}
                           onDone={after}
                           reply={(texto) => sendComment({ jogo: slug, texto, resposta: r.id }).then(after)}
@@ -191,7 +193,7 @@ const GONE: Record<string, string> = {
 function Comment({
   c,
   viewer,
-  slug,
+  login,
   onLike,
   onDone,
   reply,
@@ -199,7 +201,8 @@ function Comment({
 }: {
   c: CommentView;
   viewer: ThreadView["viewer"];
-  slug: string;
+  /** Link para entrar e voltar a esta página. */
+  login: string;
   onLike: (kind: "comentario", id: string, on: boolean) => void;
   onDone: (res: { ok: true } | { ok: false; error: string }) => Promise<boolean>;
   reply: (texto: string) => Promise<boolean>;
@@ -269,7 +272,7 @@ function Comment({
               <span className="num">{c.likes}</span>
             </button>
           ) : (
-            <Link className="cm-act" href={loginHref(slug)}>
+            <Link className="cm-act" href={login}>
               <Heart aria-hidden />
               <span className="visually-hidden">Entrar para curtir</span>
               <span className="num">{c.likes}</span>

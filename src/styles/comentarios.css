@@ -5,6 +5,10 @@
   margin-inline: auto;
   padding-bottom: var(--s-9);
 }
+/* Na tela de jogar, logo abaixo da faixa colorida do jogo. */
+.play-stage + .game-comments {
+  padding-top: var(--s-8);
+}
 .cm-head {
   display: flex;
   flex-wrap: wrap;

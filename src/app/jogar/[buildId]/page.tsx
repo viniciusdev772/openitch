@@ -1,4 +1,5 @@
 import "@/styles/jogavel.css";
+import "@/styles/comentarios.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect, unstable_rethrow } from "next/navigation";
@@ -11,6 +12,7 @@ import { HEAVY_BUILD_BYTES, PUBLIC_ID_RE } from "@/lib/builds/config";
 import { TRACKS, trackById } from "@/data/catalog";
 import { trackStyle } from "@/components/bits";
 import { Player } from "@/components/builds/Player";
+import { Comments } from "@/components/comments/Comments";
 
 /*
  * A tela de um build de navegador: prévia para o dono do rascunho, ou a
@@ -92,27 +94,30 @@ export default async function PlayPage({ params, searchParams }: Props) {
   const isolatedMode = sp.isolado === "1" && build.needsIsolation;
 
   return (
-    <section className={`play-stage${track.on === "--paper" ? " on-field" : ""}`} style={trackStyle(trackId)} aria-label={owner ? "Prévia do jogo" : "Jogo"}>
-      <div className="wrap">
-        <Player
-          src={src}
-          origin={s3Config().endpoint.origin}
-          title={project!.title || "Jogo sem título"}
-          engine={ENGINE_LABEL[build.engine as keyof typeof ENGINE_LABEL] ?? "HTML5"}
-          version={build.engineVersion ?? null}
-          fileCount={build.fileCount}
-          totalSize={build.totalSize}
-          width={build.width}
-          height={build.height}
-          needsIsolation={build.needsIsolation}
-          isolatedMode={isolatedMode}
-          heavy={build.totalSize >= HEAVY_BUILD_BYTES}
-          back={back}
-          mode={owner ? (published ? "dono-publicado" : "previa") : "publico"}
-          buildId={buildId}
-        />
-      </div>
-    </section>
+    <>
+      <section className={`play-stage${track.on === "--paper" ? " on-field" : ""}`} style={trackStyle(trackId)} aria-label={owner ? "Prévia do jogo" : "Jogo"}>
+        <div className="wrap">
+          <Player
+            src={src}
+            origin={s3Config().endpoint.origin}
+            title={project!.title || "Jogo sem título"}
+            engine={ENGINE_LABEL[build.engine as keyof typeof ENGINE_LABEL] ?? "HTML5"}
+            version={build.engineVersion ?? null}
+            fileCount={build.fileCount}
+            totalSize={build.totalSize}
+            width={build.width}
+            height={build.height}
+            needsIsolation={build.needsIsolation}
+            isolatedMode={isolatedMode}
+            heavy={build.totalSize >= HEAVY_BUILD_BYTES}
+            back={back}
+            mode={owner ? (published ? "dono-publicado" : "previa") : "publico"}
+            buildId={buildId}
+          />
+        </div>
+      </section>
+      {published ? <Comments slug={project!.publicSlug!} /> : null}
+    </>
   );
 }
 
