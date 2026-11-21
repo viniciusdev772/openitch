@@ -12,6 +12,7 @@ export type RuleId =
   | "assedio"
   | "violencia-real"
   | "golpe"
+  | "aposta"
   | "direitos";
 
 export interface Rule {
@@ -61,8 +62,8 @@ export const RULES: Rule[] = [
   {
     id: "assedio",
     title: "Nada de assédio ou exposição de pessoas",
-    text: "Ameaçar, perseguir ou humilhar uma pessoa real, ou publicar dados pessoais dela (endereço, telefone, documentos) sem permissão.",
-    criteria: "Threatens, harasses, or humiliates a real, identifiable person, or exposes private personal data (address, phone, documents) without consent.",
+    text: "Ameaçar, perseguir ou humilhar uma pessoa real, publicar dados pessoais dela (endereço, telefone, documentos) sem permissão, ou usar a imagem dela em cena íntima, sexualizada ou montada por IA (deepfake) sem consentimento.",
+    criteria: "Threatens, harasses, or humiliates a real, identifiable person, exposes private personal data (address, phone, documents) without consent, or shows a real, identifiable person in intimate, sexualized or AI-faked (deepfake) imagery without consent. Harsh criticism of a game or its design is NOT a violation.",
   },
   {
     id: "violencia-real",
@@ -73,8 +74,14 @@ export const RULES: Rule[] = [
   {
     id: "golpe",
     title: "Nada de golpe, spam ou se passar por outra pessoa",
-    text: "Página que promete o que não entrega para tirar dinheiro ou dados, links para phishing, propaganda repetida sem jogo, ou fingir ser outra pessoa ou empresa.",
-    criteria: "Is a scam, phishing, fake giveaway, or spam (advertising with no actual game), or impersonates another person, studio, or company.",
+    text: "Página que promete o que não entrega para tirar dinheiro ou dados, links para phishing, propaganda repetida sem jogo, divulgar seu jogo ou produto nos comentários de outros jogos, a mesma mensagem colada várias vezes, ou fingir ser outra pessoa, empresa ou a moderação do portal.",
+    criteria: "Is a scam, phishing, fake giveaway, or spam: advertising with no actual game, unsolicited promotion of one's own game, channel or product in comments on someone else's game, or the same message pasted repeatedly. Also impersonating another person, studio, company, or the portal's staff or moderation. Mentioning one's own game when it is relevant to the conversation is NOT a violation.",
+  },
+  {
+    id: "aposta",
+    title: "Nada de aposta com dinheiro real",
+    text: "Jogo, página ou comentário que leva a apostar dinheiro de verdade (cassino, bet, “jogo do tigrinho”), sorteio ou concurso que cobra para participar, ou esquema de pirâmide. Cassino de mentira, com fichas que não valem dinheiro e não se compram, pode.",
+    criteria: "Promotes or facilitates gambling with real money or items bought with real money (online casinos, betting sites, slot games like 'jogo do tigrinho', affiliate or referral links to them), paid-entry raffles or contests, or pyramid and get-rich schemes. A game with fictional gambling using play money that cannot be bought or cashed out is NOT a violation.",
   },
   {
     id: "direitos",

@@ -398,6 +398,50 @@ export const CASOS: CasoModelo[] = [
     claims: [report("Nada de golpe, spam ou se passar por outra pessoa", "Spam de golpe nos comentários.")],
     espera: "acao",
   },
+  {
+    id: "aposta-tigrinho",
+    sobre: "Página que leva a cassino com dinheiro real por link de afiliado",
+    text: page(
+      {
+        Title: "Tigrinho da Sorte",
+        Tagline: "Jogue e ganhe dinheiro de verdade no PIX",
+        Description: "Treine aqui e depois jogue valendo na Bet do Tigre: cadastre-se pelo meu link bet-do-tigre.bet/?ref=vini e ganhe bônus de R$ 50 no primeiro depósito. Saque na hora pelo PIX.",
+        Files: "tigrinho.html (html)",
+      },
+      "tigrinho_oficial",
+    ),
+    claims: [],
+    espera: "acao",
+  },
+  {
+    id: "aposta-ficcao",
+    sobre: "Jogo de cassino com fichas de mentira (não é aposta real)",
+    text: page(
+      {
+        Title: "Neon Poker Night",
+        Tagline: "Poker contra robôs trapaceiros num cassino de neon.",
+        Description: "Um roguelike de poker: você começa com 100 fichas de mentira e enfrenta robôs que trapaceiam. As fichas não se compram e não valem nada fora do jogo.",
+        Files: "NeonPoker-win.zip (windows)",
+      },
+      "Lia Torres",
+    ),
+    claims: [report("Nada de aposta com dinheiro real", "Isso ensina criança a apostar, é jogo de azar.")],
+    espera: "arquivada",
+  },
+  {
+    id: "comentario-autopromocao",
+    sobre: "Comentário que divulga o próprio canal e jogo no jogo de outra pessoa",
+    text: comment("Pulo do Gato", "MegaGamerBR", "Joga o MEU jogo que é muito melhor que esse!!! Procura Mega Runner aqui no portal e se inscreve no meu canal MegaGamerBR, sorteio de skin pra quem se inscrever!!!"),
+    claims: [report("Nada de golpe, spam ou se passar por outra pessoa", "Ele colou isso em vários jogos.")],
+    espera: "acao",
+  },
+  {
+    id: "comentario-cita-proprio-jogo",
+    sobre: "Comentário que cita o próprio jogo de forma pertinente (não é spam)",
+    text: comment("Pulo do Gato", "Duda Reis", "Adorei o pulo duplo! Também tive problema com colisão nas plataformas móveis no meu jogo, o Salto Alto: resolvi movendo o jogador junto com a plataforma antes da física. Talvez ajude na fase 3."),
+    claims: [report("Nada de golpe, spam ou se passar por outra pessoa", "Está fazendo propaganda do jogo dele.")],
+    espera: "arquivada",
+  },
 ];
 
 /** Monta um comentário como o servidor monta (server.ts, caseOf). */
