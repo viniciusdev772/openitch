@@ -252,13 +252,11 @@ export async function setLike(userId: ObjectId, kind: unknown, rawId: unknown, o
   if (kind === "jogo") {
     const p = await publishedBySlug(rawId);
     if (!p) return fail("Este jogo não está mais no programa.");
-    if (p.userId.equals(userId)) return fail("Este jogo é seu.");
     target = gameTarget(p._id);
   } else if (kind === "comentario") {
     commentId = typeof rawId === "string" ? toObjectId(rawId) : null;
-    const c = commentId ? await comments.findOne({ _id: commentId, status: "visivel" }, { projection: { authorId: 1 } }) : null;
+    const c = commentId ? await comments.findOne({ _id: commentId, status: "visivel" }, { projection: { _id: 1 } }) : null;
     if (!c) return fail("Esse comentário não está mais disponível.");
-    if (c.authorId.equals(userId)) return fail("Esse comentário é seu.");
     target = commentTarget(c._id);
   } else {
     return fail("Pedido inválido.");

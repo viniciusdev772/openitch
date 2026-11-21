@@ -19,6 +19,8 @@ import { ReportButton } from "@/components/ReportButton";
 
 type Load = "loading" | "ready" | "down";
 
+const loginHref = (slug: string) => `/entrar?de=${encodeURIComponent(`/jogo/${slug}#comentarios`)}`;
+
 async function fetchThread(slug: string, before?: string): Promise<ThreadView | null> {
   const q = new URLSearchParams({ jogo: slug });
   if (before) q.set("antes", before);
@@ -95,11 +97,7 @@ export function Comments({ slug }: { slug: string }) {
           Comentários{data ? <span className="num cm-count"> {data.game.comments}</span> : null}
         </h2>
         {data ? (
-          data.viewer.owner ? (
-            <p className="cm-likes-total">
-              <Heart aria-hidden /> {data.game.likes} {data.game.likes === 1 ? "curtida" : "curtidas"}
-            </p>
-          ) : signedIn ? (
+          signedIn ? (
             <button
               type="button"
               className={`btn btn--sm${data.game.liked ? " btn--lime" : " btn--ghost"}`}
@@ -110,9 +108,9 @@ export function Comments({ slug }: { slug: string }) {
               <span className="num">{data.game.likes}</span>
             </button>
           ) : (
-            <p className="cm-likes-total">
-              <Heart aria-hidden /> {data.game.likes} {data.game.likes === 1 ? "curtida" : "curtidas"}
-            </p>
+            <Link className="btn btn--sm btn--ghost" href={loginHref(slug)}>
+              <Heart aria-hidden /> Curtir · <span className="num">{data.game.likes}</span>
+            </Link>
           )
         ) : null}
       </header>
@@ -134,7 +132,7 @@ export function Comments({ slug }: { slug: string }) {
             />
           ) : (
             <p className="cm-gate">
-              <Link href={`/entrar?de=${encodeURIComponent(`/jogo/${slug}#comentarios`)}`}>Entre na sua conta</Link> para comentar e
+              <Link href={loginHref(slug)}>Entre na sua conta</Link> para comentar e
               curtir. Ler e denunciar não pedem conta.
             </p>
           )}
@@ -148,6 +146,7 @@ export function Comments({ slug }: { slug: string }) {
                   key={c.id}
                   c={c}
                   viewer={data.viewer}
+                  slug={slug}
                   onLike={toggleLike}
                   onDone={after}
                   reply={(texto) => sendComment({ jogo: slug, texto, resposta: c.id }).then(after)}
@@ -159,6 +158,7 @@ export function Comments({ slug }: { slug: string }) {
                           key={r.id}
                           c={r}
                           viewer={data.viewer}
+                          slug={slug}
                           onLike={toggleLike}
                           onDone={after}
                           reply={(texto) => sendComment({ jogo: slug, texto, resposta: r.id }).then(after)}
@@ -191,6 +191,7 @@ const GONE: Record<string, string> = {
 function Comment({
   c,
   viewer,
+  slug,
   onLike,
   onDone,
   reply,
@@ -198,6 +199,7 @@ function Comment({
 }: {
   c: CommentView;
   viewer: ThreadView["viewer"];
+  slug: string;
   onLike: (kind: "comentario", id: string, on: boolean) => void;
   onDone: (res: { ok: true } | { ok: false; error: string }) => Promise<boolean>;
   reply: (texto: string) => Promise<boolean>;
@@ -260,16 +262,18 @@ function Comment({
 
       {live && mode !== "edit" ? (
         <div className="cm-actions">
-          {viewer.signedIn && !c.mine ? (
+          {viewer.signedIn ? (
             <button type="button" className="cm-act" aria-pressed={c.liked} onClick={() => onLike("comentario", c.id, !c.liked)}>
               <Heart aria-hidden fill={c.liked ? "currentColor" : "none"} />
               <span className="visually-hidden">{c.liked ? "Descurtir" : "Curtir"}</span>
               <span className="num">{c.likes}</span>
             </button>
           ) : (
-            <span className="cm-act cm-act--static" aria-label={`${c.likes} curtidas`}>
-              <Heart aria-hidden /> <span className="num">{c.likes}</span>
-            </span>
+            <Link className="cm-act" href={loginHref(slug)}>
+              <Heart aria-hidden />
+              <span className="visually-hidden">Entrar para curtir</span>
+              <span className="num">{c.likes}</span>
+            </Link>
           )}
           {viewer.signedIn ? (
             <button type="button" className="cm-act" onClick={() => setMode(mode === "reply" ? "idle" : "reply")} aria-expanded={mode === "reply"}>

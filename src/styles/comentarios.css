@@ -25,17 +25,6 @@
   color: var(--ink-mute);
   font-size: 1.25rem;
 }
-.cm-likes-total {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  font-weight: 700;
-}
-.cm-likes-total svg {
-  width: 18px;
-  height: 18px;
-}
 .cm-muted {
   color: var(--ink-mute);
   font-size: 0.9375rem;
@@ -134,6 +123,7 @@
   color: var(--ink-mute);
   font: inherit;
   font-weight: 700;
+  text-decoration: none;
   cursor: pointer;
 }
 .cm-act:hover,
@@ -143,9 +133,6 @@
 }
 .cm-act[aria-pressed="true"] svg {
   color: var(--alert);
-}
-.cm-act--static {
-  cursor: default;
 }
 .cm-act--danger {
   color: var(--alert);
