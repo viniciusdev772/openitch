@@ -13,6 +13,7 @@ import { Entry, PlatformCodes, TrackChip, trackStyle } from "@/components/bits";
 import { LibraryButton } from "@/components/library/LibraryButton";
 import { LibraryState } from "@/components/library/LibraryState";
 import { OwnerBar } from "@/components/library/OwnerBar";
+import { ReportButton } from "@/components/ReportButton";
 import { BuyCard } from "./BuyCard";
 import { Controls, DayNumeral, gameLog } from "./parts";
 
@@ -233,6 +234,7 @@ export default async function GamePage({ params }: Props) {
             <p>{creatorLine(creator)}</p>
             <LibraryButton kind="follow" slug={creator.slug} name={creator.name} small />
           </div>
+          <ReportButton kind="jogo" slug={game.slug} name={game.title} />
         </aside>
       </div>
 

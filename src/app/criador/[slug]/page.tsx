@@ -12,6 +12,7 @@ import { Entry, Joined, TrackChip, trackStyle } from "@/components/bits";
 import { LibraryButton } from "@/components/library/LibraryButton";
 import { LibraryState } from "@/components/library/LibraryState";
 import { OwnerBar } from "@/components/library/OwnerBar";
+import { ReportButton } from "@/components/ReportButton";
 import { DayNumeral } from "@/app/jogo/[slug]/parts";
 
 /*
@@ -99,6 +100,7 @@ export default async function CreatorPage({ params }: Props) {
               </dl>
             )}
             <LibraryButton kind="follow" slug={creator.slug} name={creator.name} />
+            <ReportButton kind="criador" slug={creator.slug} name={creator.name} />
           </div>
         </div>
       </header>

@@ -30,6 +30,7 @@ export function Colophon() {
             <li><Link href="/sobre">Como funciona</Link></li>
             <li><Link href="/ajuda">Ajuda</Link></li>
             <li><Link href="/novidades">Novidades</Link></li>
+            <li><Link href="/termos">Termos e regras</Link></li>
           </ul>
         </div>
         <div>

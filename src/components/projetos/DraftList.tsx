@@ -168,6 +168,12 @@ function Row({ draft, jamTitle, onDeleted }: { draft: DraftRow; jamTitle?: strin
             No programa
           </span>
         ) : null}
+        {draft.moderated ? (
+          <small className="field-error">
+            Tirado do ar pela moderação: {draft.moderated}. Mude o que quebra a regra e publique de novo para uma nova análise (
+            <Link href="/termos#regras">regras</Link>).
+          </small>
+        ) : null}
       </span>
       {confirming ? (
         <div className="pj-confirm" role="group" aria-label={`Confirmar exclusão de ${draft.title}`}>

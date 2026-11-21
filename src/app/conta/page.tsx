@@ -41,6 +41,8 @@ const EVENT_LABEL: Record<SecurityEventType, string> = {
   nome_alterado: "Nome alterado",
   google_vinculado: "Conta vinculada ao Google",
   resumestre_vinculado: "Conta vinculada ao Resumestre",
+  conta_suspensa: "Conta suspensa pela moderação",
+  conta_reaberta: "Conta reaberta após recurso",
 };
 const ALERT_EVENTS = new Set<SecurityEventType>(["senha_errada", "2fa_errado", "2fa_desativado"]);
 

@@ -1,15 +1,19 @@
 import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { ObjectId } from "mongodb";
 import { db, type SecurityEventType, type UserDoc } from "./db";
-import { randomToken, sha256 } from "./crypto";
+import { hmac, randomToken, safeEqual, sha256 } from "./crypto";
 import { requestInfo, type RequestInfo } from "./request";
 
 const SECURE = process.env.NODE_ENV === "production";
 /** __Host-: só HTTPS, sem Domain, Path=/; o navegador recusa qualquer outra forma. */
 export const SESSION_COOKIE = SECURE ? "__Host-oi_sessao" : "oi_sessao";
 export const MFA_COOKIE = SECURE ? "__Host-oi_2fa" : "oi_2fa";
+/** Conta banida que tentou entrar: dá acesso só à página do aviso e do recurso. */
+export const SUSPENDED_COOKIE = SECURE ? "__Host-oi_suspensa" : "oi_suspensa";
+const SUSPENDED_TTL = 60 * 60 * 1000;
 
 const DAY = 24 * 60 * 60 * 1000;
 /** Com "manter conectado": até 30 dias, caindo após 7 dias sem uso. */
@@ -51,9 +55,20 @@ export async function logEvent(userId: ObjectId, type: SecurityEventType, info?:
   await events.insertOne({ userId, type, at: new Date(), ip: req.ip, userAgent: req.userAgent, place: req.place });
 }
 
-/** Cria uma sessão nova (token novo sempre: sem fixação de sessão). */
+/**
+ * Cria uma sessão nova (token novo sempre: sem fixação de sessão). Conta
+ * banida não ganha sessão: vai para /conta-suspensa, com um cookie curto que
+ * só serve para ler o aviso e mandar o recurso.
+ */
 export async function createSession(userId: ObjectId, opts: { persistent: boolean; mfa: boolean }) {
-  const { sessions } = await db();
+  const { sessions, users } = await db();
+  const banned = await users.findOne({ _id: userId, ban: { $exists: true }, "ban.revokedAt": { $exists: false } }, { projection: { _id: 1 } });
+  if (banned) {
+    const body = `${userId.toHexString()}.${Date.now() + SUSPENDED_TTL}`;
+    (await cookies()).set(SUSPENDED_COOKIE, `${body}.${hmac("suspensa", body)}`, cookieOptions(SUSPENDED_TTL));
+    await expireCookie(MFA_COOKIE);
+    redirect("/conta-suspensa");
+  }
   // Entrar por cima de uma sessão aberta: a antiga morre junto com o cookie.
   const previous = (await cookies()).get(SESSION_COOKIE)?.value;
   if (previous) await sessions.deleteOne({ _id: sha256(previous) });
@@ -105,6 +120,11 @@ export const getSession = cache(async (): Promise<CurrentSession | null> => {
   const user = await users.findOne({ _id: s.userId });
   if (!user) {
     await sessions.deleteOne({ _id: id });
+    return null;
+  }
+  // Banida depois de entrar: todas as sessões caem aqui (a moderação já apaga, isto cobre corridas).
+  if (user.ban && !user.ban.revokedAt) {
+    await sessions.deleteMany({ userId: user._id });
     return null;
   }
   if (now - s.lastSeenAt.getTime() > TOUCH_EVERY) {
@@ -165,6 +185,14 @@ export async function clearMfaChallenge(id?: string) {
     await mfa.deleteOne({ _id: id });
   }
   await expireCookie(MFA_COOKIE);
+}
+
+/** A conta banida dona do cookie de aviso, se ele for válido e não tiver vencido. */
+export async function readSuspended(): Promise<ObjectId | null> {
+  const raw = (await cookies()).get(SUSPENDED_COOKIE)?.value ?? "";
+  const [id, exp, sig] = raw.split(".");
+  if (!id || !exp || !sig || !/^[a-f0-9]{24}$/.test(id) || Number(exp) < Date.now()) return null;
+  return safeEqual(sig, hmac("suspensa", `${id}.${exp}`)) ? new ObjectId(id) : null;
 }
 
 export function toObjectId(id: string): ObjectId | null {

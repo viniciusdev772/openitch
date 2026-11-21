@@ -1,6 +1,7 @@
 import "server-only";
 import { MongoClient, type Db, type ObjectId } from "mongodb";
 import type { Platform, TrackId } from "@/data/catalog";
+import type { RuleId } from "@/lib/moderation/rules";
 
 /**
  * Conexão com o MongoDB. A URI vem só do ambiente (MONGODB_URI), cadastrada
@@ -55,6 +56,21 @@ export interface UserDoc {
   /** Perfil público de criador (opcional). */
   bio?: string;
   city?: string;
+  /** Conta fechada pela moderação (ver lib/moderation). Vale enquanto não tiver `revokedAt`. */
+  ban?: BanDoc;
+}
+
+export interface BanDoc {
+  at: Date;
+  rule: RuleId;
+  decisionId: ObjectId;
+  /** Jogos que estavam no ar e saíram com o banimento (voltam se o recurso reverter). */
+  unpublished: ObjectId[];
+  /** Recurso: um por banimento, julgado pelos mesmos modelos. */
+  appeal?: { at: Date; text: string; decisionId: ObjectId; upheld: boolean };
+  /** Trava enquanto o recurso está sendo julgado. */
+  appealing?: Date;
+  revokedAt?: Date;
 }
 
 export interface SessionDoc {
@@ -159,6 +175,8 @@ export interface ProjectDoc {
   source?: { itchUrl: string; itchId: number };
   /** Capturas de tela (bucket jogável, b/capa-*), na ordem de exibição. */
   screenshots?: { bucket: string; key: string; url: string }[];
+  /** Tirado do ar pela moderação: só volta depois de mudar e passar numa nova análise. */
+  moderation?: { at: Date; rule: RuleId; decisionId: ObjectId; contentHash: string } | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -207,6 +225,48 @@ export interface UploadDoc {
   completing?: Date | null;
   /** Arquivo trazido do itch.io pelo servidor: o id do upload lá e o último link assinado do CDN (com a validade). */
   itch?: { uploadId: number; cdn?: string | null; cdnExpires?: Date | null };
+}
+
+/* ------------------------------------------------------------------ */
+/* Moderação (ver src/lib/moderation)                                  */
+/* ------------------------------------------------------------------ */
+
+/** Alvo de uma denúncia: um jogo publicado ou o perfil de quem cria. */
+export type ModerationTarget = { kind: "jogo"; projectId: ObjectId } | { kind: "criador"; userId: ObjectId };
+
+export interface ReportDoc {
+  _id: ObjectId;
+  reporterId: ObjectId;
+  target: ModerationTarget;
+  /** "jogo:<id>" ou "criador:<id>", para agrupar e limitar. */
+  targetKey: string;
+  /** Dono do conteúdo denunciado. */
+  ownerId: ObjectId;
+  rule: RuleId;
+  details: string;
+  createdAt: Date;
+  status: "pendente" | "analisando" | "decidida";
+  claimedAt?: Date | null;
+  decisionId?: ObjectId;
+}
+
+/** Uma decisão dos modelos, guardada inteira para o recurso e para conferência. */
+export interface ModerationDoc {
+  _id: ObjectId;
+  kind: "denuncia" | "publicacao" | "recurso";
+  targetKey: string;
+  ownerId: ObjectId;
+  reportIds: ObjectId[];
+  /** O que os modelos leram (sem as imagens, que ficam só como endereço). */
+  snapshot: string[];
+  images: string[];
+  contentHash: string;
+  votes: { model: string; answers: unknown; cost: number | null }[];
+  outcome: "arquivada" | "removido" | "banido" | "mantido" | "revertido";
+  rule: RuleId | null;
+  violation: number | null;
+  severity: number | null;
+  at: Date;
 }
 
 /** Contador sequencial (ex.: "entradas", o número de cada jogo no programa). */
@@ -285,7 +345,9 @@ export type SecurityEventType =
   | "outras_sessoes_encerradas"
   | "nome_alterado"
   | "google_vinculado"
-  | "resumestre_vinculado";
+  | "resumestre_vinculado"
+  | "conta_suspensa"
+  | "conta_reaberta";
 
 export interface SecurityEventDoc {
   _id?: ObjectId;
@@ -358,6 +420,13 @@ async function ensureIndexes(db: Db): Promise<void> {
         db.collection("uploads").createIndex({ userId: 1, status: 1 }),
         db.collection("builds").createIndex({ projectId: 1, createdAt: -1 }),
         db.collection("builds").createIndex({ userId: 1, status: 1 }),
+        db.collection("reports").createIndex({ status: 1, createdAt: 1 }),
+        db.collection("reports").createIndex({ reporterId: 1, targetKey: 1, createdAt: -1 }),
+        db.collection("moderation").createIndex({ ownerId: 1, at: -1 }),
+        db.collection("moderation").createIndex({ targetKey: 1, at: -1 }),
+        // Retenção: denúncias por 1 ano, decisões por 5 anos (prometido em /termos#privacidade).
+        db.collection("reports").createIndex({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 }),
+        db.collection("moderation").createIndex({ at: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 * 5 }),
       ]);
     })().catch((err) => {
       cache.indexes = undefined;
@@ -385,5 +454,7 @@ export async function db() {
     /** Estado interno do sistema (ex.: configuração do armazenamento já aplicada). */
     meta: database.collection<MetaDoc>("meta"),
     counters: database.collection<CounterDoc>("counters"),
+    reports: database.collection<ReportDoc>("reports"),
+    moderation: database.collection<ModerationDoc>("moderation"),
   };
 }

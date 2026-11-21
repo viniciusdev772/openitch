@@ -1,7 +1,7 @@
 "use server";
 
 import { MongoServerError, ObjectId } from "mongodb";
-import { unstable_rethrow } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/auth/db";
 import { getSession, toObjectId } from "@/lib/auth/session";
@@ -23,6 +23,7 @@ import { revalidatePublic } from "@/lib/catalog/revalidate";
 import { deleteUploadsOfProject } from "@/lib/uploads/server";
 import { deleteBuildsOfProject } from "@/lib/builds/cleanup";
 import { deleteCoverObjects } from "./cover-store";
+import { screenPublish } from "@/lib/moderation/server";
 
 /*
  * Rascunhos de jogos. Cada ação é um endpoint público: confere sozinha quem
@@ -229,6 +230,13 @@ export async function publishProject(form: FormData): Promise<PublishResult> {
     if (!p) return { ok: false, code: "nao_encontrado", error: NOT_FOUND };
     const problems = await publishProblems(p);
     if (problems.length) return { ok: false, code: "pendencias", error: pendencias(problems.length), problems };
+    // Os modelos de decisão leem a página antes de ela entrar no programa (lib/moderation).
+    const screen = await screenPublish(p);
+    if (!screen.ok) {
+      revalidatePath("/conta/projetos");
+      if (screen.banned) redirect("/entrar");
+      return { ok: false, code: "moderacao", error: screen.error };
+    }
 
     await ensureCreatorSlug(who.userId);
     const slug = await ensurePublicSlug(p);

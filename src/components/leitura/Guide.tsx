@@ -3,12 +3,13 @@ import type { CSSProperties, ReactNode } from "react";
 
 const ULTRA = { "--c": "var(--ultra)", "--on": "var(--paper)" } as CSSProperties;
 
-export type GuidePart = "sobre" | "ajuda" | "novidades";
+export type GuidePart = "sobre" | "ajuda" | "novidades" | "termos";
 
 const PARTS: { id: GuidePart; href: string; label: string }[] = [
   { id: "sobre", href: "/sobre", label: "Como funciona" },
   { id: "ajuda", href: "/ajuda", label: "Ajuda" },
   { id: "novidades", href: "/novidades", label: "Novidades" },
+  { id: "termos", href: "/termos", label: "Termos e regras" },
 ];
 
 /**

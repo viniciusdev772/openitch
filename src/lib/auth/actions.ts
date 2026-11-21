@@ -635,6 +635,8 @@ async function deleteAccountInner(_prev: FormState, form: FormData): Promise<For
     await events.deleteMany({ userId: user._id });
     await saves.deleteMany({ userId: user._id });
     await follows.deleteMany({ userId: user._id });
+    // Denúncias feitas pela conta saem; decisões de moderação ficam (ver /termos#privacidade).
+    await (await db()).reports.deleteMany({ reporterId: user._id, status: "decidida" });
     await projects.deleteMany({ userId: user._id });
     await users.deleteOne({ _id: user._id });
     revalidatePublic();

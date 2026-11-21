@@ -103,6 +103,8 @@ export interface DraftRow {
   state: "rascunho" | "publicado";
   /** Endereço público, quando publicado. */
   publicSlug: string | null;
+  /** Regra pela qual a moderação tirou o jogo do ar (título), ou null. */
+  moderated: string | null;
 }
 
 /** Campos do formulário que podem voltar com erro. */
@@ -251,7 +253,7 @@ export type PublishResult =
   | { ok: true; state: PublishState; slug: string | null; number: number | null }
   | {
       ok: false;
-      code: "sessao" | "taxa" | "nao_encontrado" | "pendencias" | "servidor";
+      code: "sessao" | "taxa" | "nao_encontrado" | "pendencias" | "moderacao" | "servidor";
       error: string;
       problems?: PublishProblem[];
     };

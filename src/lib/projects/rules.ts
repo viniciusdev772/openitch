@@ -1,4 +1,5 @@
 import "server-only";
+import { ruleById } from "@/lib/moderation/rules";
 import type { ObjectId } from "mongodb";
 import { PLATFORMS, TRACKS, type CoverStyle, type Platform, type TrackId } from "@/data/base";
 import { JAMS } from "@/data/jams";
@@ -218,7 +219,7 @@ export async function readDraft(userId: ObjectId, rawId: string): Promise<SavedD
 export async function listDrafts(userId: ObjectId): Promise<DraftRow[]> {
   const { projects } = await db();
   const docs = await projects
-    .find({ userId }, { projection: { title: 1, tagline: 1, track: 1, jam: 1, updatedAt: 1, status: 1, publicSlug: 1 } })
+    .find({ userId }, { projection: { title: 1, tagline: 1, track: 1, jam: 1, updatedAt: 1, status: 1, publicSlug: 1, moderation: 1 } })
     .sort({ updatedAt: -1 })
     .limit(LIMITS.drafts * 2)
     .toArray();
@@ -231,5 +232,6 @@ export async function listDrafts(userId: ObjectId): Promise<DraftRow[]> {
     updatedAt: d.updatedAt.toISOString(),
     state: d.status === "publicado" ? "publicado" : "rascunho",
     publicSlug: d.status === "publicado" ? (d.publicSlug ?? null) : null,
+    moderated: d.moderation ? (ruleById(d.moderation.rule)?.title ?? d.moderation.rule) : null,
   }));
 }

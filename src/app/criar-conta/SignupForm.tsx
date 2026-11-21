@@ -82,6 +82,9 @@ export function SignupForm({ de, signedIn }: { de: string; signedIn: boolean }) 
         error={state?.fields?.senha}
         hint="Pelo menos 10 caracteres. Uma frase com espaços é fácil de lembrar e difícil de adivinhar."
       />
+      <p className="field-hint">
+        Ao criar a conta, com e-mail ou por outro serviço, você aceita os <Link href="/termos">Termos de uso e as Regras da comunidade</Link>.
+      </p>
       <div className="bo-row">
         <Remember defaultChecked />
         <Submit pendingLabel="Criando a conta">Criar conta</Submit>

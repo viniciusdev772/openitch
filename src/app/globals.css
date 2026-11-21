@@ -3403,3 +3403,51 @@ p {
     box-shadow: 0 0 0 10px transparent;
   }
 }
+
+/* Denunciar (página do jogo e do criador) */
+.report {
+  margin-top: var(--s-4);
+  font-size: 0.9375rem;
+}
+.report summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--ink-mute);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  list-style: none;
+}
+.report summary::-webkit-details-marker {
+  display: none;
+}
+.report summary:hover,
+.report[open] summary {
+  color: var(--ink);
+}
+.report summary svg {
+  width: 15px;
+  height: 15px;
+}
+.report-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+  padding: var(--s-4);
+  border: var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+}
+.report-form .btn {
+  align-self: flex-start;
+  margin-top: var(--s-2);
+}
+.report-lead {
+  color: var(--ink-soft);
+}
+.report > .bo-ok {
+  margin-top: var(--s-3);
+}
