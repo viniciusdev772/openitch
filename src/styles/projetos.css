@@ -698,7 +698,7 @@
     justify-content: flex-start;
   }
   .pj-start {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding: var(--s-6) var(--s-5);
   }
 }
@@ -846,7 +846,7 @@
 }
 @media (max-width: 560px) {
   .pj-details-pair {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -946,7 +946,7 @@
 }
 @media (max-width: 480px) {
   .itch-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 .pj-shots {

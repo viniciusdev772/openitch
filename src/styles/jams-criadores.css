@@ -388,7 +388,7 @@ a.schedule-bar:hover {
 @media (max-width: 960px) {
   .jam-head .wrap,
   .jam-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .jam-body {
     gap: var(--s-8);
@@ -399,7 +399,7 @@ a.schedule-bar:hover {
     padding: var(--s-4);
   }
   .jam-criteria > div {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s-1);
   }
   .jam-rules li {

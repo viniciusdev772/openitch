@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/styles/comentarios.css"
+        ],
+        "createdAt": "2026-11-21T11:17:20.154Z",
+        "reason": "agent judgment (2026-11-21 audit): .cm-replies thread rail tying replies to their parent comment, not a decorated card"
+      }
+    ]
+  }
+}

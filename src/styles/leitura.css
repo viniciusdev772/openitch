@@ -166,7 +166,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
-  max-width: 68ch;
+  /* A Schibsted é mais estreita que o "0" do ch: 56ch dá ~72 caracteres por linha. */
+  max-width: 56ch;
   font-size: 1.0625rem;
   line-height: 1.65;
 }
@@ -441,7 +442,7 @@
 
 @media (max-width: 960px) {
   .guide {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s-6);
     padding-top: var(--s-6);
   }
@@ -457,7 +458,7 @@
 @media (max-width: 720px) {
   .qa,
   .principles > div {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .qa h3 {
     font-size: 1.375rem;
@@ -466,12 +467,12 @@
     font-size: 1.625rem;
   }
   .guide-next ul {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (max-width: 560px) {
   .guide-toc ol {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .guide-strip .wrap {
     gap: 0 var(--s-4);
@@ -483,7 +484,7 @@
   }
   .ref-list li,
   .legend-list > div {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s-1);
   }
   /* Tables become ruled stacks. */
@@ -969,7 +970,7 @@
 
 @media (max-width: 960px) {
   .note-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s-7);
   }
   .note-side {
@@ -978,7 +979,7 @@
 }
 @media (max-width: 640px) {
   .note-pager {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s-2);
   }
   .note-pager::before {

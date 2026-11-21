@@ -238,8 +238,9 @@
   overflow-wrap: anywhere;
 }
 .play-gate .exe-warn {
-  border-left: 4px solid var(--paper);
-  padding-left: var(--s-3);
+  border: 1.5px solid color-mix(in oklab, var(--paper) 55%, transparent);
+  border-radius: 10px;
+  padding: var(--s-2) var(--s-3);
   text-align: left;
 }
 @media (prefers-reduced-motion: reduce) {

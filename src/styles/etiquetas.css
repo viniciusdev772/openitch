@@ -276,7 +276,7 @@ a:hover .tag-count .unit {
 
 @media (max-width: 960px) {
   .tag-page {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s-7);
   }
   .tag-aside {

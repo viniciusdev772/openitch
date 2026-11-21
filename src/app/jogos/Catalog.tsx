@@ -294,7 +294,10 @@ export function Catalog({ games }: { games: Game[] }) {
           </fieldset>
         </aside>
 
-        <section aria-label="Resultados">
+        <section aria-labelledby="resultados">
+          <h2 id="resultados" className="visually-hidden">
+            Resultados
+          </h2>
           <div className="results-bar">
             <p aria-live="polite" aria-atomic="true">
               {summary}

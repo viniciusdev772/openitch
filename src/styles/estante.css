@@ -395,7 +395,7 @@
 @media (max-width: 960px) {
   .shelf-split,
   .shelf--first {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -435,7 +435,7 @@
     padding: var(--s-6) var(--s-4);
   }
   .shelf-how li {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s-2);
   }
 }
