@@ -25,8 +25,17 @@ test("tolerância zero fecha a conta com gravidade 2; violação leve é arquiva
   assert.equal(caseVerdict([vote(0.95, "sexual", 1), vote(0.9, "sexual", 1.2)], 0)!.outcome, "arquivada");
 });
 
-test("mediana abaixo de 70% não age, mesmo com maioria", () => {
-  assert.equal(caseVerdict([vote(0.55, "odio", 3), vote(0.6, "odio", 3), vote(0.1, "nenhuma", 0)], 0)!.outcome, "arquivada");
+test("mediana abaixo de 60% não age, mesmo com maioria", () => {
+  assert.equal(caseVerdict([vote(0.55, "odio", 3), vote(0.58, "odio", 3), vote(0.1, "nenhuma", 0)], 0)!.outcome, "arquivada");
+});
+
+test("caso real: 3 de 5 com o terceiro em 0,68 age (mediana 0,68 ≥ 0,6)", () => {
+  const v = caseVerdict(
+    [vote(0.98, "direitos", 1.9), vote(0.98, "direitos", 1.8), vote(0.38, "nenhuma", 0.4), vote(0.68, "direitos", 1.6), vote(0.23, "nenhuma", 0.2)],
+    0,
+    { plenary: true },
+  )!;
+  assert.equal(v.outcome, "removido");
 });
 
 test("dois juízes enviesados não derrubam a maioria confiante (mediana, não média)", () => {

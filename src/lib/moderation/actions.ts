@@ -1,7 +1,6 @@
 "use server";
 
 import { after } from "next/server";
-import { revalidatePath } from "next/cache";
 import { unstable_rethrow } from "next/navigation";
 import { getSession, readSuspended } from "@/lib/auth/session";
 import { hit, waitText } from "@/lib/auth/ratelimit";
@@ -86,7 +85,7 @@ export async function submitRemovalAppeal(_prev: AppealState, form: FormData): P
     if (!limit.allowed) return { error: `Muitas tentativas. Espere ${waitText(limit.retryAfterMs)}.` };
     const res = await appealRemoval(userId, id, text);
     if (!res.ok) return { error: res.error };
-    revalidatePath("/conta/projetos");
+    // Sem revalidar a lista aqui: a linha some de "tirado do ar" e leva junto a resposta do recurso. A lista se atualiza na próxima visita.
     return res.upheld
       ? {
           upheld: true,

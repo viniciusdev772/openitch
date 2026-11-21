@@ -13,11 +13,15 @@ export function RemovalAppeal({ id, title, moderated }: { id: string; title: str
   const uid = useId();
   return (
     <span className="pj-moderated">
-      <small className="field-error">
-        Tirado do ar pela moderação: {moderated.rule} (<Link href="/termos#regras">regras</Link>). Mude o que quebra a regra e
-        publique de novo, ou recorra.
-      </small>
-      {state?.ok ? null : <Reasoning text={moderated.reasoning} />}
+      {state?.ok ? null : (
+        <>
+          <small className="field-error">
+            Tirado do ar pela moderação: {moderated.rule} (<Link href="/termos#regras">regras</Link>). Mude o que quebra a
+            regra e publique de novo, ou recorra.
+          </small>
+          <Reasoning text={moderated.reasoning} />
+        </>
+      )}
       {state?.ok ? (
         <>
           <FormAlert ok={state.ok} />

@@ -52,6 +52,19 @@ const COPIA = page(
   ["Imported from this itch.io page: https://maraquint.itch.io/lantern-keeper (the itch.io subdomain is the original author's account)"],
 );
 
+/** O caso real do Lantern Rock: jogo inteiro do Bruno Werneck, creditado e grátis, publicado por outra conta. */
+const CREDITADA = page(
+  {
+    Title: "Lantern Rock",
+    Tagline: "Aim a lighthouse lamp through storm, fog and worse, and bring every ship past the reefs.",
+    Description: "Guide the ships home with the lighthouse beam. Storms, fog and reefs get worse every night.",
+    Credits: "Criação: Bruno Werneck",
+    Files: "lantern-rock (web)",
+  },
+  "Teste Denúncias 3",
+  ["Imported from this itch.io page: https://vaula.itch.io/lantern-rock (the itch.io subdomain is the original author's account)"],
+);
+
 export const CASOS: CasoModelo[] = [
   {
     id: "limpo-plataforma",
@@ -239,6 +252,13 @@ export const CASOS: CasoModelo[] = [
     espera: "acao",
   },
   {
+    id: "copia-creditada-denunciada",
+    sobre: "Jogo inteiro de outra pessoa, creditado e grátis, sem permissão (caso Lantern Rock)",
+    text: CREDITADA,
+    claims: [report("Só publique o que é seu", "O jogo é do Bruno Werneck (vaula.itch.io/lantern-rock). Quem publicou é outra conta, sem permissão dele.")],
+    espera: "acao",
+  },
+  {
     id: "copia-nintendo",
     sobre: "Marca e personagens protegidos, vendido",
     text: page(
@@ -359,6 +379,16 @@ const GOLPE = page(
 );
 
 export const RECURSOS: RecursoModelo[] = [
+  {
+    id: "recurso-credito-sem-permissao",
+    sobre: "Recurso que só alega crédito e gratuidade, sem permissão do autor (caso Lantern Rock)",
+    target: "jogo",
+    rule: "direitos",
+    snapshot: CREDITADA,
+    appeal:
+      "O jogo é gratuito e foi publicado com o crédito ao autor, Bruno Werneck, na página e na ficha técnica, com o link da página original no itch.io. A intenção foi divulgar o trabalho dele, não me apresentar como autora.",
+    mantem: true,
+  },
   {
     id: "recurso-autora-neutro",
     sobre: "Removido por cópia, mas a conta é da própria autora",

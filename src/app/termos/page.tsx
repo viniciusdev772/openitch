@@ -4,7 +4,7 @@ import Link from "next/link";
 import { GuideHead, GuideSection } from "@/components/leitura/Guide";
 import { Contents } from "@/components/leitura/Contents";
 import { RULES } from "@/lib/moderation/rules";
-import { BAN_CONFIDENCE, PLENARIO_EXTRA, QUALIFIED, RELATOR, STRIKES_TO_BAN, TURMA, judgeName } from "@/lib/moderation/decide";
+import { BAN_CONFIDENCE, PLENARIO_EXTRA, QUALIFIED, RELATOR, STRIKES_TO_BAN, TURMA, VIOLATION_MEDIAN, judgeName } from "@/lib/moderation/decide";
 
 export const metadata: Metadata = {
   title: "Termos de uso e regras da comunidade",
@@ -158,7 +158,8 @@ export default function TermosPage() {
               </dl>
               <p>
                 <strong>Como sai a decisão.</strong> Só há violação quando a maioria dos juízes vê violação e o voto do meio
-                (a mediana) passa de 70%, para que um ou dois juízes enviesados não decidam sozinhos. Fechar uma conta pede mais: no plenário, {Math.round(QUALIFIED * 100)}% dos votos (4 de 5) e média de
+                (a mediana) chega a {Math.round(VIOLATION_MEDIAN * 100)}%, para que um ou dois juízes enviesados não decidam
+                sozinhos. Fechar uma conta pede mais: no plenário, {Math.round(QUALIFIED * 100)}% dos votos (4 de 5) e média de
                 pelo menos {Math.round(BAN_CONFIDENCE * 100)}%; sem isso, fica a pena menor. Se menos de dois juízes
                 responderem, nada é decidido e o caso espera. A denúncia entra como uma alegação, não como prova.
               </p>

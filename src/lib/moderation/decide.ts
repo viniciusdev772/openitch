@@ -42,6 +42,13 @@ export const QUORUM = 2;
 export const QUALIFIED = 0.8;
 /** Média mínima de violação para fechar uma conta. */
 export const BAN_CONFIDENCE = 0.85;
+/**
+ * Mediana mínima de violação para agir. Calibrada nos casos-modelo: páginas
+ * limpas nunca passaram de 0,16 em juiz nenhum, e casos reais de cópia
+ * ficaram com a mediana entre 0,68 e 0,80 (Jev e Microsoft votam baixo em
+ * cópia). 0,6 separa os dois com folga.
+ */
+export const VIOLATION_MEDIAN = 0.6;
 
 export type Outcome = "arquivada" | "removido" | "banido";
 export type Stage = "turma" | "plenario";
@@ -139,7 +146,7 @@ const sawViolation = (a: CaseAnswer) => a.violation >= 0.5 && a.rule !== "nenhum
 
 /**
  * Junta os votos. Há violação quando a maioria vê violação (≥ 0,5) e a
- * mediana (o voto do meio) passa de 0,7: a mediana, e não a média, porque um
+ * mediana (o voto do meio) chega a VIOLATION_MEDIAN: a mediana, e não a média, porque um
  * ou dois juízes enviesados (tom emocional, por exemplo) arrastavam a média e
  * derrubavam um caso claro para os outros três. A gravidade decide o que
  * acontece:
@@ -158,7 +165,7 @@ export function caseVerdict(answers: CaseAnswer[], priorRemovals: number, opts: 
   const unanimous = yes.length === 0 || yes.length === answers.length;
   const base = { violation, agreeing: yes.length, voters: answers.length, unanimous };
   const middle = median(answers.map((a) => a.violation));
-  if (yes.length < majorityOf(answers.length) || middle < 0.7) return { outcome: "arquivada", rule: null, severity: 0, ...base };
+  if (yes.length < majorityOf(answers.length) || middle < VIOLATION_MEDIAN) return { outcome: "arquivada", rule: null, severity: 0, ...base };
 
   // A regra mais votada entre quem viu violação; empate fica com a primeira da lista (mais grave).
   const votes = new Map<RuleId, number>();

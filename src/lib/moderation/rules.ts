@@ -79,8 +79,8 @@ export const RULES: Rule[] = [
   {
     id: "direitos",
     title: "Só publique o que é seu",
-    text: "Publicar o jogo de outra pessoa sem permissão, ou usar marca, personagem ou música protegidos sem licença. Quem cria pode pedir a remoção por uma denúncia com detalhes.",
-    criteria: "Republishes someone else's game without permission, or clearly uses copyrighted or trademarked material (characters, logos, music, assets) without a license. Fan works that are clearly credited and non-commercial, or assets under free licenses (CC0, CC-BY with credit), are NOT violations.",
+    text: "Publicar o jogo de outra pessoa sem permissão dela (dar o crédito ou não cobrar não é permissão), ou usar marca, personagem ou música protegidos sem licença. Jogos de fã novos, creditados e sem cobrança, podem. Quem cria pode pedir a remoção por uma denúncia com detalhes.",
+    criteria: "Republishes a whole game made by someone else without showing their permission (crediting the author, linking the original page or giving it away for free does NOT count as permission; the publishing account must be the author or say it has the author's permission), or clearly uses copyrighted or trademarked material (characters, logos, music, assets) without a license. New fan-made games inspired by another work that are clearly credited and non-commercial, and assets under free licenses (CC0, CC-BY with credit), are NOT violations.",
   },
 ];
 
