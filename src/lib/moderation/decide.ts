@@ -6,11 +6,18 @@ import { RULES, ruleById, type RuleId } from "./rules";
  * modelos de fabricantes diferentes julgam o mesmo caso e a decisão sai da
  * maioria, então um modelo sozinho não fecha conta de ninguém.
  *
- * Escolhidos pelo índice de decisão da Artificial Analysis publicado no
- * OpenRouter (nov/2026): Liquid d1.2-ultra 74,8, Baseten Mammoth 1 71,4,
- * Perplexity Decider 69,8. Todos leem texto e imagem.
+ * Três dos mais baratos (todos cobram só a entrada, US$ 0,02 a 0,042 por
+ * milhão de tokens; um caso sai por menos de US$ 0,0002), de fabricantes
+ * diferentes, todos com texto e imagem. Índice de decisão da Artificial
+ * Analysis v2.1 (nov/2026): Liquid d1.2-ultra 74,8 (primeiro lugar, menor
+ * erro de calibração relatado), Perplexity Decider v1.2 69,8, TypeSafe Jev
+ * 1.14 66,2 (estudos independentes o acham sensível à redação e
+ * subconfiante; aqui ele é um voto entre três). Medidos neste site: os três
+ * arquivam uma página limpa, condenam um golpe de "gerador de Robux" e
+ * mantêm ou revertem um recurso como esperado. Baseten Mammoth 1 (71,4) saiu
+ * por custar 2,4 vezes mais.
  */
-export const MODELS = ["liquid/d1.2-ultra", "baseten/mammoth-1", "perplexity/pplx-decider-v1.2"] as const;
+export const MODELS = ["liquid/d1.2-ultra", "perplexity/pplx-decider-v1.2", "typesafe/jev-1.14"] as const;
 
 /** Mínimo de modelos que precisam responder para valer uma decisão. */
 export const QUORUM = 2;

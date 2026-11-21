@@ -20,8 +20,26 @@ export interface ModelReply {
   cost: number | null;
 }
 
-/** Pergunta a um modelo. Devolve null em qualquer falha (o quórum cuida do resto). */
+type ImagePart = Exclude<StateItem, string>;
+const isImage = (x: StateItem): x is ImagePart => typeof x !== "string";
+
+/**
+ * Pergunta a um modelo. Devolve null em qualquer falha (o quórum cuida do resto).
+ * Cada modelo tem limites próprios de imagem (Jev só lê PNG e JPEG; alguns
+ * pedem pelo menos 280 px de lado): se recusar o pedido com imagens, vai de
+ * novo só com o texto, para não perder o voto.
+ */
 export async function askModel(model: string, state: StateItem[], questions: object): Promise<ModelReply | null> {
+  const own = model.startsWith("typesafe/")
+    ? state.filter((x) => !isImage(x) || !x.image_url.url.startsWith("data:image/webp"))
+    : state;
+  const first = await post(model, own, questions);
+  if (first !== "recusado" || !own.some(isImage)) return first === "recusado" ? null : first;
+  const retry = await post(model, own.filter((x) => !isImage(x)), questions);
+  return retry === "recusado" ? null : retry;
+}
+
+async function post(model: string, state: StateItem[], questions: object): Promise<ModelReply | null | "recusado"> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) return null;
   try {
@@ -38,7 +56,7 @@ export async function askModel(model: string, state: StateItem[], questions: obj
     });
     if (!res.ok) {
       console.error(`[moderacao] ${model} respondeu ${res.status}: ${(await res.text()).slice(0, 300)}`);
-      return null;
+      return res.status === 400 ? "recusado" : null;
     }
     const body = (await res.json()) as { answers?: unknown; model?: string; usage?: { cost?: number } };
     return { model: body.model ?? model, answers: body.answers, cost: Number(body.usage?.cost ?? NaN) || null };
