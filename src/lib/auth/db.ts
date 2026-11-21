@@ -280,6 +280,8 @@ export interface ModerationDoc {
   stage?: "turma" | "plenario";
   /** Parecer: as alegações (denúncias, recurso) reescritas em tom neutro, como os juízes leram. */
   brief?: string[];
+  /** Nas decisões de recurso: o texto que a pessoa escreveu (para o PDF da decisão). */
+  appealText?: string;
   /** Fundamentação em português, escrita pelo relator depois da decisão (null se ele falhou). */
   reasoning?: string | null;
   /** O plenário queria fechar a conta, mas sem maioria qualificada: ficou a remoção. */

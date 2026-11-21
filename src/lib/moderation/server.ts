@@ -443,6 +443,7 @@ async function judgeAppeal(
     votes: res.votes,
     stage: "plenario",
     brief: res.brief,
+    appealText: text,
     reasoning,
     cost: sumCost(res.votes.map((x) => x.cost)),
     outcome,

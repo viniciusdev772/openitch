@@ -75,6 +75,13 @@ export default async function ContaSuspensaPage() {
             <strong>{rule?.title ?? ban.rule}.</strong> {rule?.text}
           </p>
           <Reasoning text={decision?.reasoning} />
+          {decision ? (
+            <p>
+              <a href={`/api/moderacao/decisao/${decision._id.toHexString()}`} target="_blank" rel="noopener">
+                Baixar a decisão em PDF
+              </a>
+            </p>
+          ) : null}
           {votes.length > 0 ? (
             <>
               <h2 className="field-label">Votos ({bench(decision?.stage, votes.length)})</h2>
@@ -92,6 +99,13 @@ export default async function ContaSuspensaPage() {
               <h2 className="field-label">Recurso de {day(ban.appeal.at)}</h2>
               <p>{ban.appeal.upheld ? "A decisão foi mantida." : "A decisão foi revertida e a conta reaberta."}</p>
               <Reasoning text={appeal?.reasoning} />
+              {appeal ? (
+                <p>
+                  <a href={`/api/moderacao/decisao/${appeal._id.toHexString()}`} target="_blank" rel="noopener">
+                    Baixar a decisão do recurso em PDF
+                  </a>
+                </p>
+              ) : null}
               {appealVotes.length > 0 ? (
                 <ul>
                   {appealVotes.map((v) => (

@@ -104,7 +104,14 @@ export interface DraftRow {
   /** Endereço público, quando publicado. */
   publicSlug: string | null;
   /** Tirado do ar pela moderação: a regra (título) e em que pé está o recurso; ou null. */
-  moderated: { rule: string; appeal: "pode" | "mantido" | "analisando"; reasoning: string | null } | null;
+  moderated: {
+    rule: string;
+    appeal: "pode" | "mantido" | "analisando";
+    reasoning: string | null;
+    /** Decisão da remoção e, se houve, a do recurso (para o PDF). */
+    decisionId: string;
+    appealId: string | null;
+  } | null;
 }
 
 /** Campos do formulário que podem voltar com erro. */

@@ -20,6 +20,19 @@ export function RemovalAppeal({ id, title, moderated }: { id: string; title: str
             regra e publique de novo, ou recorra.
           </small>
           <Reasoning text={moderated.reasoning} />
+          <small>
+            <a href={`/api/moderacao/decisao/${moderated.decisionId}`} target="_blank" rel="noopener">
+              Baixar a decisão em PDF
+            </a>
+            {moderated.appealId ? (
+              <>
+                {" · "}
+                <a href={`/api/moderacao/decisao/${moderated.appealId}`} target="_blank" rel="noopener">
+                  a decisão do recurso
+                </a>
+              </>
+            ) : null}
+          </small>
         </>
       )}
       {state?.ok ? (

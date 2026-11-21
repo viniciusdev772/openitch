@@ -249,6 +249,8 @@ export async function listDrafts(userId: ObjectId): Promise<DraftRow[]> {
           rule: ruleById(d.moderation.rule)?.title ?? d.moderation.rule,
           appeal: d.moderation.appeal ? "mantido" : d.moderation.appealing ? "analisando" : "pode",
           reasoning: reasonOf(d.moderation),
+          decisionId: d.moderation.decisionId.toHexString(),
+          appealId: d.moderation.appeal?.decisionId.toHexString() ?? null,
         }
       : null,
   }));
