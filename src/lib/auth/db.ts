@@ -260,6 +260,8 @@ export interface ModerationDoc {
   targetKey: string;
   ownerId: ObjectId;
   reportIds: ObjectId[];
+  /** Regras citadas nas denúncias julgadas (para reaproveitar só quando nada de novo foi alegado). */
+  reportRules?: RuleId[];
   /** O que os modelos leram (sem as imagens, que ficam só como endereço). */
   snapshot: string[];
   images: string[];

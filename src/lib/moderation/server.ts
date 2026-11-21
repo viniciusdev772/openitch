@@ -74,8 +74,10 @@ async function caseOf(target: ModerationTarget): Promise<Case | null> {
       `Content notes from the creator: ${list(p.contentNotes)}`,
       `Credits: ${p.credits?.length ? p.credits.map((c) => `${c.role}: ${c.name}`).join("; ") : "none"}`,
       `Files: ${files.length ? files.map((f) => `${f.filename} (${f.platform})`).join("; ") : "none"}`,
-      `Creator: ${owner?.name ?? "?"}${owner?.bio ? ` (bio: ${owner.bio})` : ""}`,
+      `Published on Portal dos Games by the account: ${owner?.name ?? "?"}${owner?.bio ? ` (bio: ${owner.bio})` : ""}`,
     ];
+    // De onde veio: quem publica pode ter trazido a página de outra pessoa.
+    if (p.source?.itchUrl) text.push(`Imported from this itch.io page: ${p.source.itchUrl} (the itch.io subdomain is the original author's account)`);
     if (images.length) text.push("Images follow: the cover first, then screenshots.");
   } else {
     const u = await users.findOne({ _id: target.userId }, { projection: { name: 1, bio: 1, city: 1 } });
@@ -130,6 +132,7 @@ async function judge(c: Case, reports: ReportDoc[], kind: "denuncia" | "publicac
     targetKey: targetKey(c.target),
     ownerId: c.ownerId,
     reportIds: reports.map((r) => r._id),
+    reportRules: [...new Set(reports.map((r) => r.rule))],
     snapshot: c.text,
     images: c.images,
     contentHash: c.hash,
@@ -274,8 +277,16 @@ export async function processPending(maxTargets = 5): Promise<void> {
         await done();
         continue;
       }
+      // Reaproveita só se o mesmo conteúdo já foi julgado com denúncias pelas mesmas regras.
+      const rules = [...new Set(group.map((r) => r.rule))];
       const reuse = await moderation.findOne(
-        { targetKey: first.targetKey, contentHash: c.hash, kind: { $ne: "recurso" }, at: { $gte: new Date(Date.now() - REUSE_MS) } },
+        {
+          targetKey: first.targetKey,
+          contentHash: c.hash,
+          kind: "denuncia",
+          reportRules: { $all: rules },
+          at: { $gte: new Date(Date.now() - REUSE_MS) },
+        },
         { sort: { at: -1 }, projection: { _id: 1 } },
       );
       if (reuse) {
